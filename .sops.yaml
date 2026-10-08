@@ -3,7 +3,7 @@
 keys:
   - &josh age1z0wevk3x8ve59fy9xey4rjt396pnslzts46rplc620qlpvv0pcwsnep6xj
 creation_rules:
-  - path_regex: ^secrets/[^/]+\.yaml$
+  - path_regex: ^secrets/
     key_groups:
       - age:
           - *josh

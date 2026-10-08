@@ -1,6 +1,6 @@
 # User-level Nix settings. GitHub access goes through gh's token so flake fetches aren't
-# rate-limited and private repos (like this one, as a devenv input) resolve. The token is
-# written beside nix.conf at activation, never into the repo or /nix/store.
+# rate-limited (60 requests/hour anonymous) and private repos resolve. The token is written
+# beside nix.conf at activation, never into the repo or /nix/store.
 # One-time per machine: `gh auth login`.
 { config, lib, pkgs, ... }:
 let

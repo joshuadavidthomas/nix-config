@@ -1,11 +1,27 @@
-{ pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 let
-  monolisa = pkgs.runCommand "monolisa" { } ''
-    install -Dm444 -t $out/share/fonts/truetype ${../../fonts/monolisa}/*.ttf
-  '';
+  ageKeyFile = "${config.xdg.configHome}/sops/age/keys.txt";
 in
 {
-  home.packages = [ monolisa ];
+  # MonoLisa is licensed, so the repo only carries it sops-encrypted. It's decrypted straight
+  # into ~/Library/Fonts (macOS ignores symlinked fonts) and never enters /nix/store.
+  home.activation.monolisa = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -r ${ageKeyFile} ]; then
+      for font in MonoLisaNormal MonoLisaItalic; do
+        tmp=$(mktemp)
+        if SOPS_AGE_KEY_FILE=${ageKeyFile} ${lib.getExe pkgs.sops} decrypt --input-type json \
+            --output-type binary ${../../secrets/fonts}/$font.ttf.json > "$tmp"; then
+          cmp -s "$tmp" "$HOME/Library/Fonts/$font.ttf" \
+            || run install -m 644 "$tmp" "$HOME/Library/Fonts/$font.ttf"
+        else
+          warnEcho "MonoLisa: couldn't decrypt $font"
+        fi
+        rm -f "$tmp"
+      done
+    else
+      warnEcho "MonoLisa: no age key at ${ageKeyFile}; fonts not installed"
+    fi
+  '';
 
   home.sessionVariables.HOMEBREW_NO_ENV_HINTS = "1";
 
