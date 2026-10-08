@@ -1,10 +1,10 @@
 #!/bin/sh
-# Fresh Mac to fully configured:
+# Fresh Mac to fully configured, no arguments:
 #
-#   curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <host>
+#   curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
 #
-# <host> is a darwinConfigurations name in flake.nix (e.g. mac-mini). Safe to rerun; each
-# step skips what's already done.
+# Any Apple Silicon Mac gets the same `mac` configuration. Safe to rerun; each step skips
+# what's already done.
 #
 #   1. Install Determinate Nix.
 #   2. Switch straight from GitHub. That installs Homebrew, every app (1Password included)
@@ -14,8 +14,8 @@
 #      (atuin, fonts, ...) falls into place.
 set -eu
 
-host=${1:-}
 flake=github:joshuadavidthomas/nix-config
+config=mac
 op=/usr/local/bin/op
 
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
@@ -24,8 +24,8 @@ if [ "$(uname -s)" != Darwin ]; then
   echo "bootstrap.sh handles Macs; Linux machines are installed from a Mac with nixos-anywhere." >&2
   exit 1
 fi
-if [ -z "$host" ]; then
-  echo "usage: bootstrap.sh <host>   (a darwinConfigurations name in $flake)" >&2
+if [ "$(uname -m)" != arm64 ]; then
+  echo "This config targets Apple Silicon; several of its packages no longer build for Intel Macs." >&2
   exit 1
 fi
 
@@ -39,8 +39,8 @@ export PATH
 
 # 2. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
-  say "First switch ($host), straight from GitHub"
-  sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$host"
+  say "First switch, straight from GitHub"
+  sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
 fi
 
 # 3. 1Password
@@ -57,6 +57,6 @@ fi
 
 # 4. Second switch, from the local clone, now that secrets can unlock.
 say "Switching again from ~/.nix-config"
-sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$host"
+sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$config"
 
-say "Done. Open a new terminal."
+say "Done. Open a new terminal; from now on, \`rebuild\` applies changes."

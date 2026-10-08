@@ -21,6 +21,14 @@ in
     fi # without the key, sopsAgeKey has already said what to do
   '';
 
+  # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
+  # (e.g. `rebuild --rollback`).
+  home.packages = [
+    (pkgs.writeShellScriptBin "rebuild" ''
+      exec sudo /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
+    '')
+  ];
+
   home.sessionVariables.HOMEBREW_NO_ENV_HINTS = "1";
 
   # macOS's own man is used here (home-manager's default on darwin), so there are no

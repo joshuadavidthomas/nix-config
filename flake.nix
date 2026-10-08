@@ -68,11 +68,12 @@
         ];
       };
 
-      darwinConfigurations.mac-mini = nix-darwin.lib.darwinSystem {
+      # any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname
+      darwinConfigurations.mac = nix-darwin.lib.darwinSystem {
         modules = [
           nixpkgsConfig
           nix-homebrew.darwinModules.nix-homebrew
-          ./hosts/mac-mini
+          ./hosts/mac
           home-manager.darwinModules.home-manager
           (homeManagerFor "josh")
         ];
