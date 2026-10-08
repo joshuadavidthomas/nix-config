@@ -1,0 +1,70 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+from __future__ import annotations
+
+import argparse
+import subprocess
+from collections.abc import Sequence
+
+
+def get_current_branch():
+    return subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        stdout=subprocess.PIPE,
+        check=True,
+    ).stdout.decode("utf-8").strip()
+
+
+def get_base_commit(branch, base):
+    return subprocess.run(
+        ["git", "merge-base", branch, base],
+        stdout=subprocess.PIPE,
+        check=True,
+    ).stdout.decode("utf-8").strip()
+
+
+def rebase(branch: str, base: str, interactive: bool = True) -> None:
+    subprocess.run(["git", "rebase", base, branch], check=True)
+
+    base_commit = get_base_commit(branch, base)
+
+    if interactive:
+        command = ["git", "rebase", "-i", base_commit, branch]
+    else:
+        command = ["git", "rebase", base_commit, branch]
+
+    subprocess.run(command, check=True)
+
+
+def push(remote: str = 'origin', branch: str = 'HEAD', force: bool = True) -> None:
+    command = ["git", "push", remote, branch]
+    if force:
+        command.append("-f")
+
+    subprocess.run(command, check=True)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-br", "--branch", type=str)
+    parser.add_argument("-b", "--base", type=str, default="main")
+    args = parser.parse_args(argv)
+
+    branch: str = args.branch
+    base: str = args.base
+
+    if not branch:
+        branch = get_current_branch()
+
+    rebase(branch, base)
+
+    push()
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

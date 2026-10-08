@@ -1,25 +1,77 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    # builds Python apps from a uv.lock (pkgs/llm)
+    pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
+    pyproject-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    uv2nix.url = "github:pyproject-nix/uv2nix";
+    uv2nix.inputs.pyproject-nix.follows = "pyproject-nix";
+    uv2nix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    pyproject-build-systems.url = "github:pyproject-nix/build-system-pkgs";
+    pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
+    pyproject-build-systems.inputs.uv2nix.follows = "uv2nix";
+    pyproject-build-systems.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
+    # source of every tokyonight theme file (bat, btop, eza, ghostty, posting, wezterm)
+    tokyonight.url = "github:joshuadavidthomas/tokyonight.nvim";
+    tokyonight.flake = false;
   };
-  
-  outputs = { nixpkgs, nixos-wsl, home-manager, ... }: {
-    nixosConfigurations.work-wsl = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        nixos-wsl.nixosModules.default
-        ./hosts/work-wsl
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true; # reuse the system's pkgs
-          home-manager.useUserPackages = true;
-          home-manager.users.nixos = import ./home/josh.nix;
-        }
-      ];
+
+  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, ... }:
+    let
+      nixpkgsConfig = {
+        nixpkgs.config.allowUnfree = true;
+        nixpkgs.overlays = [ self.overlays.default ];
+      };
+
+      homeManagerFor = user: {
+        home-manager.useGlobalPkgs = true; # reuse the system's pkgs
+        home-manager.useUserPackages = true;
+        home-manager.backupFileExtension = "bak";
+        home-manager.extraSpecialArgs = { inherit inputs; };
+        home-manager.users.${user} = import ./home/josh.nix;
+      };
+    in
+    {
+      # every machine applies this; project devenvs can reuse it:
+      #   devenv.yaml: inputs.nix-config.url = "github:joshuadavidthomas/nix-config"
+      #   devenv.nix:  overlays = [ inputs.nix-config.overlays.default ];
+      overlays.default = import ./overlay.nix inputs;
+
+      # `nix build .#<name>` and `nix flake check` build the packages from ./pkgs on their own
+      packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (system: {
+        inherit (import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ self.overlays.default ]; })
+          atuin cf lisette llm;
+      });
+      checks = self.packages;
+
+      nixosConfigurations.work-wsl = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          nixos-wsl.nixosModules.default
+          nixpkgsConfig
+          ./hosts/work-wsl
+          home-manager.nixosModules.home-manager
+          (homeManagerFor "nixos")
+        ];
+      };
+
+      darwinConfigurations.mac-mini = nix-darwin.lib.darwinSystem {
+        modules = [
+          nixpkgsConfig
+          ./hosts/mac-mini
+          home-manager.darwinModules.home-manager
+          (homeManagerFor "josh")
+        ];
+      };
     };
-  };
 }

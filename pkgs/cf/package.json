@@ -1,0 +1,8 @@
+{
+  "name": "cf-wrapper",
+  "version": "0.15.0",
+  "private": true,
+  "dependencies": {
+    "cf": "0.15.0"
+  }
+}

@@ -1,0 +1,82 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+from __future__ import annotations
+
+import argparse
+import re
+import subprocess
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from urllib.parse import urlparse
+
+SSH_PATTERN = re.compile(r"^git@([^:]+):([^/]+)/([^/]+?)(\.git)?$")
+
+
+@dataclass(frozen=True)
+class GitRepo:
+    host: str
+    owner: str
+    name: str
+
+
+def parse_git_url(url: str) -> GitRepo | None:
+    if ssh_match := SSH_PATTERN.match(url):
+        return GitRepo(
+            host=ssh_match.group(1), owner=ssh_match.group(2), name=ssh_match.group(3)
+        )
+
+    parsed = urlparse(url)
+    if parsed.hostname:
+        path_parts = parsed.path.strip("/").split("/")
+        if len(path_parts) >= 2:
+            return GitRepo(
+                host=parsed.hostname,
+                owner=path_parts[0],
+                name=path_parts[1].replace(".git", ""),
+            )
+
+    return None
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="git sclone",
+        description="Smart git clone that organizes repos by owner/name in ~/projects",
+    )
+    parser.add_argument("url", help="Git repository URL to clone")
+    parser.add_argument(
+        "directory",
+        nargs="?",
+        help="Directory to clone into (overrides smart behavior)",
+    )
+
+    args, git_args = parser.parse_known_args(argv)
+
+    cmd = ["git", "clone", args.url]
+
+    if args.directory:
+        cmd.append(args.directory)
+    else:
+        cwd = Path.cwd()
+        projects_dir = Path.home() / "projects"
+
+        if cwd == projects_dir:
+            repo = parse_git_url(args.url)
+
+            if repo:
+                target_dir = projects_dir / repo.owner / repo.name
+                target_dir.parent.mkdir(parents=True, exist_ok=True)
+                cmd.append(str(target_dir))
+
+    cmd.extend(git_args)
+
+    result = subprocess.run(cmd)
+    return result.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

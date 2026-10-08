@@ -1,0 +1,74 @@
+{ config, lib, pkgs, ... }: {
+  nixpkgs.hostPlatform = "aarch64-darwin";
+  nix.enable = false; # Determinate Nix manages the daemon; nix-darwin must not
+  system.primaryUser = "josh"; # required for user-level options (Homebrew, defaults)
+  programs.fish.enable = true;
+  environment.shells = [ pkgs.fish ];
+
+  # knownUsers lets nix-darwin set the login shell. For this existing account (uid 501)
+  # activation only updates UserShell and PrimaryGroupID (20, unchanged); nix-darwin
+  # refuses to delete the primary user or any uid <= 501.
+  users.knownUsers = [ "josh" ];
+  users.users.josh = {
+    uid = 501;
+    home = "/Users/josh";
+    shell = pkgs.fish;
+  };
+
+  # installs op to /usr/local/bin, the only place the 1Password app integration accepts
+  programs._1password = {
+    enable = true;
+  };
+
+  # Homebrew stays reachable but after every Nix path, so it can't shadow Nix tools
+  environment.systemPath = lib.mkAfter [
+    "${config.homebrew.prefix}/bin"
+    "${config.homebrew.prefix}/sbin"
+    "${config.users.users.josh.home}/.lmstudio/bin" # lms, managed by LM Studio
+  ];
+
+  # GUI apps stay in Homebrew; Nix owns the CLI.
+  homebrew = {
+    enable = true; # Homebrew itself is installed separately; this only manages it
+    onActivation.cleanup = "uninstall"; # anything not declared here gets removed
+    # declared here means trusted: Homebrew refuses formulae from untrusted third-party taps
+    taps = map (name: { inherit name; trusted = true; }) [
+      "antoniorodr/memo"
+      "steipete/tap"
+      "yakitrak/yakitrak"
+    ];
+    # not in nixpkgs
+    brews = [
+      "antoniorodr/memo/memo" # Apple Notes
+      "steipete/tap/gifgrep"
+      "steipete/tap/remindctl" # Apple Reminders
+      "steipete/tap/sag"
+      "summarize"
+      "yakitrak/yakitrak/notesmd-cli" # Obsidian; renamed from obsidian-cli upstream
+    ];
+    casks = [
+      "ghostty"
+      "jordanbaird-ice@beta"
+      "orbstack"
+      "steipete/tap/codexbar"
+      "t3-code@nightly"
+      "wezterm"
+      "zed"
+    ];
+  };
+
+  # Xcode asks again after every major update, and Homebrew refuses to run until it's
+  # accepted. Runs before the Homebrew step.
+  system.activationScripts.preActivation.text = ''
+    if [ -d /Applications/Xcode.app ] && ! /usr/bin/xcodebuild -license check >/dev/null 2>&1; then
+      echo "accepting the Xcode license..." >&2
+      /usr/bin/xcodebuild -license accept || echo "warning: could not accept the Xcode license" >&2
+    fi
+  '';
+
+  system.defaults.dock.autohide = true;
+
+  home-manager.users.josh = import ./home.nix;
+
+  system.stateVersion = 6; # nix-darwin's value for new installs; never bump
+}

@@ -18,14 +18,14 @@
     home.packages = [ pkgs.wsl-open ];
     home.sessionVariables.BROWSER = "wsl-open";
     programs.gh.settings.browser = "wsl-open";
-    programs.git.settings = {
-      user.email = "jthomas@westervelt.com";
-      core.sshCommand = "ssh.exe";
-      gpg.format = "ssh";
-      gpg.ssh.program = "/mnt/c/Users/jthomas/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe";
-      user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFu+mS88ARLvrHMl3CshOJRL/Ft3TJRr/dG+hTq39aNW";
-      commit.gpgsign = true;
+    programs.git = {
+      settings = {
+        user.email = "jthomas@westervelt.com";
+        core.sshCommand = "ssh.exe";
+      };
+      signing.signer = "/mnt/c/Users/jthomas/AppData/Local/Microsoft/WindowsApps/op-ssh-sign.exe";
     };
+    programs.jujutsu.settings.user.email = "jthomas@westervelt.com";
     home.shellAliases = {
       ssh = "ssh.exe";
       ssh-add = "ssh-add.exe";

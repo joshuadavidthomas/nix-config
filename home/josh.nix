@@ -1,43 +1,101 @@
-{ pkgs, ... }: {
-  home.stateVersion = "26.05"; # set once; don't bump it on upgrades
-
-  home.packages = with pkgs; [
-    devenv
-    fd
-    jq
-    ripgrep
-    uv
+{ pkgs, ... }:
+let
+  # Kept last on PATH so Nix-managed tools win over installer copies left in these dirs.
+  appendedPath = [
+    "$HOME/.local/bin" # other apps' installers (hermes, sprite, swamp, openclaw)
+    "$HOME/.cargo/bin" # `cargo install` output
   ];
 
-  programs.bash.enable = true;
+  pythonScript = name:
+    pkgs.writeScriptBin name ("#!${pkgs.python3}/bin/python3\n" + builtins.readFile ./files/${name});
+in
+{
+  imports = [
+    ./agents.nix
+    ./cli.nix
+    ./fish.nix
+    ./git.nix
+    ./neovim.nix
+  ];
 
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
+  home.stateVersion = "26.05"; # set once; don't bump it on upgrades
+
+  # `man home-configuration.nix` is generated in a way current Nix warns about on every
+  # build; the same reference is at home-manager-options.extranix.com.
+  manual.manpages.enable = false;
+
+  home.packages = (with pkgs; [
+    bun
+    cf
+    cargo-binstall
+    curl
+    delta
+    devenv
+    dotenv-linter
+    fastfetch
+    fd
+    ffmpeg
+    flyctl
+    gnupg
+    go_1_27
+    herdr
+    himalaya
+    jj-starship
+    jjui
+    jq
+    just
+    lisette
+    llm
+    lua5_5
+    nodejs_24
+    pnpm_12
+    posting
+    python314 # default python3; projects pin their own with uv/devenv
+    rclone
+    ripgrep
+    rustic
+    rustup
+    tldr
+    todoist-cli
+    topgrade
+    usage
+    uv
+    wakatime-cli
+    wget
+    zig
+  ]) ++ [
+    (pythonScript "git-rebase-feature-branch")
+    (pythonScript "git-sclone")
+    (pkgs.writeShellScriptBin "video2gif" ''
+      PATH=${pkgs.ffmpeg}/bin:$PATH
+      ${builtins.readFile ./files/video2gif}
+    '')
+  ];
+
+  home.sessionVariables = {
+    UV_SYSTEM_CERTS = "true";
   };
 
-  programs.fish = {
-    enable = true;
-    interactiveShellInit = ''
-      set -g fish_greeting
+  home.shellAliases = {
+    j = "just";
+    lg = "lazygit";
+  };
+
+  programs.bash = {
+    enable = true; # minimal fallback for nix develop, recovery and scripts
+    profileExtra = ''
+      export PATH="$PATH:${builtins.concatStringsSep ":" appendedPath}"
     '';
   };
 
-  programs.gh = {
-    enable = true;
-    settings.git_protocol = "ssh";
-    gitCredentialHelper.enable = true; # git over HTTPS to github.com uses gh's token
+  programs.zsh = {
+    enable = true; # login shell for GUI apps and agents that spawn $SHELL
+    envExtra = ''
+      path+=(${builtins.concatStringsSep " " (map (p: ''"${p}"'') appendedPath)})
+    '';
   };
 
-  programs.git = {
-    enable = true;
-    settings.user.name = "Josh Thomas";
-  };
-
-  programs.starship = {
-    enable = true;
-    settings = builtins.fromTOML (builtins.readFile ./dotfiles/starship.toml) // {
-      scan_timeout = 100;   # ms; default 30
-    };
-  };
+  programs.fish.shellInit = ''
+    fish_add_path --path --append ${builtins.concatStringsSep " " appendedPath}
+  '';
 }
