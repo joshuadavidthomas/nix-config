@@ -17,6 +17,7 @@ in
     ./git.nix
     ./neovim.nix
     ./nix.nix
+    ./secrets.nix
   ];
 
   home.stateVersion = "26.05"; # set once; don't bump it on upgrades
