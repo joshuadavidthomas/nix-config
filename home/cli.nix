@@ -1,6 +1,7 @@
 { config, pkgs, inputs, ... }:
 let
   tokyonight = "${inputs.tokyonight}/extras";
+  direnv = "${config.programs.direnv.package}/bin/direnv";
   yaml = pkgs.formats.yaml { };
   toml = pkgs.formats.toml { };
 in
@@ -120,6 +121,27 @@ in
     enable = true;
     nix-direnv.enable = true;
   };
+
+  # direnv's hook fires on the prompt, so shells that never draw one (agents' tool calls,
+  # editor tasks, `fish -c`) skip it. These load the directory's environment up front instead.
+  # direnv evaluates .envrc in bash, which reads BASH_ENV too: the marker keeps that bash, and
+  # anything the .envrc starts, from calling back into direnv. Claude Code loads it its own
+  # way (agents.nix).
+  programs.zsh.envExtra = ''
+    if [[ ! -o interactive && -z ''${DIRENV_NONINTERACTIVE-} && -z ''${CLAUDECODE-} ]]; then
+      eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export zsh 2>/dev/null)"
+    fi
+  '';
+  home.sessionVariables.BASH_ENV = "${pkgs.writeText "direnv-bash-env" ''
+    if [[ -z ''${DIRENV_NONINTERACTIVE-} ]]; then
+      eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export bash 2>/dev/null)"
+    fi
+  ''}";
+  programs.fish.shellInit = ''
+    if not status is-interactive; and not set -q DIRENV_NONINTERACTIVE
+      DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export fish 2>/dev/null | source
+    end
+  '';
 
   programs.eza = {
     enable = true;

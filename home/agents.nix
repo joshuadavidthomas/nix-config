@@ -6,7 +6,7 @@
 #
 # atuin's hooks (`atuin hook install <agent>`) are declared here; herdr and orca install
 # their own helper scripts, and the hook entries below only call them when present.
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   json = pkgs.formats.json { };
 
@@ -38,6 +38,8 @@ let
       ];
     }
   ];
+
+  direnvLoad = ''eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${config.programs.direnv.package}/bin/direnv export bash 2>/dev/null)"'';
 
   installerPath = lib.makeBinPath (with pkgs; [
     bash
@@ -104,7 +106,19 @@ in
         PreToolUse = atuinHook "claude-code" "Bash";
         PostToolUse = atuinHook "claude-code" "Bash";
         PostToolUseFailure = atuinHook "claude-code" "Bash";
-        SessionStart = herdrSessionStart "$HOME/.claude/hooks/herdr-agent-state.sh";
+        SessionStart = herdrSessionStart "$HOME/.claude/hooks/herdr-agent-state.sh" ++ [
+          {
+            hooks = [
+              {
+                # Each Bash call sources a snapshot of the login shell after .zshenv, and its
+                # PATH undoes direnv's. CLAUDE_ENV_FILE runs after the snapshot, so direnv
+                # loads from there instead (see cli.nix).
+                type = "command";
+                command = ''grep -qxF ${lib.escapeShellArg direnvLoad} "$CLAUDE_ENV_FILE" 2>/dev/null || echo ${lib.escapeShellArg direnvLoad} >> "$CLAUDE_ENV_FILE"'';
+              }
+            ];
+          }
+        ];
       };
     };
   };
