@@ -39,6 +39,7 @@ in
     lazygit
     lisette
     llm
+    neovim-node-client
     neovim-unwrapped
     posting
     ripgrep
