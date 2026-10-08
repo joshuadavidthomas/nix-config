@@ -30,25 +30,24 @@ in
     home.packages = [ pkgs.age pkgs.sops ];
     home.sessionVariables.SOPS_AGE_KEY_FILE = ageKeyFile; # sops' macOS default is ~/Library
 
-    # Fetch the age key from 1Password if this machine doesn't have it yet. Before 1Password
-    # is installed and signed in this only warns; the next switch picks it up.
+    # Fetch the age key from 1Password if this machine doesn't have it yet. Asking for the
+    # document is what makes 1Password prompt (Touch ID); before it's installed and signed in
+    # with CLI integration on, this only warns and the next switch tries again.
     home.activation.sopsAgeKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [ ! -s ${ageKeyFile} ]; then
-        if [ -x ${lib.escapeShellArg cfg.op} ] && ${lib.escapeShellArg cfg.op} whoami >/dev/null 2>&1; then
-          if [[ ! -v DRY_RUN ]]; then
-            mkdir -p "$(dirname ${ageKeyFile})" && chmod 700 "$(dirname ${ageKeyFile})"
-            tmp=$(mktemp "${ageKeyFile}.XXXXXX") # created 0600
-            if ${lib.escapeShellArg cfg.op} document get ${lib.escapeShellArg cfg.ageKeyDocument} > "$tmp" \
-                && grep -q '^AGE-SECRET-KEY-' "$tmp"; then
-              mv "$tmp" ${ageKeyFile}
-              verboseEcho "Fetched the sops age key from 1Password"
-            else
-              rm -f "$tmp"
-              warnEcho "couldn't fetch '${cfg.ageKeyDocument}' from 1Password"
-            fi
+      if [ ! -s ${ageKeyFile} ] && [[ ! -v DRY_RUN ]]; then
+        if [ -x ${lib.escapeShellArg cfg.op} ]; then
+          mkdir -p "$(dirname ${ageKeyFile})" && chmod 700 "$(dirname ${ageKeyFile})"
+          tmp=$(mktemp "${ageKeyFile}.XXXXXX") # created 0600
+          if ${lib.escapeShellArg cfg.op} document get ${lib.escapeShellArg cfg.ageKeyDocument} > "$tmp" 2>/dev/null \
+              && grep -q '^AGE-SECRET-KEY-' "$tmp"; then
+            mv "$tmp" ${ageKeyFile}
+            verboseEcho "Fetched the sops age key from 1Password"
+          else
+            rm -f "$tmp"
+            warnEcho "couldn't get '${cfg.ageKeyDocument}' from 1Password; sign in, turn on Settings > Developer > Integrate with 1Password CLI, then switch again"
           fi
         else
-          warnEcho "sign in to 1Password (and enable its CLI integration), then switch again to unlock secrets"
+          warnEcho "1Password CLI isn't installed yet; switch again once it is"
         fi
       fi
     '';

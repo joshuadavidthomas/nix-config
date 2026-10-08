@@ -43,12 +43,13 @@ if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
 fi
 
-# 3. 1Password
-if ! "$op" whoami >/dev/null 2>&1; then
-  say "Sign in to 1Password, then turn on Settings > Developer > Integrate with 1Password CLI"
+# 3. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
+# you to approve the CLI (Touch ID), so wait on that.
+if ! "$op" vault list >/dev/null 2>&1; then
+  say "Sign in to 1Password, turn on Settings > Developer > Integrate with 1Password CLI, then approve the prompt"
   open -a 1Password || true
   printf 'Waiting for 1Password'
-  until "$op" whoami >/dev/null 2>&1; do
+  until "$op" vault list >/dev/null 2>&1; do
     printf '.'
     sleep 5
   done
