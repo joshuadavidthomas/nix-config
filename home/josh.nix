@@ -16,6 +16,7 @@ in
     ./fish.nix
     ./git.nix
     ./neovim.nix
+    ./nix.nix
   ];
 
   home.stateVersion = "26.05"; # set once; don't bump it on upgrades
