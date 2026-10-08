@@ -9,6 +9,9 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    # the Homebrew release nix-homebrew installs; its own pin trails upstream
+    nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.9";
 
     # builds Python apps from a uv.lock (pkgs/llm)
     pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
@@ -26,7 +29,7 @@
     tokyonight.flake = false;
   };
 
-  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, nix-homebrew, ... }:
     let
       nixpkgsConfig = {
         nixpkgs.config.allowUnfree = true;
@@ -68,6 +71,7 @@
       darwinConfigurations.mac-mini = nix-darwin.lib.darwinSystem {
         modules = [
           nixpkgsConfig
+          nix-homebrew.darwinModules.nix-homebrew
           ./hosts/mac-mini
           home-manager.darwinModules.home-manager
           (homeManagerFor "josh")

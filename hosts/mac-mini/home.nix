@@ -5,7 +5,7 @@ in
 {
   # MonoLisa is licensed, so the repo only carries it sops-encrypted. It's decrypted straight
   # into ~/Library/Fonts (macOS ignores symlinked fonts) and never enters /nix/store.
-  home.activation.monolisa = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.monolisa = lib.hm.dag.entryAfter [ "writeBoundary" "sopsAgeKey" ] ''
     if [ -r ${ageKeyFile} ]; then
       for font in MonoLisaNormal MonoLisaItalic; do
         tmp=$(mktemp)
@@ -18,9 +18,7 @@ in
         fi
         rm -f "$tmp"
       done
-    else
-      warnEcho "MonoLisa: no age key at ${ageKeyFile}; fonts not installed"
-    fi
+    fi # without the key, sopsAgeKey has already said what to do
   '';
 
   home.sessionVariables.HOMEBREW_NO_ENV_HINTS = "1";

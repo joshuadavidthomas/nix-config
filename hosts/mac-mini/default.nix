@@ -27,9 +27,17 @@
     "${config.users.users.josh.home}/.lmstudio/bin" # lms, managed by LM Studio
   ];
 
+  # Installs Homebrew itself, so a fresh Mac needs nothing but Nix. autoMigrate takes over
+  # an existing /opt/homebrew in place.
+  nix-homebrew = {
+    enable = true;
+    user = "josh";
+    autoMigrate = true;
+  };
+
   # GUI apps stay in Homebrew; Nix owns the CLI.
   homebrew = {
-    enable = true; # Homebrew itself is installed separately; this only manages it
+    enable = true;
     onActivation.cleanup = "uninstall"; # anything not declared here gets removed
     # declared here means trusted: Homebrew refuses formulae from untrusted third-party taps
     taps = map (name: { inherit name; trusted = true; }) [
@@ -47,6 +55,7 @@
       "yakitrak/yakitrak/notesmd-cli" # Obsidian; renamed from obsidian-cli upstream
     ];
     casks = [
+      "1password" # updates itself; the first switch on a new Mac installs it
       "ghostty"
       "jordanbaird-ice@beta"
       "orbstack"

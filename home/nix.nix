@@ -7,6 +7,14 @@ let
   tokensFile = "${config.xdg.configHome}/nix/access-tokens.conf";
 in
 {
+  # The config itself, checked out where you edit it and switch from. The first switch on a
+  # new machine runs straight from GitHub and leaves this clone behind.
+  home.activation.nixConfigCheckout = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -e "$HOME/.nix-config" ]; then
+      run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nix-config "$HOME/.nix-config"
+    fi
+  '';
+
   # !include skips a missing file, so this is harmless before gh is logged in
   xdg.configFile."nix/nix.conf".text = ''
     !include access-tokens.conf
