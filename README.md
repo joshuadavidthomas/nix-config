@@ -1,7 +1,5 @@
 # nix-config
 
-> Last reviewed: 2026-10-09
-
 Nix configuration for my Macs, my work laptop (NixOS-WSL) and my homelab boxes. Every machine
 gets its tools and settings from this repo.
 
