@@ -49,7 +49,7 @@
       };
 
       # the homelab boxes, by hostname; each has a hosts/<name>
-      labs = [ "lab-1" "lab-2" ];
+      labs = [ "lab-1" "lab-2" "lab-3" ];
     in
     {
       # every machine applies this; project devenvs can reuse it:
