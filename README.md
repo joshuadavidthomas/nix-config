@@ -2,38 +2,26 @@
 
 Nix configuration for my Macs, my work laptop (NixOS-WSL) and my homelab boxes.
 
-| Machine | Configuration | Apply |
-| --- | --- | --- |
-| Mac | `hosts/mac` | `rebuild` |
-| Work laptop (WSL) | `hosts/work-wsl` | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
-| Lab box | `hosts/lab-N`, `modules/server.nix` | `colmena apply`, on the Mac, in `~/.nix-config` |
+```text
+flake.nix          inputs, and one configuration for each kind of machine
+overlay.nix        where each package comes from
+pkgs/              packages that nixpkgs does not have
+home/              home-manager configuration for all machines
+hosts/mac/         Macs (nix-darwin)
+hosts/work-wsl/    work laptop (NixOS-WSL)
+hosts/lab-N/       one lab box (NixOS)
+modules/server.nix settings for all lab boxes
+secrets/           secrets, encrypted with sops
+bootstrap.sh       sets up a new Mac
+```
 
-## Where a change goes
+## Set up a machine
 
-| To add or change | Edit |
-| --- | --- |
-| A command-line tool, on all machines | `home.packages` in `home/josh.nix` |
-| A tool that is already configured | The file in `home/` that configures it |
-| A coding agent, or its settings and hooks | `home/agents.nix` |
-| A tool or setting on the Mac only | `hosts/mac/home.nix` |
-| A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
-| A Homebrew formula that nixpkgs does not have | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
-| A macOS setting | `system.defaults` in `hosts/mac/default.nix` |
-| A work setting | `hosts/work-wsl/default.nix` |
-| A setting on all lab boxes | `modules/server.nix` |
-| A setting on one lab box | `hosts/lab-N/default.nix` |
-| The source of a package (release or unstable) | `overlay.nix` |
-| A package that nixpkgs does not have | `pkgs/`. See [Changes](docs/changes.md#add-a-package-that-nixpkgs-does-not-have). |
-| A secret | `secrets/`. See [Secrets](docs/secrets.md). |
+- [A new Mac](docs/new-mac.md)
+- [NixOS-WSL](docs/new-wsl.md)
+- [A lab box](docs/new-lab-box.md)
 
-## Docs
+## Work in the repo
 
-- [Set up a new Mac](docs/new-mac.md)
-- [Set up NixOS-WSL](docs/new-wsl.md)
-- [Set up a lab box](docs/new-lab-box.md)
-- [Changes](docs/changes.md): apply, update, roll back
+- [Changes](docs/changes.md): where a change goes, apply, update, roll back
 - [Secrets](docs/secrets.md)
-
-Options: [NixOS](https://search.nixos.org/options),
-[home-manager](https://home-manager-options.extranix.com),
-[nix-darwin](https://nix-darwin.github.io/nix-darwin/manual/index.html).
