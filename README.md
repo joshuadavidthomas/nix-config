@@ -60,13 +60,6 @@ sure that they are installed, and writes their settings.
 Secrets are encrypted in `secrets/`. When 1Password is unlocked, an apply on the Mac gets the
 age key from 1Password and decrypts the secrets.
 
-## Future ideas
-
-- [ ] Set up `lab-2` and `lab-3`
-- [ ] Secrets on the lab boxes, with keys from their SSH host keys
-- [ ] A binary cache on one lab box
-- [ ] Apply `work-wsl` again with the new `home/`
-
 ## License
 
 [MIT](LICENSE). The encrypted MonoLisa fonts in `secrets/fonts/` are not covered.
