@@ -1,6 +1,6 @@
 # Every machine: the Mac, WSL, the lab boxes and VMs. lib/mksystem.nix gives it to vars.user
-# everywhere, so ssh into any box and the tools are there. home/dev adds what's only needed
-# where you write code.
+# everywhere, so every machine has the same tools, languages and agents. What only one
+# platform can have goes in hosts/<name>/home.nix.
 { pkgs, ... }:
 let
   pythonScript = name:
@@ -8,11 +8,14 @@ let
 in
 {
   imports = [
+    ./agents.nix
     ./atuin.nix
     ./cli.nix
     ./fish.nix
     ./git.nix
     ./neovim.nix
+    ./nix.nix
+    ./secrets.nix
     ./shell.nix
   ];
 
@@ -23,26 +26,36 @@ in
   manual.manpages.enable = false;
 
   home.packages = (with pkgs; [
+    bun
+    cargo-binstall
     cf
     curl
     delta
+    devenv
     dotenv-linter
     fastfetch
     fd
     ffmpeg
     flyctl
     gnupg
+    go_1_27
     herdr
     himalaya
     jj-starship
     jjui
     jq
     just
+    lisette
     llm
+    lua5_5
+    nodejs_24
+    pnpm_12
     posting
+    python314 # default python3; projects pin their own with uv/devenv
     rclone
     ripgrep
     rustic
+    rustup
     tldr
     todoist-cli
     topgrade
@@ -50,6 +63,7 @@ in
     uv
     wakatime-cli
     wget
+    zig
   ]) ++ [
     (pythonScript "git-rebase-feature-branch")
     (pythonScript "git-sclone")

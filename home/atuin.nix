@@ -2,7 +2,7 @@
 { config, lib, pkgs, ... }:
 let
   ageKeyFile = "${config.xdg.configHome}/sops/age/keys.txt";
-  secretsFile = ../../secrets/secrets.yaml;
+  secretsFile = ../secrets/secrets.yaml;
   sops = lib.getExe pkgs.sops;
   atuin = lib.getExe config.programs.atuin.package;
 in

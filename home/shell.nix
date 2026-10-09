@@ -7,7 +7,7 @@
 # that bash, and anything the .envrc starts, from calling back into direnv. A shell that
 # inherited a loaded environment keeps it: build tools run scripts from other directories
 # (cargo runs the linker, a bash script, from each crate's source), where reloading would
-# unload it. Claude Code loads it its own way (home/dev/agents.nix).
+# unload it. Claude Code loads it its own way (agents.nix).
 { config, ... }:
 let
   direnv = "${config.programs.direnv.package}/bin/direnv";

@@ -4,10 +4,9 @@
 
 | To add or change | Edit |
 | --- | --- |
-| A command-line tool, on all machines | `home.packages` in `home/core/default.nix` |
-| A language toolchain, on the Mac and WSL | `home.packages` in `home/dev/default.nix` |
-| A tool that is already configured | The file in `home/core/` or `home/dev/` that configures it |
-| A coding agent, or its settings and hooks | `home/dev/agents.nix` |
+| A command-line tool or language, on all machines | `home.packages` in `home/default.nix` |
+| A tool that is already configured | The file in `home/` that configures it |
+| A coding agent, or its settings and hooks | `home/agents.nix` |
 | A tool or setting on the Mac only | `hosts/mac/home.nix` |
 | A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
 | A Homebrew formula that nixpkgs does not have | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
@@ -122,7 +121,7 @@ Lab boxes do this every day.
 | `path '…' does not exist` for a new file | jj did not record the file | Run `jj status` |
 | `git commit` makes an empty commit | jj recorded the change first | Use `jj describe` and `jj new`. Remove the empty commit with `jj abandon`. |
 | A GitHub rate limit error during an update | Nix has no GitHub token | Run `gh auth login`. Apply again. |
-| `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/core/git.nix` |
+| `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/git.nix` |
 | home-manager stops and names a `.bak` file | An old backup is in the way | Move the old `.bak` file. Apply again. |
 | `infinite recursion encountered` | A module reads `config` to decide what to define | Put the condition in `lib.mkIf` on the value, not around `imports` |
 

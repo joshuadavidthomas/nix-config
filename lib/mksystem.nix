@@ -1,6 +1,6 @@
 # Builds every machine in flake.nix: NixOS (WSL, the lab boxes, VMs) or nix-darwin (the Mac).
 # Each gets the overlay, the base module for its OS in modules/, and home-manager for
-# vars.user with home/core. hosts/<name> adds the rest, including its own home.nix.
+# vars.user with home/. hosts/<name> adds the rest, including its own home.nix.
 { self, inputs, vars }:
 name: { system }:
 let
@@ -24,7 +24,7 @@ systemFunc {
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "bak";
       home-manager.extraSpecialArgs = { inherit inputs vars; };
-      home-manager.users.${vars.user}.imports = [ ../home/core ];
+      home-manager.users.${vars.user}.imports = [ ../home ];
     }
   ];
 }

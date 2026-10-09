@@ -3,8 +3,6 @@ let
   ageKeyFile = "${config.xdg.configHome}/sops/age/keys.txt";
 in
 {
-  imports = [ ../../home/dev ];
-
   # MonoLisa is licensed, so the repo only carries it sops-encrypted. It's decrypted straight
   # into ~/Library/Fonts (macOS ignores symlinked fonts) and never enters /nix/store.
   home.activation.monolisa = lib.hm.dag.entryAfter [ "writeBoundary" "sopsAgeKey" ] ''

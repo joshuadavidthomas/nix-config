@@ -1,7 +1,7 @@
 # Secrets live encrypted in secrets/ (sops + age; recipients in .sops.yaml). The one
 # key that opens them is kept in 1Password and fetched on the first switch after 1Password
 # is signed in; steps that need a secret decrypt it in memory, so nothing decrypted stays on
-# disk (fonts excepted, which have to be real files). atuin's login is in home/core/atuin.nix.
+# disk (fonts excepted, which have to be real files). atuin's login is in atuin.nix.
 #
 # Edit secrets: sops secrets/secrets.yaml
 { config, lib, pkgs, ... }:

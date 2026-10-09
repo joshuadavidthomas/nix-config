@@ -53,11 +53,11 @@ Research:
 
 `flake.nix` has one configuration for each kind of machine: `mac` for all Apple Silicon Macs,
 `work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds each of them the same
-way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/core/`
-for the user. So every machine has the same shells and tools. `hosts/<name>/` adds what is
-particular to the machine. The Mac and the work laptop add `home/dev/`, with language
-toolchains and coding agents. The lab boxes share `modules/nixos/server.nix`. Values that more
-than one machine uses, such as the username and the public keys, are in `vars.nix`.
+way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/` for
+the user. So every machine has the same shells, tools, languages and coding agents.
+`hosts/<name>/` adds what only that machine or platform can have, such as Mac apps or WSL
+interop. The lab boxes share `modules/nixos/server.nix`. Values that more than one machine
+uses, such as the username and the public keys, are in `vars.nix`.
 
 `overlay.nix` selects the source of each package. Command-line tools come from
 `nixpkgs-unstable`. Runtimes and libraries come from the release. Packages that nixpkgs does not
