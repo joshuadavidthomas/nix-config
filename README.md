@@ -26,14 +26,6 @@ Nix configuration for my Macs, my work laptop (NixOS-WSL) and my homelab boxes.
 | A package that nixpkgs does not have | `pkgs/`. See [Changes](docs/changes.md#add-a-package-that-nixpkgs-does-not-have). |
 | A secret | `secrets/`. See [Secrets](docs/secrets.md). |
 
-## Rules
-
-- Use jj, not git. Record a change with `jj describe -m "…"`, then `jj new`.
-- After you add a file, run `jj status`.
-- Run `nix flake check` before you record a change.
-- Keep secrets out of `.nix` files.
-- Never change `stateVersion`.
-
 ## Docs
 
 - [Set up a new Mac](docs/new-mac.md)
