@@ -43,6 +43,7 @@ Docs:
 - [Set up a lab box](docs/new-lab-box.md)
 - [Make a change](docs/changes.md)
 - [Secrets](docs/secrets.md)
+- [Decisions](docs/decisions.md)
 - [Roadmap](docs/roadmap.md)
 
 Research:

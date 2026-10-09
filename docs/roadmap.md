@@ -11,11 +11,20 @@
 ## Homelab
 
 - [x] Set up `lab-2` and `lab-3`
-- [ ] Secrets on the lab boxes, with age keys from their SSH host keys. Start with a Tailscale
-      auth key.
 - [ ] A binary cache on one lab box
 - [ ] Lab boxes as remote builders for each other and for the Mac
 - [ ] `system.autoUpgrade` on the lab boxes
+
+## Secrets
+
+See [Decisions](decisions.md#secrets).
+
+- [ ] Create the shared vault and a read-only service account for it
+- [ ] Read secrets from 1Password with opnix, on every machine
+- [ ] Remove sops: atuin, the MonoLisa fonts (as 1Password Documents), the age key
+- [ ] A shared signing key for the lab boxes, registered on GitHub
+- [ ] A Tailscale auth key in 1Password, so that a new lab box joins without the login URL
+- [ ] After a few days of use, check `op service-account ratelimit`
 
 ## Monitoring
 
@@ -33,7 +42,7 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [ ] Declare the apps that Homebrew does not install
 - [ ] Declare macOS settings: Finder, trackpad, appearance
 - [ ] Declare login items
-- [ ] Move the remaining tokens (Claude, gh, Todoist) into sops
+- [ ] Move the remaining tokens (Claude, gh, Todoist) into 1Password
 - [ ] Garbage collection
 
 ## All machines
