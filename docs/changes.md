@@ -1,6 +1,6 @@
 # Changes
 
-To find the file for a change, see [Where a change goes](../README.md#where-a-change-goes).
+For the file to edit, see [Where a change goes](../README.md#where-a-change-goes).
 
 ## Apply a change
 
@@ -29,7 +29,7 @@ example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.s
 1. Write the package in `pkgs/<name>.nix`.
 2. Add it to `pkgs/default.nix`.
 3. Add its name to the `inherit (unstable)` list in `overlay.nix`.
-4. Add its name to `packages` in `flake.nix`. Then `nix flake check` builds it.
+4. Add its name to `packages` in `flake.nix`.
 5. Add the package to the configuration, for example to `home.packages`.
 
 ## Change the version of a package in pkgs/
@@ -44,7 +44,7 @@ example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.s
 
 4. Copy the correct hash from the error into the file.
 
-`pkgs/cf/default.nix` has its own steps at the top of the file.
+For cf, follow the steps in `pkgs/cf/default.nix`.
 
 ## Update inputs
 
@@ -54,9 +54,9 @@ example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.s
    nix flake update
    ```
 
-   To update one input, name it: `nix flake update nixpkgs`.
+   To update one input: `nix flake update nixpkgs`.
 
-2. Optional: compare the new Mac configuration with the running one:
+2. Optional: compare the new Mac configuration with the current one:
 
    ```sh
    nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
@@ -94,7 +94,7 @@ If a lab box does not start, select an older generation in its boot menu.
 sudo nix-collect-garbage --delete-older-than 30d
 ```
 
-Lab boxes do this every day at 03:15.
+Lab boxes do this every day.
 
 ## If it stops
 

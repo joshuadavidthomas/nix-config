@@ -1,7 +1,6 @@
 # Set up a lab box
 
-This procedure installs NixOS on a lab box from the Mac, then connects the lab box to
-Tailscale. The examples use `lab-2`. Use the next free number.
+The examples use `lab-2`. Use the next free number.
 
 ## What you need
 
@@ -17,7 +16,7 @@ Tailscale. The examples use `lab-2`. Use the next free number.
    cp -r hosts/lab-1 hosts/lab-2
    ```
 
-2. Empty the hardware configuration. nixos-anywhere writes it during the install.
+2. Empty the hardware configuration:
 
    ```sh
    echo '{ }' > hosts/lab-2/hardware-configuration.nix
@@ -65,16 +64,12 @@ Tailscale. The examples use `lab-2`. Use the next free number.
 
 3. Enter the installer password when asked.
 
-The lab box partitions its disk, builds NixOS, installs it and restarts. The output ends with
-`Connection refused` and `### Done! ###`. That is the restart.
-
-`IdentityAgent=none` stops SSH from offering the 1Password keys. Without it, sshd refuses the
-connection before it asks for the password.
+The output ends with `Connection refused` and `### Done! ###`. That is the restart.
 
 ## Connect to Tailscale
 
-1. Find the IP address of the lab box. It can change during the install. Find the MAC address
-   in the DHCP client list of the router.
+1. Find the new IP address of the lab box. Look for its MAC address in the DHCP client list
+   of the router.
 2. Start Tailscale on the lab box:
 
    ```sh
@@ -90,7 +85,7 @@ connection before it asks for the password.
 
 ## Record and apply
 
-1. Record the change. It includes the new `hardware-configuration.nix`.
+1. Record the change:
 
    ```sh
    jj describe -m "Add lab-2"

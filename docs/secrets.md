@@ -1,8 +1,5 @@
 # Secrets
 
-Nix copies the configuration into `/nix/store`, and all users can read the store. So the
-configuration contains no secrets.
-
 ## Where each secret is
 
 | What | Where |
@@ -13,17 +10,14 @@ configuration contains no secrets.
 | Other secrets | `secrets/`, encrypted with sops |
 | The keys that can decrypt `secrets/` | `.sops.yaml` |
 
-On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the age key from 1Password. The
-step runs at each apply until the age key is on the Mac. 1Password must be unlocked, with the
-CLI integration on.
-
-Steps that need a secret decrypt it during the apply. Only fonts are written to disk.
+On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the age key from 1Password at each
+apply until the key is present. 1Password must be unlocked, with the CLI integration on.
 
 ## Put the age key on a machine
 
 Do this on machines other than a Mac. On a Mac, unlock 1Password and apply again.
 
-1. Make the directory. Only you can read it.
+1. Make the directory:
 
    ```sh
    mkdir -p -m 700 ~/.config/sops/age
@@ -37,7 +31,7 @@ Do this on machines other than a Mac. On a Mac, unlock 1Password and apply again
 
    If `op` is not installed, copy the document into the file by hand.
 
-3. Make the file readable only by you:
+3. Limit access to the file:
 
    ```sh
    chmod 600 ~/.config/sops/age/keys.txt
@@ -45,13 +39,13 @@ Do this on machines other than a Mac. On a Mac, unlock 1Password and apply again
 
 ## Change a secret
 
-1. Open the secrets file. sops decrypts it in your editor.
+1. Open the secrets file:
 
    ```sh
    sops secrets/secrets.yaml
    ```
 
-2. Change the value. Save the file. sops encrypts it again.
+2. Change the value. Save the file.
 3. Record the change.
 
 To read one value:
@@ -72,14 +66,12 @@ To use a secret in the configuration, decrypt it in a step that runs after `sops
      --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
    ```
 
-   Without `--filename-override`, sops shows `no matching creation rules found`.
-
 2. In the step that uses the file, decrypt it with `--input-type json --output-type binary`.
 
 ## Add or replace an age key
 
 1. Change `keys` in `.sops.yaml`.
-2. Encrypt each file again for the new keys. In fish:
+2. Encrypt each file for the new keys (fish):
 
    ```sh
    for f in secrets/secrets.yaml secrets/fonts/*.json; sops updatekeys $f; end

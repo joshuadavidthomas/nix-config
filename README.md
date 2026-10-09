@@ -1,8 +1,6 @@
 # nix-config
 
-This repo configures my machines with Nix: Apple Silicon Macs, a work laptop on NixOS-WSL,
-and homelab boxes. One home-manager configuration in `home/` is shared by all of them.
-Comments in the code explain each decision.
+Nix configuration for my Macs, my work laptop (NixOS-WSL) and my homelab boxes.
 
 | Machine | Configuration | Apply |
 | --- | --- | --- |
@@ -31,7 +29,7 @@ Comments in the code explain each decision.
 ## Rules
 
 - Use jj, not git. Record a change with `jj describe -m "…"`, then `jj new`.
-- After you add a file, run `jj status`. The flake does not see a file before jj records it.
+- After you add a file, run `jj status`.
 - Run `nix flake check` before you record a change.
 - Keep secrets out of `.nix` files.
 - Never change `stateVersion`.

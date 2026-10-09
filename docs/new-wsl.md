@@ -2,9 +2,6 @@
 
 Last applied before the October 2026 changes to `home/`. Not tested since.
 
-This procedure sets up NixOS in WSL on the work laptop, with the configuration `work-wsl`. The
-user is `nixos`.
-
 ## What you need
 
 - WSL from the Microsoft Store
@@ -41,11 +38,10 @@ user is `nixos`.
      --option extra-experimental-features 'nix-command flakes'
    ```
 
-   The apply clones the repo to `~/.nix-config`. Some packages build from source, so it takes a
-   long time.
+   The first apply takes a long time. It clones the repo to `~/.nix-config`.
 
 7. Close NixOS and start it again.
-8. List the SSH keys. The list shows your 1Password keys.
+8. Make sure that the SSH agent shows your 1Password keys:
 
    ```sh
    ssh-add -l
@@ -71,11 +67,10 @@ To apply later:
 sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
 ```
 
-In WSL, `ssh` and `ssh-add` run `ssh.exe` and `ssh-add.exe` on Windows. SSH reads its
-settings from `%USERPROFILE%\.ssh\config`.
+SSH settings go in `%USERPROFILE%\.ssh\config` on Windows. `ssh` runs `ssh.exe`.
 
-The `sopsAgeKey` step looks for `op` at the Mac path, so it does not run on WSL. To make it
-run, set `secrets.op` in `hosts/work-wsl/default.nix` to the Windows `op.exe` (unverified).
+To get the age key from 1Password at each apply, set `secrets.op` in
+`hosts/work-wsl/default.nix` to the Windows `op.exe` (unverified).
 
 ## If it stops
 
@@ -83,6 +78,6 @@ run, set `secrets.op` in `hosts/work-wsl/default.nix` to the Windows `op.exe` (u
 | --- | --- | --- |
 | Certificate errors on downloads | The network inspects TLS | Export the company root CA from Windows. Add it to `security.pki.certificateFiles` in `hosts/work-wsl/default.nix`. |
 | `Failed to start the systemd user session for 'nixos'` | Another WSL distribution uses the session for user ID 1000 | Run `wsl --shutdown`. Start NixOS before other distributions. |
-| Each apply ends with exit status 4 | The same cause | The same action |
+| Each apply ends with exit status 4 | The same as above | The same as above |
 | `cannot execute binary file` for a Windows program | WSL interop is not registered | Keep `wsl.interop.register = true` |
 | A downloaded program shows `No such file or directory` | NixOS has no standard dynamic loader | Keep `programs.nix-ld.enable = true` |
