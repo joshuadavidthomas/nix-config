@@ -36,13 +36,14 @@ Then apply changes with:
 | Work laptop | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
 | Homelab | `colmena apply`, on the Mac, in `~/.nix-config` |
 
-Guides:
+Docs:
 
 - [Set up a new Mac](docs/new-mac.md)
 - [Set up NixOS-WSL](docs/new-wsl.md)
 - [Set up a lab box](docs/new-lab-box.md)
 - [Make a change](docs/changes.md)
 - [Secrets](docs/secrets.md)
+- [Roadmap](docs/roadmap.md)
 
 ## How it works
 
