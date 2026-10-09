@@ -13,11 +13,7 @@
     settings.PasswordAuthentication = false;
     settings.KbdInteractiveAuthentication = false;
   };
-  users.users.${vars.user} = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = [ vars.keys.controller ];
-  };
+  users.users.${vars.user}.openssh.authorizedKeys.keys = [ vars.keys.controller ];
   users.users.root.openssh.authorizedKeys.keys = [ vars.keys.controller ]; # colmena deploys as root
   security.sudo.wheelNeedsPassword = false;
 

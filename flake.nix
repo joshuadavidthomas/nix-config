@@ -60,11 +60,7 @@
         work-wsl = mkSystem "work-wsl" { system = "x86_64-linux"; };
       }
       # nixos-anywhere installs a lab box from here; colmenaHive deploys it afterwards
-      // nixpkgs.lib.genAttrs labs (name: nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs vars; };
-        modules = [ ./modules/nixos ./hosts/${name} ];
-      });
+      // nixpkgs.lib.genAttrs labs (name: mkSystem name { system = "x86_64-linux"; });
 
       # `colmena apply` from the Mac; every build runs on the boxes themselves
       colmenaHive = colmena.lib.makeHive ({

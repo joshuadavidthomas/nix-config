@@ -54,12 +54,7 @@ in
   };
   home.file.".ssh/lab.pub".text = "${vars.keys.controller}\n";
 
-  programs.git = {
-    settings.user.email = vars.email;
-    signing.signer = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-  };
-
-  programs.jujutsu.settings.user.email = vars.email;
+  programs.git.signing.signer = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
 
   programs.ghostty = {
     enable = true;

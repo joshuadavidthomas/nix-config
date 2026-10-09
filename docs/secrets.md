@@ -4,7 +4,7 @@
 
 | What | Where |
 | --- | --- |
-| SSH keys and the git signing key | 1Password. Machines use them through the 1Password SSH agent. |
+| SSH keys and the git signing key | 1Password. Machines use them through the 1Password SSH agent. The lab boxes have no signing key yet. |
 | The age key | 1Password, the document "nix-config sops age key" |
 | The age key on a machine | `~/.config/sops/age/keys.txt` |
 | Other secrets | `secrets/`, encrypted with sops |
