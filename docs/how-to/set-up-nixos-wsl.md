@@ -1,99 +1,124 @@
-# How to set up NixOS-WSL on a Windows laptop
+# How to set up NixOS-WSL
 
-This installs NixOS as a WSL distro beside any existing one and applies the `work-wsl` host.
+This procedure installs NixOS as a WSL distribution and applies the `work-wsl` host.
 
-> The `work-wsl` host hasn't been rebuilt since the Mac work reshaped `home/`. Expect warnings
-> about the 1Password CLI, and long builds of atuin, cf, lisette and llm. See the
-> [roadmap](../roadmap.md#still-open) before relying on it.
+> **Caution:** The `work-wsl` host has not been applied since the Mac changes to `home/`.
+> Expect 1Password CLI warnings and long builds. See the [roadmap](../roadmap.md#wsl).
 
 ## Install NixOS-WSL
 
-You need the Microsoft Store version of WSL. Download `nixos.wsl` from the
-[NixOS-WSL releases](https://github.com/nix-community/NixOS-WSL/releases/latest), then in
-PowerShell:
+You need the Microsoft Store version of WSL.
 
-```powershell
-wsl --install --from-file nixos.wsl
-wsl -d NixOS
-```
+1. Download `nixos.wsl` from the
+   [NixOS-WSL releases](https://github.com/nix-community/NixOS-WSL/releases/latest).
+2. In PowerShell, install and start it:
 
-The default user is `nixos`. Inside the distro, set a password and update the channel the image
-starts on:
+   ```powershell
+   wsl --install --from-file nixos.wsl
+   wsl -d NixOS
+   ```
 
-```sh
-passwd
-sudo nix-channel --update
-```
+3. Set a password for the `nixos` user:
 
-## Apply this repo
+   ```sh
+   passwd
+   ```
 
-Switch straight from GitHub. The flake turns on flakes itself, so `--extra-experimental-features`
-is only needed for this first run:
+4. Update the channel:
 
-```sh
-sudo nixos-rebuild switch --flake github:joshuadavidthomas/nix-config#work-wsl \
-  --option extra-experimental-features 'nix-command flakes'
-```
+   ```sh
+   sudo nix-channel --update
+   ```
 
-The switch clones this repo to `~/.nix-config`. From then on, apply changes with:
+## Apply the configuration
 
-```sh
-sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
-```
+1. Apply the configuration from GitHub:
 
-If downloads fail with certificate errors, the corporate network is inspecting TLS. Export the
-company root CA from Windows, add it with `security.pki.certificateFiles` in
-`hosts/work-wsl/default.nix`, and switch again.
+   ```sh
+   sudo nixos-rebuild switch --flake github:joshuadavidthomas/nix-config#work-wsl \
+     --option extra-experimental-features 'nix-command flakes'
+   ```
+
+   This also clones the repo to `~/.nix-config`.
+
+2. To apply changes later, use the local clone:
+
+   ```sh
+   sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
+   ```
+
+If downloads fail with certificate errors, the network inspects TLS. Export the company root
+CA from Windows. Add it to `security.pki.certificateFiles` in `hosts/work-wsl/default.nix`.
+Then apply again.
 
 ## Connect 1Password
 
-SSH and git signing go through 1Password on the Windows side. In 1Password for Windows, turn on
-the SSH agent. Then, in WSL:
+SSH and git signing use 1Password on Windows.
 
-```sh
-ssh-add -l                  # aliased to ssh-add.exe; should list your 1Password keys
-ssh -T git@github.com       # aliased to ssh.exe; should greet you by username
-gh auth login               # also lets Nix use gh's token for GitHub fetches
-```
+1. In 1Password for Windows, turn on Settings > Developer > Use the SSH agent.
+2. In WSL, list the keys. You should see your 1Password keys.
 
-If `ssh-add.exe` isn't found, WSL interop is off. SSH config for WSL lives in
-`%USERPROFILE%\.ssh\config` on Windows, because `ssh.exe` reads that file.
+   ```sh
+   ssh-add -l
+   ```
 
-To check commit signing, make a signed commit on a scratch branch and confirm GitHub marks it
-Verified. If signing fails, compare `signing.signer` in `hosts/work-wsl/default.nix` with
-1Password's own snippet (open the key in 1Password, Configure Commit Signing, tick the WSL
-option, Copy Snippet).
+3. Test SSH to GitHub. GitHub replies with your username.
 
-## If other WSL distros are running
+   ```sh
+   ssh -T git@github.com
+   ```
 
-If NixOS reports `Failed to start the systemd user session for 'nixos'`, or every
-`nixos-rebuild switch` ends with exit status 4, another distro is holding the UID-1000 user
-session. The system config still applies. To avoid it:
+4. Log in to GitHub:
 
-- Start NixOS first: `wsl --shutdown`, then `wsl -d NixOS`.
-- In Docker Desktop, under Settings > Resources > WSL integration, turn off integration for
-  distros you don't need.
-- Make NixOS the default with `wsl --set-default NixOS`.
+   ```sh
+   gh auth login
+   ```
 
-## Move off an old distro
+5. Make a signed commit on a test branch. Push it, and make sure GitHub shows "Verified".
 
-Export it first; `wsl --import` restores the tar exactly:
+In WSL, `ssh` and `ssh-add` are aliases for `ssh.exe` and `ssh-add.exe`. If the shell cannot
+find them, WSL interop is off. SSH reads its config from `%USERPROFILE%\.ssh\config` on
+Windows.
 
-```powershell
-wsl --shutdown
-wsl --export Ubuntu D:\wsl-backups\ubuntu.tar
-```
+If signing fails, compare `signing.signer` in `hosts/work-wsl/default.nix` with the snippet
+from 1Password. To get the snippet, open the key in 1Password and select Configure Commit
+Signing. Tick the WSL option, then select Copy Snippet.
 
-Then move things over as you need them. Tools go into `home.packages`, dotfiles into
-home-manager, and repos get re-cloned. Copy keys and `.env` files by hand; they never go in
-this repo. To copy files across, stage them on `C:`:
+## If other distributions are running
 
-```sh
-# in Ubuntu
-tar czf /mnt/c/Users/jthomas/from-ubuntu.tgz -C ~ .gnupg src/some-repo
-# in NixOS
-mkdir -p ~/from-ubuntu && tar xzf /mnt/c/Users/jthomas/from-ubuntu.tgz -C ~/from-ubuntu
-```
+Another distribution can hold the systemd session for user ID 1000. Then NixOS shows
+`Failed to start the systemd user session for 'nixos'`, and each switch ends with exit
+status 4. The system configuration still applies.
 
-Once you've gone a week without opening the old distro, remove it with
-`wsl --unregister Ubuntu`. The exported tar stays as the safety net.
+To prevent this:
+
+1. Start NixOS first: run `wsl --shutdown`, then `wsl -d NixOS`.
+2. In Docker Desktop, open Settings > Resources > WSL integration. Turn off the distributions
+   that you do not use.
+3. Make NixOS the default: `wsl --set-default NixOS`.
+
+## Remove an old distribution
+
+1. Export the distribution. `wsl --import` can restore it from this file.
+
+   ```powershell
+   wsl --shutdown
+   wsl --export Ubuntu D:\wsl-backups\ubuntu.tar
+   ```
+
+2. Copy the files that you need through `C:`:
+
+   ```sh
+   # in Ubuntu
+   tar czf /mnt/c/Users/jthomas/from-ubuntu.tgz -C ~ .gnupg src/some-repo
+   # in NixOS
+   mkdir -p ~/from-ubuntu && tar xzf /mnt/c/Users/jthomas/from-ubuntu.tgz -C ~/from-ubuntu
+   ```
+
+3. Add tools to `home.packages` when you need them. Do not put keys or `.env` files in this
+   repo.
+4. After a week without the old distribution, remove it:
+
+   ```powershell
+   wsl --unregister Ubuntu
+   ```

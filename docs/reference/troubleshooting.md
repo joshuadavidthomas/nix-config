@@ -1,23 +1,22 @@
 # Troubleshooting
 
-Problems hit so far, by symptom. [How the move to Nix went](../explanation/history.md) has the
-story behind most of them.
+Known problems, by symptom. For the background, see [History](../explanation/history.md).
 
 ## Any machine
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `path … does not exist` for a file you just created | Flakes only see files git knows about. Determinate Nix on the Mac also sees untracked files; upstream Nix may not. | Run any `jj` command, which records new files |
-| `git commit` made an empty commit | The repo is jj, which had already recorded the change | `jj describe -m …` and `jj new`; `jj abandon` the empty commit |
+| `path … does not exist` for a new file | Flakes see only the files that git tracks. Determinate Nix on the Mac also sees untracked files. Upstream Nix may not. | Run a `jj` command. jj records new files. |
+| `git commit` makes an empty commit | jj recorded the change first | Use `jj describe -m …` and `jj new`. Remove the empty commit with `jj abandon`. |
 | Flake fetches fail on GitHub's rate limit | Nix is fetching anonymously | `gh auth login`, then switch, so Nix gets gh's token |
 | `gh config set` fails with a read-only file | home-manager owns `~/.config/gh/config.yml` | Set it in `programs.gh.settings` |
 | home-manager stops before switching, naming a `.bak` file | An old backup is in the way of a new one | Move the old `.bak` aside |
 | A tool resolves to a stale copy | `~/.local/bin` or Homebrew is ahead of Nix on PATH | Keep them after Nix; delete leftover installer copies |
-| A pasted multi-line command ignores its last flags | A blank line in the paste ended the command | Paste long commands as one line |
+| A pasted command ignores its last flags | A blank line in the paste ended the command | Paste long commands as one line |
 | An update broke something | `nix flake update` bumped everything at once | `jj restore --from <change> flake.lock`, apply, then update inputs one at a time |
 | Disk fills up | Every generation and dev shell is kept | `nix store gc`, `devenv gc`, `sudo nix-collect-garbage --delete-older-than 30d` |
 | `infinite recursion encountered` | A module reads `config` to decide what to define, often inside `imports` | Move the condition into `lib.mkIf` on the value |
-| A wall of evaluation trace | Nix prints the whole call stack | Read the bottom-most `error:` first, then the frames nearest your files; add `--show-trace` only if needed |
+| A long evaluation trace | Nix prints the full call stack | Read the last `error:` line first. Then read the frames from your files. Add `--show-trace` only if necessary. |
 
 ## Mac
 
@@ -36,7 +35,7 @@ story behind most of them.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `cannot execute binary file` running a Windows `.exe` | WSL's interop handler isn't registered | `wsl.interop.register = true` |
-| `Failed to start the systemd user session`, or switches end in exit status 4 | Another distro holds the UID-1000 session | Start NixOS first; see [Set up NixOS-WSL](../how-to/set-up-nixos-wsl.md#if-other-wsl-distros-are-running) |
+| `Failed to start the systemd user session`, or switches end in exit status 4 | Another distro holds the UID-1000 session | Start NixOS first; see [Set up NixOS-WSL](../how-to/set-up-nixos-wsl.md#if-other-distributions-are-running) |
 | A downloaded binary fails with `No such file or directory` | NixOS has no standard dynamic loader | `programs.nix-ld.enable = true` |
 | Certificate errors on downloads | The corporate network inspects TLS | Add the root CA with `security.pki.certificateFiles` |
 

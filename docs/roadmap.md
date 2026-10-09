@@ -1,65 +1,73 @@
 # Roadmap
 
-Status of the move to Nix. [How the move to Nix went](explanation/history.md) has the story so
-far.
+For the work so far, see [History](explanation/history.md).
 
 | Phase | Where | Goal | Status |
 | --- | --- | --- | --- |
-| 0 | Work laptop | NixOS-WSL beside the old distro, flakes on | Done |
-| 1 | Work laptop | This repo, a WSL host, and the shared home-manager config | Done, but needs a rebuild (below) |
-| 2 | Projects | devenv replaces mise, setup scripts and docker-compose | dashtext is piloting it; other projects still use mise |
-| 3 | Mac | nix-darwin and home-manager on any Apple Silicon Mac | Done |
-| 4 | Homelab | NixOS boxes installed and deployed from the Mac | `lab-1` is up |
+| 0 | Work laptop | NixOS-WSL next to the old distribution, with flakes | Done |
+| 1 | Work laptop | This repo, a WSL host, the shared home-manager configuration | Done. Needs a new switch (see [WSL](#wsl)). |
+| 2 | Projects | devenv in place of mise, setup scripts and docker-compose | One project (dashtext). Other projects use mise. |
+| 3 | Mac | nix-darwin and home-manager on all Apple Silicon Macs | Done |
+| 4 | Homelab | NixOS boxes, installed and deployed from the Mac | `lab-1` runs |
 
-## Done when
+## Tests for done
 
-Phase 1 is done when a fresh switch is a no-op, daily CLI tools come from home-manager,
-`ssh -T git@github.com` and `gh auth status` both succeed, and you've rolled back once on
-purpose.
+Phase 1:
 
-Phase 2 is done when one real project runs entirely from `devenv up` and passes `devenv test`
-locally and in CI.
+- A new switch changes nothing.
+- The daily tools come from home-manager.
+- `ssh -T git@github.com` and `gh auth status` succeed.
+- You did one rollback on purpose.
 
-Phase 3 is done when a fresh `rebuild` is a no-op, the shell and tools match the other
-machines, and you've rolled back once.
+Phase 2:
 
-Phase 4 is done when all three boxes are reachable as `lab-1`…`lab-3` over Tailscale, one
-`colmena apply` updates them all, and you've rolled one back from the boot menu.
+- One real project runs only from `devenv up`.
+- `devenv test` passes on your machine and in CI.
 
-## Still open
+Phase 3:
+
+- A new `rebuild` changes nothing.
+- The shell and tools are the same as on the other machines.
+- You did one rollback.
+
+Phase 4:
+
+- `lab-1`, `lab-2` and `lab-3` are reachable by name over Tailscale.
+- One `colmena apply` updates all three.
+- You rolled back one box from the boot menu.
+
+## Open work
 
 ### WSL
 
-The WSL host hasn't been rebuilt since the Mac work reshaped `home/`. Before it switches
-cleanly:
+Nobody has applied the WSL host since the Mac changes to `home/`. Before the next switch:
 
-- `secrets.op` points at the Mac's `/usr/local/bin/op`. WSL needs Windows' `op.exe`, or the
-  age key placed by hand.
-- atuin, cf, lisette and llm will build from source on the first switch.
-- The git signer is `op-ssh-sign.exe`. The original plan called for `op-ssh-sign-wsl.exe`,
-  because the plain one can't read the Linux temp-file path git hands it. Test a signed commit.
+- Set `secrets.op` to the Windows `op.exe`, or put the age key on the machine by hand. Now it
+  points to the Mac path `/usr/local/bin/op`.
+- Expect atuin, cf, lisette and llm to build from source.
+- Test commit signing. The repo uses `op-ssh-sign.exe`. The plan used `op-ssh-sign-wsl.exe`,
+  because the first cannot read the Linux paths that git gives it.
 
 ### Homelab
 
 - Install `lab-2` and `lab-3`.
-- Roll `lab-1` back once from the boot menu.
-- Secrets on the boxes: sops with age keys from each box's SSH host key, starting with a
-  Tailscale auth key.
-- A binary cache on one box, trusted by the others.
-- The boxes as remote builders for each other and the Mac.
-- `system.autoUpgrade`, once updating `flake.lock` is routine.
+- Roll back `lab-1` from the boot menu one time.
+- Add secrets to the boxes, with keys from their SSH host keys. Start with a Tailscale auth
+  key.
+- Add a binary cache on one box.
+- Use the boxes as remote builders for each other and for the Mac.
+- Turn on `system.autoUpgrade` when `flake.lock` updates are routine.
 
 ### Mac
 
-- Apps installed outside Homebrew, declared as casks or through `mas`.
-- macOS defaults: Finder, trackpad, appearance.
-- Login items.
-- The remaining tokens (Claude, gh, Todoist) through sops.
-- Garbage collection.
+- Declare the apps that Homebrew does not install, as casks or through `mas`.
+- Declare macOS settings: Finder, trackpad, appearance.
+- Declare login items.
+- Move the remaining tokens (Claude, gh, Todoist) into sops.
+- Set up garbage collection.
 
-### Everywhere
+### All machines
 
-- Pin SSH host keys (GitHub, Forgejo, the lab boxes) in a shared `modules/known-hosts.nix`, so
-  no machine shows a first-connection prompt.
-- A CI job that opens pull requests updating `flake.lock`.
-- devenv for the projects still on mise.
+- Pin SSH host keys (GitHub, Forgejo, the lab boxes) in `modules/known-hosts.nix`.
+- Add a CI job that opens pull requests for `flake.lock` updates.
+- Move the remaining projects from mise to devenv.

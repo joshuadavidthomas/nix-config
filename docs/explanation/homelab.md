@@ -1,59 +1,71 @@
 # About the homelab
 
-The homelab is a set of NixOS boxes, `lab-1`, `lab-2` and so on, that share one module,
-`modules/server.nix`. Each box adds only its hostname, its disk layout and the hardware config
-generated when it was installed. The Mac controls all of them, but never builds anything for
-them.
+The homelab boxes are named `lab-1`, `lab-2` and so on. They share one module,
+`modules/server.nix`. Each box has a small directory with its hostname, its disk layout and
+its hardware configuration. The Mac controls the boxes, but the boxes do their own builds.
 
-## Installing and deploying
+## Install and deploy
 
-Two tools split the job. nixos-anywhere does the install: it connects to a box booted from the
-NixOS installer, partitions the disk with disko, builds the system and installs it. colmena
-deploys every change after that. Both run from the Mac, and with `--build-on remote` and
-`deployment.buildOnTarget` every build happens on the box itself. That matters because the
-Mac is ARM and the boxes are x86_64; without it the Mac would need a Linux builder.
+Two tools do the work:
 
-The two tools read different flake outputs: nixos-anywhere installs
-`nixosConfigurations.lab-N`, and colmena deploys `colmenaHive`. They have to build the same
-system, or the first deploy quietly changes what was installed. The hive used to list its own
-modules, and that missed the module nixpkgs adds inside `nixosSystem`, which carries the
-version label and the `nixpkgs` registry pin. The first deploy left `lab-1` calling itself
-`26.05pre-git`. Now each hive node imports its `nixosConfigurations` entry's module list, and
-the hive sets the version label from the flake, so the two build identical systems.
+- nixos-anywhere installs a box. It connects to the NixOS installer on the box and partitions
+  the disk with disko. Then it builds the system and installs it.
+- colmena deploys each later change.
 
-Both outputs come from the `labs` list in `flake.nix`, so adding a box is a name in that list
-and a copy of a host directory.
+Both run on the Mac. The builds run on the boxes, because of `--build-on remote` and
+`deployment.buildOnTarget`. The Mac is ARM and the boxes are x86_64. Without remote builds,
+the Mac would need a Linux builder.
 
-## Reaching the boxes
+The two tools use different flake outputs. nixos-anywhere installs
+`nixosConfigurations.lab-N`. colmena deploys `colmenaHive`. They must build the same system.
+If not, the first deploy changes the installed system.
 
-The boxes trust one SSH key, the "Mac mini" key in 1Password, for both `josh` and `root`;
-colmena deploys as root. 1Password's agent holds eleven keys, and SSH offers every one of
-them, while sshd stops after six attempts and starts blocking the address after repeated
-failures. So `hosts/mac/home.nix` writes the trusted key's public half to `~/.ssh/lab.pub`
-and tells SSH to offer only that key to `lab-*`. The private key never leaves 1Password.
+At first, the hive had its own list of modules. That list did not have the module that
+`nixosSystem` adds, which sets the version label and the `nixpkgs` registry. After the first
+deploy, `lab-1` showed its version as `26.05pre-git`. Now each hive node imports the module
+list of its `nixosConfigurations` entry, and the hive sets the version label. The two tools
+now build the same system.
 
-The installer is the awkward moment, because it trusts no key at all. The plan was to set a
-password on it and SSH in, and that works only if the agent is kept out of the way, hence
-`--ssh-option IdentityAgent=none`. The tempting alternative, `PubkeyAuthentication=no`,
-breaks the install: nixos-anywhere logs in once with the password, installs its own temporary
-key, and connects as root with that key. With key logins off, it asks for a root password the
-installer doesn't have.
+Both outputs come from the `labs` list in `flake.nix`. To add a box, add a name to the list
+and copy a host directory.
 
-After the install, the boxes are addressed by name over Tailscale (MagicDNS), which is also
-how colmena finds them. LAN addresses aren't stable: `lab-1`'s changed between the installer
-and the installed system.
+## SSH access
 
-## Where it's going
+The boxes accept one SSH key, the "Mac mini" key in 1Password, for `josh` and `root`. colmena
+deploys as `root`.
 
-The next pieces build on each other. Secrets come first: sops with age keys derived from each
-box's SSH host key (`ssh-to-age`), starting with a Tailscale auth key so joining the tailnet
-becomes part of the config. Then a binary cache on one box (harmonia), so each package builds
-once. Then the boxes as remote builders for each other and for the Mac, which is how the Mac
-would build Linux systems without a VM.
+The 1Password agent has eleven keys, and SSH tries each one. sshd stops after six tries. After
+more failures, sshd blocks the Mac for some minutes. So `hosts/mac/home.nix` writes the public
+part of the key to `~/.ssh/lab.pub`, and tells SSH to use only that key for `lab-*`. The
+private key stays in 1Password.
 
-The builder setup has two traps worth knowing in advance. Builds run as the Nix daemon (root),
-which can't reach 1Password, so the builder key has to come from sops. And the builders' host
-keys need pinning, because daemon-to-daemon SSH has nobody to answer a first-connection
-prompt.
+The installer accepts no key. It accepts only the password that you set on it. For a password
+login, SSH must not try the 1Password keys, so the install command has
+`--ssh-option IdentityAgent=none`.
 
-More machines come only when builds actually queue.
+Do not use `PubkeyAuthentication=no` for this. nixos-anywhere logs in once with the password
+and adds its own temporary key. Then it connects as `root` with that key. If key logins are
+off, it asks for a `root` password. The installer has no `root` password.
+
+After the install, the Mac connects to the boxes by name through Tailscale. colmena uses these
+names too. The LAN address can change: the address of `lab-1` changed during its install.
+
+## Next steps
+
+Each step needs the one before it:
+
+1. Secrets on the boxes. sops will use age keys made from the SSH host key of each box
+   (`ssh-to-age`). The first secret will be a Tailscale auth key, so the configuration can
+   connect the box to Tailscale.
+2. A binary cache on one box (harmonia). Then each package builds only once.
+3. Remote builds. The boxes build for each other and for the Mac. Then the Mac can build Linux
+   systems without a virtual machine.
+
+Remote builds have two requirements:
+
+- The Nix daemon runs the builds as `root`, and `root` cannot use 1Password. So the builder
+  key must come from sops.
+- The host keys of the builders must be pinned. The daemon cannot answer a prompt for a new
+  host key.
+
+Add more boxes only when builds wait in a queue.

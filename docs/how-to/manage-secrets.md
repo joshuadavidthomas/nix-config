@@ -1,21 +1,26 @@
 # How to add or change a secret
 
-Secrets live sops-encrypted in `secrets/`. Your machine needs the age key at
-`~/.config/sops/age/keys.txt`; a Mac fetches it from 1Password on its first switch.
+Secrets are in `secrets/`, encrypted with sops. To decrypt them, the machine needs the age key
+at `~/.config/sops/age/keys.txt`. A Mac gets this key from 1Password when you first apply the
+configuration.
 
-## Edit a value
+## Change a value
 
-```sh
-sops secrets/secrets.yaml
-```
+1. Open the secrets file:
 
-sops decrypts the file into your editor and re-encrypts it when you save. Record the change
-with jj like any other.
+   ```sh
+   sops secrets/secrets.yaml
+   ```
 
-## Use a value during a switch
+   sops decrypts the file and opens it in your editor.
 
-Decrypt it inside a home-manager activation step, so it never lands in `/nix/store`. Follow
-the `atuinLogin` step in `home/secrets.nix`:
+2. Edit the value and save. sops encrypts the file again.
+3. Record the change with jj.
+
+## Use a value in the configuration
+
+Decrypt the value in a home-manager activation step. Then the value does not go into
+`/nix/store`. Use the `atuinLogin` step in `home/secrets.nix` as a model:
 
 ```nix
 { config, lib, pkgs, ... }:
@@ -33,28 +38,36 @@ in
 }
 ```
 
-Order the step after `sopsAgeKey`, which is the step that fetches the key.
+The step must come after `sopsAgeKey`. That step gets the key.
 
 ## Add a file
 
-For a whole file, such as a font, encrypt it as binary. sops picks its rules from the file
-name, so name the destination with `--filename-override`; without it, sops fails with
-`no matching creation rules found`.
+1. Encrypt the file:
 
-```sh
-sops encrypt --filename-override secrets/fonts/font.ttf.json \
-  --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
-```
+   ```sh
+   sops encrypt --filename-override secrets/fonts/font.ttf.json \
+     --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
+   ```
 
-Decrypt it in an activation step with `--input-type json --output-type binary`, as the
-`monolisa` step in `hosts/mac/home.nix` does.
+   sops selects its rules by file name. Without `--filename-override`, it fails with
+   `no matching creation rules found`.
 
-## Put the age key on a machine that isn't a Mac
+2. Decrypt the file in an activation step with `--input-type json --output-type binary`. The
+   `monolisa` step in `hosts/mac/home.nix` is an example.
 
-```sh
-mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age
-op document get "nix-config sops age key" > ~/.config/sops/age/keys.txt
-chmod 600 ~/.config/sops/age/keys.txt
-```
+## Put the age key on a machine that is not a Mac
 
-Run that wherever the 1Password CLI is signed in, or copy the document's contents by hand.
+1. Make the directory:
+
+   ```sh
+   mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age
+   ```
+
+2. Get the key from 1Password:
+
+   ```sh
+   op document get "nix-config sops age key" > ~/.config/sops/age/keys.txt
+   chmod 600 ~/.config/sops/age/keys.txt
+   ```
+
+If the 1Password CLI is not available, copy the document contents by hand.

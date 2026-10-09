@@ -1,60 +1,69 @@
 # About secrets
 
-Everything in a `.nix` file ends up in `/nix/store`, which any user on the machine can read.
-So the rule is that Nix manages configuration and never holds a secret. Secrets reach a
-machine some other way, and this repo uses two.
+Nix copies the contents of each `.nix` file into `/nix/store`. All users can read the store.
+So the configuration must not contain secrets. This repo gets secrets to a machine in two
+ways: 1Password and sops.
 
 ## 1Password and sops
 
-1Password is the root of trust. It holds the SSH keys (used through its agent, so no machine
-has a private key on disk) and one more thing: the sops age key, stored as the document
+1Password contains the SSH keys. Machines use the keys through the 1Password agent, so no
+private key is on disk. 1Password also contains the sops age key, as the document
 "nix-config sops age key".
 
-Every other secret lives in `secrets/`, encrypted with sops to that one age key. The encrypted
-files are committed, which is safe because they're useless without the key. That's what made
-it possible to make the repo public. The licensed MonoLisa fonts went the same way: the repo
-carries them only encrypted, and before it went public, earlier plaintext copies were removed
-from history with `git filter-repo`.
+All other secrets are in `secrets/`, encrypted with sops for that age key. The encrypted
+files are in git. Without the key, they are not useful to anyone. This is why the repo can be
+public.
 
-A single shared age key is a choice of convenience. One person on a few machines doesn't gain
-much from a key per machine, and 1Password already guards the one key. The homelab boxes will
-be different, because they can't reach 1Password; they'll get keys derived from their own SSH
-host keys.
+The MonoLisa fonts have a license, so the repo contains them only in encrypted form. Before
+the repo became public, `git filter-repo` removed the old unencrypted copies from the history.
+
+All machines use the same age key. For one person with a few machines, a key for each machine
+adds work and little security, and 1Password already protects the key. The homelab boxes
+cannot use 1Password. They will get keys made from their SSH host keys.
 
 ## How a Mac gets the key
 
-On the first switch after 1Password is signed in, a home-manager activation step
-(`sopsAgeKey` in `home/secrets.nix`) asks 1Password for the document and writes it to
-`~/.config/sops/age/keys.txt`. Every later step that needs a secret decrypts it from there.
+The `sopsAgeKey` step in `home/secrets.nix` runs when you apply the configuration. If the key
+is missing and 1Password is signed in, the step gets the key from 1Password. It writes the key
+to `~/.config/sops/age/keys.txt`. Later steps use this file to decrypt secrets.
 
-Three details took a while to find. Activation runs with a minimal PATH, so `op` is called by
-its full path, `/usr/local/bin/op`, which is where `programs._1password` installs it and the
-only location 1Password's CLI integration accepts. `op whoami` only reports whether you're
-signed in and never prompts, so waiting on it while 1Password is locked waits forever; asking
-for the document directly is what brings up Touch ID. And sops on macOS looks for its key
-under `~/Library` by default, so `SOPS_AGE_KEY_FILE` points it at the XDG path instead.
+Three details are important:
 
-## Why not sops-nix
+- Activation steps do not get your PATH. So the step calls `op` at `/usr/local/bin/op`.
+  `programs._1password` installs it there. The 1Password CLI integration accepts no other
+  location.
+- `op whoami` does not ask you to unlock 1Password. If you wait for it while 1Password is
+  locked, you wait forever. A request for the document opens the Touch ID prompt.
+- On macOS, sops looks for its key in `~/Library`. `SOPS_AGE_KEY_FILE` sends it to the path
+  above.
 
-sops-nix is the usual way to use sops with Nix, and it was considered. Its home-manager module
-decrypts in the background, through a launchd agent or a systemd user service. Nothing
-guarantees that's finished before the activation steps that need the secrets, such as logging
-atuin in, and systemd user services are unreliable on WSL. Calling `sops` directly inside the
-activation steps that need a value runs in order and decrypts into memory, and only the fonts
-are written to disk (macOS ignores symlinked fonts, so they have to be real files).
+## Why the repo does not use sops-nix
+
+sops-nix is the usual way to use sops with Nix. Its home-manager module decrypts secrets in
+the background, with launchd or systemd. Nothing makes sure that it finishes before the steps
+that need the secrets, for example the atuin login. Also, systemd user services are not
+reliable on WSL.
+
+So the steps that need a secret run `sops` themselves. They run in order, and they keep the
+secret in memory. Only the fonts go to disk, because macOS ignores fonts that are symlinks.
 
 ## The GitHub token for Nix
 
-Nix fetches flake inputs from GitHub, and anonymously it gets 60 API requests an hour, which
-an update can use up. gh already holds a token after `gh auth login`, so a home-manager step
-(`home/nix.nix`) copies it into `~/.config/nix/access-tokens.conf` (mode 0600) on each switch,
-and Nix's user config pulls that file in with `!include`, which skips it if it's missing. The
-token never touches the repo or the store. nix-darwin can't set this in the system config,
-because Determinate Nix manages `/etc/nix` itself.
+Nix downloads flake inputs from GitHub. Without a token, GitHub allows 60 requests an hour.
+An update can use more.
 
-## Logging in to atuin
+After `gh auth login`, gh has a token. At each switch, a step in `home/nix.nix` copies it to
+`~/.config/nix/access-tokens.conf`, with mode 0600. The Nix user configuration includes that
+file with `!include`. If the file is missing, Nix skips it. The token does not go into the repo
+or the store.
 
-atuin's sync needs a username, password and encryption key. They're in
-`secrets/secrets.yaml`, and an activation step logs atuin in whenever `atuin status` says it
-isn't. One wrinkle: an atuin account created through GitHub sign-in has no password, so one
-had to be added to the account before the CLI could log in.
+nix-darwin cannot set this in the system configuration. Determinate Nix controls `/etc/nix`.
+
+## The atuin login
+
+atuin sync needs a username, a password and an encryption key. They are in
+`secrets/secrets.yaml`. When `atuin status` shows that atuin is not logged in, a step logs it
+in.
+
+An atuin account made through GitHub sign-in has no password. The account needed a password
+before the CLI could log in.

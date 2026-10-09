@@ -1,47 +1,54 @@
 # How to set up a new Mac
 
-This takes a fresh Apple Silicon Mac to fully configured. Intel Macs aren't supported; several
-of the packages no longer build there.
+The configuration supports Apple Silicon Macs only.
 
 ## Run the bootstrap
 
-In Terminal:
+1. Open Terminal.
+2. Run the bootstrap:
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
-```
+   ```sh
+   curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
+   ```
 
-It installs Determinate Nix, then switches straight from GitHub. That first switch installs
-Homebrew, every app (1Password included) and every tool, and clones this repo to
-`~/.nix-config`. The bootstrap is safe to rerun; each step skips what's already done.
+The bootstrap installs Determinate Nix and applies the configuration from GitHub. This
+installs Homebrew, the apps (1Password included) and the tools. It also clones the repo to
+`~/.nix-config`.
 
-If the switch stops on the Xcode license, run the bootstrap again. The config accepts the
-license before the Homebrew step, but only once Xcode is installed.
+If the switch stops at the Xcode license, run the bootstrap again. You can run it again at
+any time. It skips the steps that are complete.
 
-## Sign in to 1Password
+## Connect 1Password
 
-When the bootstrap says it's waiting for 1Password:
+The bootstrap stops and waits for 1Password. Do these steps:
 
 1. Sign in to the 1Password app.
 2. Turn on Settings > Developer > Integrate with 1Password CLI.
 3. Turn on Settings > Developer > Use the SSH agent.
 4. Approve the Touch ID prompt.
 
-The bootstrap then switches again from `~/.nix-config`. This time the sops age key comes from
-1Password, and the secrets fall into place (atuin logs in and syncs, the MonoLisa fonts are
-installed).
+The bootstrap then applies the configuration again. This time it gets the sops key from
+1Password and installs the secrets.
 
-## Finish up
+## Finish
 
-Open a new terminal; the login shell is now Nix's fish. Then, once per machine:
+1. Open a new terminal.
+2. Log in to GitHub:
 
-```sh
-gh auth login            # lets Nix use gh's token for GitHub fetches
-ssh -T git@github.com    # should greet you by username
-```
+   ```sh
+   gh auth login
+   ```
 
-Run `rebuild` once more so Nix picks up the gh token. It should finish with nothing to change
-apart from the token.
+3. Test SSH to GitHub. GitHub replies with your username.
 
-From now on, `rebuild` applies `~/.nix-config`. See
-[Apply, update and roll back](apply-update-roll-back.md).
+   ```sh
+   ssh -T git@github.com
+   ```
+
+4. Apply the configuration again, so that Nix gets the GitHub token:
+
+   ```sh
+   rebuild
+   ```
+
+To make changes later, see [Apply, update and roll back](apply-update-roll-back.md).

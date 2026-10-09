@@ -1,48 +1,48 @@
 # How to move a project from mise to devenv
 
-This replaces a project's `mise.toml` (and any setup scripts or docker-compose for local
-services) with devenv. devenv and direnv are already installed on every machine by this repo.
+This procedure replaces `mise.toml`, setup scripts and docker-compose with devenv. This repo
+installs devenv and direnv on each machine.
 
 ## Create the environment
 
-In the project:
+1. In the project, run:
 
-```sh
-devenv init
-```
+   ```sh
+   devenv init
+   ```
 
-That writes `devenv.nix`, `devenv.yaml`, `.envrc` (which loads devenv through direnv) and
-`.gitignore` entries. Allow direnv once:
+   This writes `devenv.nix`, `devenv.yaml`, `.envrc` and `.gitignore` entries.
 
-```sh
-direnv allow
-```
+2. Let direnv load the environment:
 
-## Port the mise config
+   ```sh
+   direnv allow
+   ```
 
-Translate `mise.toml` into `devenv.nix`:
+## Copy the configuration from mise
 
-| In mise | In devenv |
+Put each mise setting in `devenv.nix`:
+
+| mise | devenv |
 | --- | --- |
-| `[tools] python = "3.13"` | `languages.python.enable = true; languages.python.version = "3.13";` |
+| `[tools] python = "3.13"` | `languages.python.enable = true;` and `languages.python.version = "3.13";` |
 | `[env]` | `env.NAME = "…";` |
 | `[tasks]` | `scripts.<name>.exec` or `tasks."app:<name>".exec` |
-| docker-compose Postgres/Redis | `services.postgres`, `services.redis` |
+| docker-compose Postgres or Redis | `services.postgres`, `services.redis` |
 | `.pre-commit-config.yaml` | `git-hooks.hooks.*` |
 
-Put the project's checks in `enterTest`, so `devenv test` runs them.
+Put the checks of the project in `enterTest`. `devenv test` runs them.
 
-If a variable only applies on one platform, merge it in with `lib.optionalAttrs`:
+For a variable on one platform only, use `lib.optionalAttrs`:
 
 ```nix
 env = { RUST_LOG = "info"; } // lib.optionalAttrs pkgs.stdenv.isLinux { LD_LIBRARY_PATH = "…"; };
 ```
 
-Wrapping it in `lib.mkIf` instead fails with `The option 'env.LD_LIBRARY_PATH' was accessed
-but has no value defined` on the other platform.
+Do not use `lib.mkIf` for this. On the other platform, it fails with
+`The option 'env.LD_LIBRARY_PATH' was accessed but has no value defined`.
 
-If you want this repo's package versions in the project, add it as an input and apply its
-overlay:
+To use the package versions of this repo, add the repo as an input and apply its overlay:
 
 ```yaml
 # devenv.yaml
@@ -56,25 +56,24 @@ inputs:
 { inputs, ... }: { overlays = [ inputs.nix-config.overlays.default ]; }
 ```
 
-## Check it
+## Test the environment
 
-```sh
-devenv test
-```
+1. Run the checks:
 
-Build on both the Mac and Linux if the project runs on both. The first run on a second
-platform can turn up real bugs that the other platform's CI never hit.
+   ```sh
+   devenv test
+   ```
 
-If a tool in the environment sets `DYLD_LIBRARY_PATH` on macOS and the compiler then crashes
-with `dyld: Symbol not found`, unset the variable around that tool. Nix's clang honors it,
-while Apple's `cc` ignores it.
+2. If the project runs on macOS and Linux, test on both.
+3. Ask an agent to run `echo $DEVENV_ROOT` in the project. The output must be the project
+   path. If it is empty, the agent does not get the environment.
 
-Agents get the environment too: the non-interactive direnv hooks from this repo load it into
-their tool calls. To confirm, ask an agent to run `echo $DEVENV_ROOT` in the project.
+If the compiler crashes with `dyld: Symbol not found` on macOS, a tool sets
+`DYLD_LIBRARY_PATH`. Unset the variable for that tool.
 
 ## Move CI
 
-In GitHub Actions, install Nix, restore the Nix store from cache, and run devenv:
+In GitHub Actions, use these steps:
 
 ```yaml
 - uses: cachix/install-nix-action@v31
@@ -89,10 +88,11 @@ In GitHub Actions, install Nix, restore the Nix store from cache, and run devenv
 - run: devenv test
 ```
 
-Expect CI to run slower than mise with a toolchain cache, even with the store cached. Keep
-release builds off Nix: Nix-built binaries reference `/nix/store` and won't run elsewhere.
+CI is slower with devenv than with mise and a toolchain cache.
+
+Do not build release binaries with Nix. They refer to `/nix/store` and do not run on other
+machines.
 
 ## Remove mise
 
-Leave `mise.toml` in place until devenv has been the daily driver for a week or two, then
-delete it.
+Use devenv daily for one or two weeks. Then delete `mise.toml`.

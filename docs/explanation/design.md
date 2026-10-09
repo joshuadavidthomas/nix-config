@@ -1,78 +1,75 @@
-# About this repo's design
+# About the design
 
-This repo replaced a setup built on mise: its tool versions, its dotfile tracking and a
-bootstrap task, synced through a private dotfiles repo. Earlier still, there were chezmoi and
-yadm. Each of those managed some of a machine. The point of moving to Nix was to have one
-place that describes all of it, so most of the decisions below come back to keeping that true.
-Most of them were made after trying it the other way first.
+Before this repo, mise managed the tools, the dotfiles and a bootstrap task. chezmoi and yadm
+came before mise. Each tool managed part of a machine. This repo describes all of each
+machine. The decisions below keep it that way.
 
-## Nix owns the config
+## Nix owns the configuration
 
-Every setting is expressed in Nix: a tool's home-manager or nix-darwin options when a module
-exists, and otherwise the file itself, shipped from this repo through Nix. There are no
-out-of-store symlinks pointing back into a checkout, and no files left to be edited in place.
-The exceptions are deliberate and few: Codex's `config.toml`, because the app records trusted
-projects in it, and the Neovim config, which lives in its own repo and is cloned rather than
-generated.
+All settings are in Nix. If home-manager or nix-darwin has a module for a tool, the settings
+use that module. If not, the repo contains the file, and Nix installs it. There are no links
+from the system back into the repo, and no files to edit in place.
 
-Warnings get the same treatment. A warning that prints on every switch hides the one that
-matters, and each one so far turned out to have a real cause with a real fix.
+There are two exceptions. Codex writes its own `config.toml`, because the app records trusted
+projects in it. The Neovim configuration is in its own repo, and the switch clones it.
 
-## One place chooses versions
+A warning that shows on every switch hides new warnings. So each warning gets a fix.
 
-`overlay.nix` decides where every package comes from, and the flake exports it as
-`overlays.default`, so projects using devenv can share it. Standalone CLI tools come from
-`nixpkgs-unstable`, since they're leaf packages and newer is usually better. Runtimes and
-libraries (Python, Node, Go, ffmpeg) stay on the release branch, because swapping one out
-rebuilds everything that depends on it instead of fetching it from the cache.
+## One file selects the versions
 
-When nixpkgs lacks a package or has it too old, the package is written in `pkgs/` and applied
-through the overlay. That's the approach in
-[Geoffrey Huntley's post on overlays](https://ghuntley.com/nix/): pull the fix into your own
-overlay, rather than depending on a project's own flake, which brings its own nixpkgs and its
-own warnings. atuin was first pulled from atuin's flake, and it brought a deprecation warning
-along with it.
+`overlay.nix` selects the source of each package. The flake exports it as
+`overlays.default`, so devenv projects can use it too.
 
-## Homebrew for GUI apps
+- Command-line tools come from `nixpkgs-unstable`. Nothing depends on them, so a newer version
+  is safe.
+- Runtimes and libraries (Python, Node, Go, ffmpeg) come from the release branch. A different
+  version of one of these makes Nix rebuild all the packages that depend on it.
 
-macOS apps installed from Nix don't integrate well with Spotlight, the Dock or their own
-updaters, so GUI apps come from Homebrew casks, and Nix owns everything on the command line.
-nix-homebrew installs Homebrew itself, so a fresh Mac needs nothing but Nix. Homebrew sits
-after every Nix path on PATH, so it can't shadow a Nix tool, and `cleanup = "uninstall"`
-removes anything not declared. The cost of that last one shows up in rollbacks, which can
-uninstall an app added later.
+If nixpkgs does not have a package, or has an old version, the repo defines it in `pkgs/` and
+adds it through the overlay. The repo does not use the flakes of other projects for packages.
+Each such flake brings its own nixpkgs. The atuin flake brought a deprecation warning.
+[Geoffrey Huntley's post on overlays](https://ghuntley.com/nix/) describes this approach.
+
+## Homebrew for apps
+
+Apps from Nix do not work well with Spotlight, the Dock and app updaters. So Homebrew installs
+the apps, and Nix installs the command-line tools.
+
+- nix-homebrew installs Homebrew, so a new Mac needs only Nix.
+- Homebrew comes after Nix on PATH. A Homebrew program cannot hide a Nix program.
+- `cleanup = "uninstall"` removes each app that the configuration does not declare. Because of
+  this, a rollback can remove an app.
 
 ## Coding agents update themselves
 
-Claude Code, Codex, opencode and pi release almost daily. T3 Code updates them in place, and
-an update can't write into a read-only `/nix/store`, so packaging them in Nix would mean
-either stale agents or a second, unmanaged copy. Instead, `home/agents.nix` only checks that
-each one is installed and runs its own installer if not. Nix still owns their configuration
-and hooks. [About coding agents and direnv](agents.md) covers the rest.
+Claude Code, Codex, opencode and pi have new releases almost every day. T3 Code updates them.
+An updater cannot write to `/nix/store`. So `home/agents.nix` installs each agent with the
+agent's own installer, and only if the agent is missing. Nix still controls their settings
+and hooks. See [About coding agents and direnv](agents.md).
 
-## One configuration per kind of machine
+## One configuration for each type of machine
 
-Every Apple Silicon Mac uses `darwinConfigurations.mac`. Nothing in it depends on the
-hostname, so a new Mac needs the bootstrap and no repo change. The homelab works the same
-way in a different shape: one shared module, plus a small directory per box for what really
-differs.
+All Apple Silicon Macs use `darwinConfigurations.mac`. The configuration does not use the
+hostname, so a new Mac needs no change to the repo. The homelab uses one shared module, and
+a small directory for each box.
 
-## Work stays in the work host
+## Work settings stay in the work host
 
-Work email, proxies and certificates live in `hosts/work-wsl`. `home/` holds only what's the
-same everywhere, so personal machines never pick up work settings.
+The work email, proxies and certificates are in `hosts/work-wsl`. `home/` has only the
+settings that are the same on all machines.
 
-## 1Password at the root
+## 1Password holds the keys
 
-SSH keys and git signing go through 1Password's agent on every machine, and one age key
-stored in 1Password unlocks every other secret. Nothing secret enters the world-readable
-`/nix/store`, which is what lets the repo be public. [About secrets](secrets.md) explains how.
+The SSH keys and the git signing key are in 1Password. One age key, also in 1Password,
+decrypts all other secrets. No secret goes into `/nix/store`, which all users can read. This
+is why the repo can be public. See [About secrets](secrets.md).
 
-## Habits that pay off
+## Good practice
 
-Record a change before every switch, so the history doubles as a change log. Check what an
-option actually evaluates to in `nix repl` before guessing. Leave `stateVersion` values at
-their install-time setting; they protect on-disk data formats and have nothing to do with the
-release you're on. And when something breaks, look at the actual state (run it, read the log,
-read the tool's source) before deciding why. Several problems in this repo's history looked
-like something else at first.
+- Record a change before each switch. Then the history shows each change to the system.
+- Before you guess what an option does, look at its value in `nix repl`.
+- Do not change `stateVersion`. It keeps data formats compatible. It is not the release
+  number.
+- When something fails, look at what the machine does before you decide on a cause. Run the
+  command, read the log, or read the source of the tool. Many problems in this repo had a
+  different cause than they first seemed to have.

@@ -1,122 +1,138 @@
 # First steps with Nix
 
-In this tutorial we'll use Nix on a Mac that's already set up from this repo. We'll run a
-program without installing it, find where it lives, read a value out of the Mac's
-configuration, add a package to that configuration, and then roll the change back. It takes
-about fifteen minutes, and at the end the Mac is exactly as it started.
+In this tutorial, we use Nix to run a program, then find it in the store. Next, we read a value
+from the Mac configuration. Last, we add a package and roll the change back. At the end, the
+Mac is the same as at the start.
 
-You need a terminal and your Mac password (for `rebuild`).
+You need a Mac set up from this repo, and your Mac password.
 
 ## Run a program without installing it
 
-Run `cowsay`:
+1. Run cowsay:
 
-```sh
-nix run nixpkgs#cowsay -- hello
-```
+   ```sh
+   nix run nixpkgs#cowsay -- hello
+   ```
 
-A cow says hello. The first run downloads cowsay, so it takes a few seconds; run it again
-and it's instant. Check whether it's installed:
+   A cow says "hello".
 
-```sh
-command -v cowsay
-```
+2. Look for cowsay on your PATH:
 
-Nothing is printed. Nix fetched cowsay and ran it, but didn't put it on your PATH.
+   ```sh
+   command -v cowsay
+   ```
 
-## Find where it lives
+   The command prints nothing. Nix ran cowsay, but did not install it.
 
-Start a shell that has cowsay on its PATH:
+## Find the program in the store
 
-```sh
-nix shell nixpkgs#cowsay
-command -v cowsay
-```
+1. Start a shell that has cowsay:
 
-This time you get a path like `/nix/store/…-cowsay-3.8.4/bin/cowsay`. Every package lives in
-its own directory under `/nix/store`, named by a hash of everything that went into building
-it. See what cowsay needs:
+   ```sh
+   nix shell nixpkgs#cowsay
+   ```
 
-```sh
-nix path-info -rsSh nixpkgs#cowsay
-```
+2. Find cowsay again:
 
-That lists cowsay and each store path it depends on, with sizes. Leave the shell:
+   ```sh
+   command -v cowsay
+   ```
 
-```sh
-exit
-```
+   The command prints a path that starts with `/nix/store/`. Each package has its own
+   directory in the store.
 
-`command -v cowsay` prints nothing again.
+3. Show the packages that cowsay needs:
 
-## Read the Mac's configuration
+   ```sh
+   nix path-info -rsSh nixpkgs#cowsay
+   ```
 
-The whole Mac is described by this repo. Open it in the Nix REPL:
+4. Leave the shell:
 
-```sh
-cd ~/.nix-config
-nix repl
-```
+   ```sh
+   exit
+   ```
 
-At the `nix-repl>` prompt, load the repo, then ask for your git email:
+## Read a value from the configuration
 
-```text
-:lf .
-darwinConfigurations.mac.config.home-manager.users.josh.programs.git.settings.user.email
-```
+1. Open the repo in the Nix REPL:
 
-The REPL prints `"josh@joshthomas.dev"`. That value comes from `hosts/mac/home.nix`. Press Tab
-partway through a name to see what's available at each level. Leave with `:q`.
+   ```sh
+   cd ~/.nix-config
+   nix repl
+   ```
+
+2. Load the repo:
+
+   ```text
+   :lf .
+   ```
+
+3. Ask for your git email:
+
+   ```text
+   darwinConfigurations.mac.config.home-manager.users.josh.programs.git.settings.user.email
+   ```
+
+   The REPL prints `"josh@joshthomas.dev"`. This value comes from `hosts/mac/home.nix`.
+
+4. Leave the REPL:
+
+   ```text
+   :q
+   ```
 
 ## Add a package
 
-Open `home/josh.nix` and find `home.packages`. Add `cowsay` to the list:
+1. Open `home/josh.nix`.
+2. Find `home.packages`. Add `cowsay` to the list:
 
-```nix
-  home.packages = (with pkgs; [
-    bun
-    cowsay
-```
+   ```nix
+     home.packages = (with pkgs; [
+       bun
+       cowsay
+   ```
 
-Apply it:
+3. Apply the change. Enter your password when asked.
 
-```sh
-rebuild
-```
+   ```sh
+   rebuild
+   ```
 
-It asks for your password, builds the new configuration and switches to it. Now:
+4. Find cowsay:
 
-```sh
-command -v cowsay
-```
+   ```sh
+   command -v cowsay
+   ```
 
-prints `/etc/profiles/per-user/josh/bin/cowsay`, and `cowsay hi` works in any terminal.
+   The command prints `/etc/profiles/per-user/josh/bin/cowsay`. cowsay is now installed.
 
 ## Roll back
 
-Every `rebuild` keeps the previous configuration. Switch back to it:
+1. Go back to the previous configuration:
 
-```sh
-rebuild --rollback
-```
+   ```sh
+   rebuild --rollback
+   ```
 
-Open a new terminal and run `command -v cowsay`. It's gone, even though `home/josh.nix` still
-lists it. The rollback switched to the configuration from before your edit.
+2. Open a new terminal. Find cowsay:
 
-Now undo the edit itself:
+   ```sh
+   command -v cowsay
+   ```
 
-```sh
-jj restore home/josh.nix
-```
+   The command prints nothing. The Mac runs the configuration from before your edit, but
+   `home/josh.nix` still lists cowsay.
 
-The file and the running system agree again, and the Mac is as it was when you started.
+3. Undo the edit:
 
-## What we did
+   ```sh
+   jj restore home/josh.nix
+   ```
 
-We ran a program straight from nixpkgs, found it in `/nix/store`, read a setting out of the
-Mac's configuration with the REPL, changed that configuration, and rolled it back. From here:
+The file and the Mac now match again.
 
-- [About Nix](../explanation/nix.md) explains the store, generations and modules that made
-  each of these steps work.
-- [Apply, update and roll back](../how-to/apply-update-roll-back.md) covers day-to-day changes
-  on every machine.
+## Next
+
+- [About Nix](../explanation/nix.md) explains the store, generations and modules.
+- [Apply, update and roll back](../how-to/apply-update-roll-back.md) covers daily changes.

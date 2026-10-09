@@ -2,38 +2,45 @@
 
 ## Apply changes
 
-| Machine | Command |
-| --- | --- |
-| Mac | `rebuild` |
-| NixOS-WSL | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
-| Every homelab box | `colmena apply` |
-| One homelab box | `colmena apply --on lab-2` |
+1. Record the change:
 
-Record the change in jj (`jj describe -m "…"`, then `jj new`) before you apply, so every
-generation matches a change in the history.
+   ```sh
+   jj describe -m "…"
+   jj new
+   ```
+
+2. Apply it:
+
+   | Machine | Command |
+   | --- | --- |
+   | Mac | `rebuild` |
+   | NixOS-WSL | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
+   | All homelab boxes | `colmena apply` |
+   | One homelab box | `colmena apply --on lab-2` |
 
 ## Update packages
 
-To update everything:
+1. Update the inputs. To update all of them:
 
-```sh
-nix flake update
-```
+   ```sh
+   nix flake update
+   ```
 
-To update one input:
+   To update one input:
 
-```sh
-nix flake update nixpkgs
-```
+   ```sh
+   nix flake update nixpkgs
+   ```
 
-Then apply on each machine. To see what will change on the Mac before you switch, build the new
-system and compare it with the running one:
+2. Optional: see what changes on the Mac before you apply:
 
-```sh
-nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
-```
+   ```sh
+   nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
+   ```
 
-`--no-link` keeps the build from leaving a `result` link in the repo, which jj would record.
+   `--no-link` prevents a `result` link in the repo. jj records such links.
+
+3. Apply on each machine.
 
 ## Roll back
 
@@ -41,27 +48,32 @@ nix store diff-closures /run/current-system $(nix build --no-link --print-out-pa
 | --- | --- |
 | Mac | `rebuild --rollback` |
 | NixOS-WSL | `sudo nixos-rebuild switch --rollback` |
-| Homelab box | Reboot it and pick an older generation in the boot menu |
+| Homelab box | Reboot the box. Select an older generation in the boot menu. |
 
-On the Mac, rolling back to a generation from before a Homebrew cask was added uninstalls
-that app, 1Password included, because `cleanup = "uninstall"` removes anything the generation
-doesn't declare. Rolling forward reinstalls it.
+> **Caution:** On the Mac, a rollback removes Homebrew apps that the older generation does not
+> declare. This includes 1Password. Apply the newer generation to install them again.
 
 ## Undo an update
 
-If an update broke something, restore the lock file from the change before it and apply again:
+1. Restore the lock file from the change before the update:
 
-```sh
-jj restore --from <change> flake.lock
-```
+   ```sh
+   jj restore --from <change> flake.lock
+   ```
 
-Then update inputs one at a time to find the culprit.
+2. Apply on each machine.
+3. Update the inputs one at a time to find the input that caused the problem.
 
 ## Deploy an older version to the homelab
 
-Start a change on top of the version you want and deploy it:
+1. Start a change on the old version:
 
-```sh
-jj new <change>
-colmena apply
-```
+   ```sh
+   jj new <change>
+   ```
+
+2. Deploy it:
+
+   ```sh
+   colmena apply
+   ```

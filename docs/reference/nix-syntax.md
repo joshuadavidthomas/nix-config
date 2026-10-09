@@ -1,6 +1,6 @@
 # Nix syntax
 
-The constructs that cover nearly every config in this repo.
+The Nix constructs that this repo uses.
 
 ```nix
 # Attribute set (a dict). Dotted keys nest:

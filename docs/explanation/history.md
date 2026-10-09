@@ -1,108 +1,131 @@
-# How the move to Nix went
+# History
 
-This repo started on Oct 7, 2026 from a written plan, "Going all in on Nix". The plan described
-where this would end up: one repo describing every machine, and a `devenv.nix` in each project.
-It split the work into five phases, each ending with a "done when" check. This is how those
-phases actually went, and where reality disagreed with the plan. The [roadmap](../roadmap.md)
-has the current status.
+This repo started on Oct 7, 2026, from a plan named "Going all in on Nix". The plan had one
+goal: one repo that describes all machines, and a `devenv.nix` in each project. It had five
+phases, each with a test for "done". This page tells how each phase went, and where the plan
+was wrong. For the current status, see the [roadmap](../roadmap.md).
 
 ## Before Nix
 
-Machine setup ran on mise: tool versions, a bootstrap task, and dotfiles tracked in place and
-synced through a private repo, after earlier attempts with chezmoi and yadm. The problems from
-that period were the kind a single description of the machine avoids. GUI apps launched
-without the shell's PATH, so Ghostty couldn't find fish. Neovim had fish's path hard-coded. Two
-machines on different mise versions couldn't read each other's sync metadata.
+mise managed the tools, a bootstrap task and the dotfiles. A private repo synced the dotfiles.
+chezmoi and yadm came before mise. Some problems from that time:
 
-## Phase 0 and 1: NixOS-WSL and the repo
+- GUI apps did not get the shell's PATH, so Ghostty could not find fish.
+- Neovim had a fixed path to fish.
+- Two machines with different mise versions could not read each other's sync data.
 
-The plan started on the work laptop, with NixOS installed as a second WSL distro, because it's
-a safe place to learn: nothing else changes and one command deletes it. The first commit was
-the WSL host and the shared home-manager config. The WSL-specific settings are the ones that
-were needed to make Windows interop work at all: registering WSL's handler so `.exe` files
-run, `nix-ld` so VS Code's server runs, and SSH and git signing routed through 1Password's
-Windows binaries.
+## Phases 0 and 1: NixOS-WSL and the repo
 
-WSL hasn't been rebuilt since. The Mac work that followed reshaped `home/` around
-macOS-specific assumptions, and the [roadmap](../roadmap.md) lists what needs fixing first.
+The work started on the work laptop, with NixOS as a second WSL distribution. This was safe:
+nothing else changed, and one command removes NixOS again.
+
+The first commit added the WSL host and the shared home-manager configuration. The WSL host
+has three settings for Windows interop:
+
+- `wsl.interop.register`, so that Windows `.exe` files run
+- `nix-ld`, so that the VS Code server runs
+- SSH and git signing through the Windows programs of 1Password
+
+Nobody has applied the WSL host since the Mac work changed `home/`. The
+[roadmap](../roadmap.md#wsl) lists the work that it needs.
 
 ## Phase 3: the Mac
 
-The plan had the Mac second-to-last, but it came next. The plan's outline held: Determinate
-Nix underneath, nix-darwin for the system and Homebrew, the shared home-manager config on top.
-The details changed a lot.
+In the plan, the Mac came fourth. In practice, it came second. The general design of the plan
+stayed: Determinate Nix, nix-darwin for the system and Homebrew, and the shared home-manager
+configuration. Many details changed:
 
-| The plan said | What happened |
+| The plan | What happened |
 | --- | --- |
-| A host named `mac-mini` | `darwinConfigurations.mac`, for any Apple Silicon Mac. Naming the host after one machine meant a new Mac would need a repo edit. |
-| Install Homebrew by hand first | nix-homebrew installs it, so a fresh Mac needs only Nix. Its pinned Homebrew was older than the installed one and would have downgraded it, so the pin is overridden. |
-| Run `chsh` after the switch | Setting `users.knownUsers` with the existing uid lets nix-darwin set the login shell itself. The plan was wrong that it couldn't. |
-| Move off mise gradually | Removed in one go. |
-| sops only for the homelab | sops on every machine, called from activation steps; see [About secrets](secrets.md). |
-| `sudo nix run …` for the first switch | Needs `sudo -H`. Plain `sudo` keeps your `$HOME`, so Nix falls back to root's and downloads every input again. |
+| A host named `mac-mini` | `darwinConfigurations.mac`, for all Apple Silicon Macs. With a name for one machine, each new Mac needs a change to the repo. |
+| Install Homebrew first | nix-homebrew installs Homebrew. Its Homebrew version was older than the installed one, so the repo pins a newer version. |
+| Run `chsh` after the switch | With `users.knownUsers` and the existing user ID, nix-darwin sets the login shell. The plan said that it cannot. |
+| Remove mise slowly | All of mise went at once. |
+| sops only on the homelab | sops on all machines, in activation steps. See [About secrets](secrets.md). |
+| `sudo nix run …` for the first switch | It needs `sudo -H`. Without `-H`, Nix uses the cache of `root` and downloads all inputs again. |
 
-The first switch surfaced a run of problems, and most of them came from the old setup still
-being partly in place. The old terminal config started Homebrew's fish, which never gets
-nix-darwin's paths, so `darwin-rebuild` seemed to vanish after the switch. Leftover fish config
-put `~/.local/bin`, full of stale installer copies, ahead of Nix. Removing mise removed its
-Python, and starship started timing out on Apple's slow stub. A stale `.bak` file stopped
-home-manager. Each fix became part of the config: PATH additions are append-only, Homebrew goes
-after Nix, Python comes from Nix.
+Most problems in the first switch came from parts of the old setup:
 
-Other problems came from Homebrew. Every major Xcode update needs its license accepted again,
-and Homebrew refuses to run until it is, so the config now accepts it before the Homebrew step.
-Formulae from third-party taps were refused as untrusted, so declared taps are marked trusted.
-Adopting the running 1Password into Homebrew made it quit. And with `cleanup = "uninstall"`,
-rolling back to a generation from before the 1Password cask existed uninstalled 1Password,
-which was kept anyway.
+- The old terminal configuration started the Homebrew fish. That fish did not have the
+  nix-darwin paths, so `darwin-rebuild` was not found.
+- Old fish configuration put `~/.local/bin` before Nix on PATH. That directory had old copies
+  of tools.
+- mise had supplied Python. Without it, starship used the slow Apple Python and timed out.
+- An old `.bak` file stopped home-manager.
 
-Three warnings printed on every build. Each was tracked down rather than ignored: atuin pulled
-from its own flake (now an override in `pkgs/`), a man-page cache option that does nothing on
-macOS, and home-manager's own man page.
+Each fix went into the configuration. Additions to PATH now go at the end. Homebrew comes
+after Nix. Nix supplies Python.
 
-Several tools weren't in nixpkgs, or not at the versions already in use. atuin's history
-database had been migrated by a newer version than nixpkgs had. llm needed newer Python
-libraries than nixpkgs carried, so it's built with uv2nix from a lock file pinned to what had
-already worked. That's how `pkgs/` and the overlay came about; [About this repo's
-design](design.md) explains the version policy.
+Homebrew caused more problems:
 
-Secrets took the longest to get right. The design that stuck puts 1Password at the root and
-one sops key in 1Password. Getting there meant finding out that activation can't see your
-PATH, that `op whoami` never prompts, and that the licensed fonts had to come out of git
-history before the repo could go public. The bootstrap that came out of it takes a fresh Mac to
-fully configured with one command.
+- After each major Xcode update, Homebrew does not run until you accept the license again. The
+  configuration now accepts it before the Homebrew step.
+- Homebrew refused formulae from third-party taps. The configuration now marks its taps as
+  trusted.
+- When Homebrew adopted the running 1Password, 1Password quit.
+- A rollback to a generation without the 1Password cask removed 1Password. The setting stays.
+
+Three warnings showed on each build. Each had a cause and got a fix:
+
+- atuin came from the atuin flake. It now comes from an override in `pkgs/`.
+- A man page cache option has no effect on macOS. The configuration turns it off.
+- The home-manager man page caused a warning. The configuration turns it off.
+
+Some tools were not in nixpkgs, or nixpkgs had older versions. A newer atuin had already
+migrated the history database. llm needed newer Python libraries than nixpkgs had, so uv2nix
+builds it from a lock file. This is how `pkgs/` and the overlay started. See
+[About the design](design.md).
+
+Secrets took the most time. In the final design, 1Password holds one sops key, and sops holds
+all other secrets. On the way, three facts came out. Activation steps do not get your PATH.
+`op whoami` does not ask you to unlock 1Password. And the licensed fonts had to come out of the
+git history before the repo became public. The bootstrap from this work sets up a new Mac with
+one command.
 
 ## Phase 2: devenv
 
-devenv came after the Mac, piloted in one project (dashtext). The environment itself was
-straightforward. Two lessons were general: a platform-specific `env` variable needs
-`lib.optionalAttrs` rather than `lib.mkIf`, and Nix's clang on macOS honors
-`DYLD_LIBRARY_PATH` where Apple's compiler doesn't. Building on the Mac also turned up an app
-bug that Linux-only CI had never hit.
+devenv came after the Mac, in one project (dashtext). The environment was simple to make. Two
+lessons apply to all projects:
 
-The harder problem was agents. They run commands without ever drawing a prompt, so direnv
-never loaded the project's environment for them. Fixing that took four rounds, including one
-that fork-bombed the Mac; [About coding agents and direnv](agents.md) tells it. CI moved to
-devenv too, and runs slower than mise did, even with the Nix store cached.
+- For an `env` variable on one platform, use `lib.optionalAttrs`, not `lib.mkIf`.
+- On macOS, the Nix clang uses `DYLD_LIBRARY_PATH`. The Apple compiler ignores it.
+
+A build on the Mac also found an app bug that the Linux CI did not find.
+
+The bigger problem was the agents. They run commands without a prompt, so direnv did not load
+the environment for them. The fix took four attempts. One attempt used all the processes on
+the Mac. See [About coding agents and direnv](agents.md).
+
+CI also moved to devenv. It is slower than with mise, even with a cache for the Nix store.
 
 ## Phase 4: the homelab
 
-The first box went in on Oct 8. nixos-anywhere installed it from the Mac, it joined Tailscale,
-and colmena deploys to it. Each step needed a correction to the plan.
+The first box went in on Oct 8. nixos-anywhere installed it from the Mac. It joined Tailscale,
+and colmena deploys to it. Each step needed a change to the plan:
 
-The plan said to set a password on the installer and SSH in. But SSH offered all eleven of
-1Password's keys first, sshd gave up after six, and after enough failures it blocked the Mac
-for minutes at a time. Turning off key logins entirely made it worse, because nixos-anywhere
-relies on a temporary key of its own for the rest of the install. Keeping the 1Password agent
-out of that one command (`IdentityAgent=none`) fixed it. The box then came back on a different
-IP than the installer had. And the first colmena deploy built a slightly different system from
-the one installed, because the hive missed a module nixpkgs adds itself. [About the
-homelab](homelab.md) covers the design that came out of it.
+- The plan said to set a password on the installer and connect with SSH. But SSH tried the
+  eleven 1Password keys first. sshd stopped after six, and after more failures it blocked the
+  Mac for some minutes. The fix was `IdentityAgent=none` in the install command.
+- `PubkeyAuthentication=no` made it worse. nixos-anywhere needs a temporary key of its own for
+  the rest of the install.
+- After the install, the box had a different IP address.
+- The first colmena deploy built a different system from the installed one. The hive did not
+  have a module that `nixosSystem` adds.
 
-## What carried through
+See [About the homelab](homelab.md).
 
-The plan's shape held up: one repo, a shared home-manager config, a host file per kind of
-machine, devenv per project, and the Mac as the controller for the homelab. Most of what
-changed was the plan's specific commands and assumptions, written before any of it had run.
-Most of the problems above were solved by checking what the machine was actually doing, and
-several turned out to be something other than they first looked like.
+## What stayed the same
+
+The general design of the plan stayed:
+
+- one repo
+- a shared home-manager configuration
+- a host file for each type of machine
+- devenv in each project
+- the Mac as the controller of the homelab
+
+The commands and assumptions in the plan changed. Nobody had run them before the plan was
+written.
+
+Most problems got a fix after someone looked at what the machine actually did. Several had a
+different cause than they first seemed to have.
