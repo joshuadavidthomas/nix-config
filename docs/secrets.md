@@ -1,44 +1,49 @@
 # Secrets
 
-The configuration must not contain secrets. Nix copies it into `/nix/store`, and all users can
-read the store.
+Nix copies the configuration into `/nix/store`, and all users can read the store. So the
+configuration contains no secrets.
 
-## How it works
+## Where each secret is
 
-- 1Password holds the SSH keys. Machines use them through the 1Password agent.
-- 1Password also holds the sops age key, as the document "nix-config sops age key".
-- All other secrets are in `secrets/`, encrypted with sops for that age key. `.sops.yaml` lists
-  the key.
-- Each machine keeps the age key at `~/.config/sops/age/keys.txt`.
-- Activation steps decrypt a secret when they need it, and keep it in memory. They do not write
-  it to disk, except fonts.
+| What | Where |
+| --- | --- |
+| SSH keys and the git signing key | 1Password. Machines use them through the 1Password SSH agent. |
+| The age key | 1Password, the document "nix-config sops age key" |
+| The age key on a machine | `~/.config/sops/age/keys.txt` |
+| Other secrets | `secrets/`, encrypted with sops |
+| The keys that can decrypt `secrets/` | `.sops.yaml` |
 
-On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the key from 1Password the first
-time that you apply the configuration. 1Password must be unlocked, with the CLI integration on.
+On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the age key from 1Password. The
+step runs at each apply until the age key is on the Mac. 1Password must be unlocked, with the
+CLI integration on.
 
-The repo does not use sops-nix. Its home-manager module decrypts in the background, so the
-secrets can arrive after the steps that need them.
+Steps that need a secret decrypt it during the apply. Only fonts are written to disk.
 
-## Put the key on a machine
+## Put the age key on a machine
 
-Do this on a machine that is not a Mac, or if the Mac step failed.
+Do this on machines other than a Mac. On a Mac, unlock 1Password and apply again.
 
-1. Make the directory:
+1. Make the directory. Only you can read it.
 
    ```sh
-   mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age
+   mkdir -p -m 700 ~/.config/sops/age
    ```
 
-2. Get the key from 1Password:
+2. Get the age key from 1Password:
 
    ```sh
    op document get "nix-config sops age key" > ~/.config/sops/age/keys.txt
+   ```
+
+   If `op` is not installed, copy the document into the file by hand.
+
+3. Make the file readable only by you:
+
+   ```sh
    chmod 600 ~/.config/sops/age/keys.txt
    ```
 
-If `op` is not available, copy the document contents by hand.
-
-## Change a value
+## Change a secret
 
 1. Open the secrets file. sops decrypts it in your editor.
 
@@ -46,8 +51,8 @@ If `op` is not available, copy the document contents by hand.
    sops secrets/secrets.yaml
    ```
 
-2. Edit the value and save. sops encrypts the file again.
-3. Record the change with jj.
+2. Change the value. Save the file. sops encrypts it again.
+3. Record the change.
 
 To read one value:
 
@@ -55,12 +60,10 @@ To read one value:
 sops decrypt --extract '["atuin"]["username"]' secrets/secrets.yaml
 ```
 
-## Use a value in the configuration
-
-Decrypt the value in a home-manager activation step that runs after `sopsAgeKey`. The
+To use a secret in the configuration, decrypt it in a step that runs after `sopsAgeKey`. The
 `monolisa` step in `hosts/mac/home.nix` is an example.
 
-## Add a file
+## Add an encrypted file
 
 1. Encrypt the file:
 
@@ -69,19 +72,18 @@ Decrypt the value in a home-manager activation step that runs after `sopsAgeKey`
      --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
    ```
 
-   sops selects its rules by file name. Without `--filename-override`, it fails with
-   `no matching creation rules found`.
+   Without `--filename-override`, sops shows `no matching creation rules found`.
 
-2. Decrypt it in an activation step with `--input-type json --output-type binary`.
+2. In the step that uses the file, decrypt it with `--input-type json --output-type binary`.
 
-## Add or change a key
+## Add or replace an age key
 
-1. Add or change the key in `keys` in `.sops.yaml`.
-2. Encrypt each file again for the new keys. `sops updatekeys` takes one file at a time. This
-   loop is for fish:
+1. Change `keys` in `.sops.yaml`.
+2. Encrypt each file again for the new keys. In fish:
 
    ```sh
    for f in secrets/secrets.yaml secrets/fonts/*.json; sops updatekeys $f; end
    ```
 
-3. Record the change with jj.
+3. If you replaced the age key, put the new key in the 1Password document.
+4. Record the change.
