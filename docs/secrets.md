@@ -1,69 +1,87 @@
-# How secrets work
+# Secrets
 
-Nix copies the contents of each `.nix` file into `/nix/store`. All users can read the store.
-So the configuration must not contain secrets. This repo gets secrets to a machine in two
-ways: 1Password and sops.
+The configuration must not contain secrets. Nix copies it into `/nix/store`, and all users can
+read the store.
 
-## 1Password and sops
+## How it works
 
-1Password contains the SSH keys. Machines use the keys through the 1Password agent, so no
-private key is on disk. 1Password also contains the sops age key, as the document
-"nix-config sops age key".
+- 1Password holds the SSH keys. Machines use them through the 1Password agent.
+- 1Password also holds the sops age key, as the document "nix-config sops age key".
+- All other secrets are in `secrets/`, encrypted with sops for that age key. `.sops.yaml` lists
+  the key.
+- Each machine keeps the age key at `~/.config/sops/age/keys.txt`.
+- Activation steps decrypt a secret when they need it, and keep it in memory. They do not write
+  it to disk, except fonts.
 
-All other secrets are in `secrets/`, encrypted with sops for that age key. The encrypted
-files are in git. Without the key, they are not useful to anyone. This is why the repo can be
-public.
+On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the key from 1Password the first
+time that you apply the configuration. 1Password must be unlocked, with the CLI integration on.
 
-The MonoLisa fonts have a license, so the repo contains them only in encrypted form. Before
-the repo became public, `git filter-repo` removed the old unencrypted copies from the history.
+The repo does not use sops-nix. Its home-manager module decrypts in the background, so the
+secrets can arrive after the steps that need them.
 
-All machines use the same age key. For one person with a few machines, a key for each machine
-adds work and little security, and 1Password already protects the key. The homelab boxes
-cannot use 1Password. They will get keys made from their SSH host keys.
+## Put the key on a machine
 
-## How a Mac gets the key
+Do this on a machine that is not a Mac, or if the Mac step failed.
 
-The `sopsAgeKey` step in `home/secrets.nix` runs when you apply the configuration. If the key
-is missing and 1Password is signed in, the step gets the key from 1Password. It writes the key
-to `~/.config/sops/age/keys.txt`. Later steps use this file to decrypt secrets.
+1. Make the directory:
 
-Three details are important:
+   ```sh
+   mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age
+   ```
 
-- Activation steps do not get your PATH. So the step calls `op` at `/usr/local/bin/op`.
-  `programs._1password` installs it there. The 1Password CLI integration accepts no other
-  location.
-- `op whoami` does not ask you to unlock 1Password. If you wait for it while 1Password is
-  locked, you wait forever. A request for the document opens the Touch ID prompt.
-- On macOS, sops looks for its key in `~/Library`. `SOPS_AGE_KEY_FILE` sends it to the path
-  above.
+2. Get the key from 1Password:
 
-## Why the repo does not use sops-nix
+   ```sh
+   op document get "nix-config sops age key" > ~/.config/sops/age/keys.txt
+   chmod 600 ~/.config/sops/age/keys.txt
+   ```
 
-sops-nix is the usual way to use sops with Nix. Its home-manager module decrypts secrets in
-the background, with launchd or systemd. Nothing makes sure that it finishes before the steps
-that need the secrets, for example the atuin login. Also, systemd user services are not
-reliable on WSL.
+If `op` is not available, copy the document contents by hand.
 
-So the steps that need a secret run `sops` themselves. They run in order, and they keep the
-secret in memory. Only the fonts go to disk, because macOS ignores fonts that are symlinks.
+## Change a value
 
-## The GitHub token for Nix
+1. Open the secrets file. sops decrypts it in your editor.
 
-Nix downloads flake inputs from GitHub. Without a token, GitHub allows 60 requests an hour.
-An update can use more.
+   ```sh
+   sops secrets/secrets.yaml
+   ```
 
-After `gh auth login`, gh has a token. At each switch, a step in `home/nix.nix` copies it to
-`~/.config/nix/access-tokens.conf`, with mode 0600. The Nix user configuration includes that
-file with `!include`. If the file is missing, Nix skips it. The token does not go into the repo
-or the store.
+2. Edit the value and save. sops encrypts the file again.
+3. Record the change with jj.
 
-nix-darwin cannot set this in the system configuration. Determinate Nix controls `/etc/nix`.
+To read one value:
 
-## The atuin login
+```sh
+sops decrypt --extract '["atuin"]["username"]' secrets/secrets.yaml
+```
 
-atuin sync needs a username, a password and an encryption key. They are in
-`secrets/secrets.yaml`. When `atuin status` shows that atuin is not logged in, a step logs it
-in.
+## Use a value in the configuration
 
-An atuin account made through GitHub sign-in has no password. The account needed a password
-before the CLI could log in.
+Decrypt the value in a home-manager activation step that runs after `sopsAgeKey`. The
+`monolisa` step in `hosts/mac/home.nix` is an example.
+
+## Add a file
+
+1. Encrypt the file:
+
+   ```sh
+   sops encrypt --filename-override secrets/fonts/font.ttf.json \
+     --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
+   ```
+
+   sops selects its rules by file name. Without `--filename-override`, it fails with
+   `no matching creation rules found`.
+
+2. Decrypt it in an activation step with `--input-type json --output-type binary`.
+
+## Add or change a key
+
+1. Add or change the key in `keys` in `.sops.yaml`.
+2. Encrypt each file again for the new keys. `sops updatekeys` takes one file at a time. This
+   loop is for fish:
+
+   ```sh
+   for f in secrets/secrets.yaml secrets/fonts/*.json; sops updatekeys $f; end
+   ```
+
+3. Record the change with jj.

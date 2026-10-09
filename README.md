@@ -14,6 +14,17 @@ Set up a new Mac:
 curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
 ```
 
-This repo uses jj. Use `jj describe` and `jj new`, not `git commit`.
+## Rules for changes
 
-See [docs](docs/README.md) and the [roadmap](docs/roadmap.md).
+- This repo uses jj. Use `jj describe` and `jj new`, not `git commit`.
+- After you add a file, run `jj status`. The flake does not see a file until jj records it.
+- Run `nix flake check` before you record a change.
+- Do not change a `stateVersion`.
+
+## Docs
+
+- [Basics](docs/basics.md): layout, applying, updating, rolling back
+- [Mac](docs/mac.md)
+- [WSL](docs/wsl.md)
+- [Homelab](docs/homelab.md)
+- [Secrets](docs/secrets.md)
