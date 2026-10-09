@@ -84,7 +84,7 @@ sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
 SSH settings go in `%USERPROFILE%\.ssh\config` on Windows. `ssh` runs `ssh.exe`.
 
 To get the age key from 1Password at each apply, set `secrets.op` in
-`hosts/work-wsl/default.nix` to the Windows `op.exe` (unverified).
+`hosts/work-wsl/home.nix` to the Windows `op.exe` (unverified).
 
 ## Rename the user on an installed system
 

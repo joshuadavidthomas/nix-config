@@ -1,23 +1,19 @@
+# Every machine: the Mac, WSL, the lab boxes and VMs. lib/mksystem.nix gives it to vars.user
+# everywhere, so ssh into any box and the tools are there. home/dev adds what's only needed
+# where you write code.
 { pkgs, ... }:
 let
-  # Kept last on PATH so Nix-managed tools win over installer copies left in these dirs.
-  appendedPath = [
-    "$HOME/.local/bin" # other apps' installers (hermes, sprite, swamp, openclaw)
-    "$HOME/.cargo/bin" # `cargo install` output
-  ];
-
   pythonScript = name:
     pkgs.writeScriptBin name ("#!${pkgs.python3}/bin/python3\n" + builtins.readFile ./files/${name});
 in
 {
   imports = [
-    ./agents.nix
+    ./atuin.nix
     ./cli.nix
     ./fish.nix
     ./git.nix
     ./neovim.nix
-    ./nix.nix
-    ./secrets.nix
+    ./shell.nix
   ];
 
   home.stateVersion = "26.05"; # set once; don't bump it on upgrades
@@ -27,36 +23,26 @@ in
   manual.manpages.enable = false;
 
   home.packages = (with pkgs; [
-    bun
     cf
-    cargo-binstall
     curl
     delta
-    devenv
     dotenv-linter
     fastfetch
     fd
     ffmpeg
     flyctl
     gnupg
-    go_1_27
     herdr
     himalaya
     jj-starship
     jjui
     jq
     just
-    lisette
     llm
-    lua5_5
-    nodejs_24
-    pnpm_12
     posting
-    python314 # default python3; projects pin their own with uv/devenv
     rclone
     ripgrep
     rustic
-    rustup
     tldr
     todoist-cli
     topgrade
@@ -64,7 +50,6 @@ in
     uv
     wakatime-cli
     wget
-    zig
   ]) ++ [
     (pythonScript "git-rebase-feature-branch")
     (pythonScript "git-sclone")
@@ -82,22 +67,4 @@ in
     j = "just";
     lg = "lazygit";
   };
-
-  programs.bash = {
-    enable = true; # minimal fallback for nix develop, recovery and scripts
-    profileExtra = ''
-      export PATH="$PATH:${builtins.concatStringsSep ":" appendedPath}"
-    '';
-  };
-
-  programs.zsh = {
-    enable = true; # login shell for GUI apps and agents that spawn $SHELL
-    envExtra = ''
-      path+=(${builtins.concatStringsSep " " (map (p: ''"${p}"'') appendedPath)})
-    '';
-  };
-
-  programs.fish.shellInit = ''
-    fish_add_path --path --append ${builtins.concatStringsSep " " appendedPath}
-  '';
 }

@@ -52,8 +52,11 @@ Research:
 ## How it works
 
 `flake.nix` has one configuration for each kind of machine: `mac` for all Apple Silicon Macs,
-`work-wsl`, and `lab-1`, `lab-2` and so on. The Mac and the work laptop share the home-manager
-configuration in `home/`. The lab boxes share `modules/server.nix`.
+`work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds the Mac and the work
+laptop: the overlay, the base module for the OS in `modules/`, and home-manager with
+`home/core/` for the user. `hosts/<name>/` adds what is particular to the machine; both add
+`home/dev/`. The lab boxes share `modules/nixos/server.nix`. Values that more than one machine
+uses, such as the username and the public keys, are in `vars.nix`.
 
 `overlay.nix` selects the source of each package. Command-line tools come from
 `nixpkgs-unstable`. Runtimes and libraries come from the release. Packages that nixpkgs does not

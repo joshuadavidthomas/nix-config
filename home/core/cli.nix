@@ -1,21 +1,10 @@
 { config, pkgs, inputs, ... }:
 let
   tokyonight = "${inputs.tokyonight}/extras";
-  direnv = "${config.programs.direnv.package}/bin/direnv";
   yaml = pkgs.formats.yaml { };
   toml = pkgs.formats.toml { };
 in
 {
-  programs.atuin = {
-    enable = true;
-    settings = {
-      auto_sync = true;
-      sync_address = "https://api.atuin.sh";
-      enter_accept = true;
-      keymap_mode = "vim-insert";
-    };
-  };
-
   programs.bat = {
     enable = true;
     config = {
@@ -117,37 +106,6 @@ in
     };
   };
 
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
-
-  # direnv's hook fires on the prompt, so shells that never draw one (agents' tool calls,
-  # editor tasks, `fish -c`) skip it. These load the directory's environment up front instead.
-  # direnv evaluates .envrc in bash, which reads BASH_ENV too: the marker keeps that bash, and
-  # anything the .envrc starts, from calling back into direnv. A shell that inherited a loaded
-  # environment keeps it: build tools run scripts from other directories (cargo runs the
-  # linker, a bash script, from each crate's source), where reloading would unload it. Claude
-  # Code loads it its own way (agents.nix).
-  programs.zsh.envExtra = ''
-    if [[ ! -o interactive && -z ''${DIRENV_DIR-} && -z ''${DIRENV_NONINTERACTIVE-} && -z ''${CLAUDECODE-} ]]; then
-      eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export zsh 2>/dev/null)"
-    fi
-  '';
-  # A fixed path rather than a store path: apps keep the BASH_ENV they launched with, and this
-  # way they still get the current hook after a switch.
-  xdg.configFile."direnv/noninteractive.bash".text = ''
-    if [[ -z ''${DIRENV_DIR-} && -z ''${DIRENV_NONINTERACTIVE-} ]]; then
-      eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export bash 2>/dev/null)"
-    fi
-  '';
-  home.sessionVariables.BASH_ENV = "${config.xdg.configHome}/direnv/noninteractive.bash";
-  programs.fish.shellInit = ''
-    if not status is-interactive; and not set -q DIRENV_DIR; and not set -q DIRENV_NONINTERACTIVE
-      DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${direnv} export fish 2>/dev/null | source
-    end
-  '';
-
   programs.eza = {
     enable = true;
     # integrations would alias ls/ll to eza
@@ -220,7 +178,7 @@ in
 
   programs.starship = {
     enable = true;
-    settings = builtins.fromTOML (builtins.readFile ./dotfiles/starship.toml) // {
+    settings = builtins.fromTOML (builtins.readFile ./files/starship.toml) // {
       scan_timeout = 100; # ms; default 30
     };
   };

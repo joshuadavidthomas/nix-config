@@ -10,7 +10,7 @@
 | Other secrets | `secrets/`, encrypted with sops |
 | The keys that can decrypt `secrets/` | `.sops.yaml` |
 
-On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the age key from 1Password at each
+On a Mac, the `sopsAgeKey` step in `home/dev/secrets.nix` gets the age key from 1Password at each
 apply until the key is present. 1Password must be unlocked, with the CLI integration on.
 
 ## Put the age key on a machine

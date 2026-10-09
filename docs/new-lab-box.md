@@ -49,11 +49,13 @@ The examples use `lab-2`. Use the next free number.
    lsblk
    ```
 
-7. On the Mac, in `hosts/lab-2/disk.nix`, set the disk: `device = "/dev/nvme0n1";`.
+7. If the disk is not `nvme0n1`, set it in `hosts/lab-2/default.nix` on the Mac:
+   `disko.devices.disk.main.device = "/dev/sda";`.
 
 ## Install
 
-> **Warning:** The next command erases the disk in `hosts/lab-2/disk.nix`.
+> **Warning:** The next command erases the disk of `lab-2`: `/dev/nvme0n1`, or the disk that
+> `hosts/lab-2/default.nix` sets. The layout is in `modules/nixos/single-disk.nix`.
 
 1. On the Mac, go to `~/.nix-config`.
 2. Run nixos-anywhere. Paste the command as one line.

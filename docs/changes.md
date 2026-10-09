@@ -4,16 +4,19 @@
 
 | To add or change | Edit |
 | --- | --- |
-| A command-line tool, on all machines | `home.packages` in `home/josh.nix` |
-| A tool that is already configured | The file in `home/` that configures it |
-| A coding agent, or its settings and hooks | `home/agents.nix` |
+| A command-line tool, on all machines | `home.packages` in `home/core/default.nix` |
+| A language toolchain, on the Mac and WSL | `home.packages` in `home/dev/default.nix` |
+| A tool that is already configured | The file in `home/core/` or `home/dev/` that configures it |
+| A coding agent, or its settings and hooks | `home/dev/agents.nix` |
 | A tool or setting on the Mac only | `hosts/mac/home.nix` |
 | A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
 | A Homebrew formula that nixpkgs does not have | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
 | A macOS setting | `system.defaults` in `hosts/mac/default.nix` |
-| A work setting | `hosts/work-wsl/default.nix` |
-| A setting on all lab boxes | `modules/server.nix` |
+| A work setting | `hosts/work-wsl/home.nix`. A system setting goes in `hosts/work-wsl/default.nix`. |
+| A system setting on all NixOS machines | `modules/nixos/default.nix` |
+| A setting on all lab boxes | `modules/nixos/server.nix` |
 | A setting on one lab box | `hosts/lab-N/default.nix` |
+| A value that more than one machine uses: username, email, a public key | `vars.nix` |
 | The source of a package (release or unstable) | `overlay.nix` |
 | A package that nixpkgs does not have | `pkgs/`. See [Add a package that nixpkgs does not have](#add-a-package-that-nixpkgs-does-not-have). |
 | A secret | `secrets/`. See [Secrets](secrets.md). |
@@ -119,7 +122,7 @@ Lab boxes do this every day.
 | `path '…' does not exist` for a new file | jj did not record the file | Run `jj status` |
 | `git commit` makes an empty commit | jj recorded the change first | Use `jj describe` and `jj new`. Remove the empty commit with `jj abandon`. |
 | A GitHub rate limit error during an update | Nix has no GitHub token | Run `gh auth login`. Apply again. |
-| `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/git.nix` |
+| `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/core/git.nix` |
 | home-manager stops and names a `.bak` file | An old backup is in the way | Move the old `.bak` file. Apply again. |
 | `infinite recursion encountered` | A module reads `config` to decide what to define | Put the condition in `lib.mkIf` on the value, not around `imports` |
 

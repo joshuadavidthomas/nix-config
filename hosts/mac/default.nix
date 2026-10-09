@@ -1,19 +1,6 @@
-{ config, lib, pkgs, ... }: {
-  nixpkgs.hostPlatform = "aarch64-darwin";
-  nix.enable = false; # Determinate Nix manages the daemon; nix-darwin must not
-  system.primaryUser = "josh"; # required for user-level options (Homebrew, defaults)
-  programs.fish.enable = true;
-  environment.shells = [ pkgs.fish ];
-
-  # knownUsers lets nix-darwin set the login shell. For this existing account (uid 501)
-  # activation only updates UserShell and PrimaryGroupID (20, unchanged); nix-darwin
-  # refuses to delete the primary user or any uid <= 501.
-  users.knownUsers = [ "josh" ];
-  users.users.josh = {
-    uid = 501;
-    home = "/Users/josh";
-    shell = pkgs.fish;
-  };
+# Any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname.
+{ config, inputs, lib, vars, ... }: {
+  imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
   # installs op to /usr/local/bin, the only place the 1Password app integration accepts
   programs._1password = {
@@ -24,14 +11,14 @@
   environment.systemPath = lib.mkAfter [
     "${config.homebrew.prefix}/bin"
     "${config.homebrew.prefix}/sbin"
-    "${config.users.users.josh.home}/.lmstudio/bin" # lms, managed by LM Studio
+    "${config.users.users.${vars.user}.home}/.lmstudio/bin" # lms, managed by LM Studio
   ];
 
   # Installs Homebrew itself, so a fresh Mac needs nothing but Nix. autoMigrate takes over
   # an existing /opt/homebrew in place.
   nix-homebrew = {
     enable = true;
-    user = "josh";
+    user = vars.user;
     autoMigrate = true;
   };
 
@@ -77,7 +64,7 @@
 
   system.defaults.dock.autohide = true;
 
-  home-manager.users.josh = import ./home.nix;
+  home-manager.users.${vars.user}.imports = [ ./home.nix ];
 
   system.stateVersion = 6; # nix-darwin's value for new installs; never bump
 }

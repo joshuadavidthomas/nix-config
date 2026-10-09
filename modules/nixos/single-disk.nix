@@ -1,7 +1,11 @@
-# disko partitions and formats this at install; after that it only declares the mounts.
-{
+# One disk: an EFI system partition and an ext4 root. disko partitions and formats it at
+# install; after that it only declares the mounts. A host whose disk isn't nvme0n1 sets
+# disko.devices.disk.main.device.
+{ inputs, lib, ... }: {
+  imports = [ inputs.disko.nixosModules.disko ];
+
   disko.devices.disk.main = {
-    device = "/dev/nvme0n1";
+    device = lib.mkDefault "/dev/nvme0n1";
     type = "disk";
     content = {
       type = "gpt";

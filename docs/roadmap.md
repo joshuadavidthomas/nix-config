@@ -22,7 +22,7 @@
 Design: [Homelab monitoring](research/homelab-monitoring.md).
 
 - [ ] A Fly machine with VictoriaMetrics, VictoriaLogs, vmalert and Grafana
-- [ ] Vector on the lab boxes, in `modules/server.nix`
+- [ ] Vector on the lab boxes, in `modules/nixos/server.nix`
 - [ ] Alert rules in vmalert
 - [ ] A heartbeat Worker on Cloudflare
 - [ ] Agent access through the VictoriaMetrics MCP server

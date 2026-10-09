@@ -33,20 +33,10 @@
     tokyonight.flake = false;
   };
 
-  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, nix-homebrew, disko, colmena, ... }:
+  outputs = inputs@{ self, nixpkgs, colmena, ... }:
     let
-      nixpkgsConfig = {
-        nixpkgs.config.allowUnfree = true;
-        nixpkgs.overlays = [ self.overlays.default ];
-      };
-
-      homeManagerFor = user: {
-        home-manager.useGlobalPkgs = true; # reuse the system's pkgs
-        home-manager.useUserPackages = true;
-        home-manager.backupFileExtension = "bak";
-        home-manager.extraSpecialArgs = { inherit inputs; };
-        home-manager.users.${user} = import ./home/josh.nix;
-      };
+      vars = import ./vars.nix;
+      mkSystem = import ./lib/mksystem.nix { inherit self inputs vars; };
 
       # the homelab boxes, by hostname; each has a hosts/<name>
       labs = [ "lab-1" "lab-2" "lab-3" ];
@@ -64,27 +54,22 @@
       });
       checks = self.packages;
 
+      darwinConfigurations.mac = mkSystem "mac" { system = "aarch64-darwin"; };
+
       nixosConfigurations = {
-        work-wsl = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            nixos-wsl.nixosModules.default
-            nixpkgsConfig
-            ./hosts/work-wsl
-            home-manager.nixosModules.home-manager
-            (homeManagerFor "josh")
-          ];
-        };
+        work-wsl = mkSystem "work-wsl" { system = "x86_64-linux"; };
       }
       # nixos-anywhere installs a lab box from here; colmenaHive deploys it afterwards
       // nixpkgs.lib.genAttrs labs (name: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ disko.nixosModules.disko ./hosts/${name} ];
+        specialArgs = { inherit inputs vars; };
+        modules = [ ./modules/nixos ./hosts/${name} ];
       });
 
       # `colmena apply` from the Mac; every build runs on the boxes themselves
       colmenaHive = colmena.lib.makeHive ({
         meta.nixpkgs = import nixpkgs { system = "x86_64-linux"; };
+        meta.specialArgs = { inherit inputs vars; };
         defaults = {
           deployment.buildOnTarget = true;
           # colmena's lib comes from plain `import nixpkgs`, which lacks the flake's version
@@ -98,16 +83,5 @@
         imports = self.nixosConfigurations.${name}._module.args.modules;
         deployment.targetHost = name; # Tailscale MagicDNS
       }));
-
-      # any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname
-      darwinConfigurations.mac = nix-darwin.lib.darwinSystem {
-        modules = [
-          nixpkgsConfig
-          nix-homebrew.darwinModules.nix-homebrew
-          ./hosts/mac
-          home-manager.darwinModules.home-manager
-          (homeManagerFor "josh")
-        ];
-      };
     };
 }

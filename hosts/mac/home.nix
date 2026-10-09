@@ -1,8 +1,10 @@
-{ config, lib, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, vars, ... }:
 let
   ageKeyFile = "${config.xdg.configHome}/sops/age/keys.txt";
 in
 {
+  imports = [ ../../home/dev ];
+
   # MonoLisa is licensed, so the repo only carries it sops-encrypted. It's decrypted straight
   # into ~/Library/Fonts (macOS ignores symlinked fonts) and never enters /nix/store.
   home.activation.monolisa = lib.hm.dag.entryAfter [ "writeBoundary" "sopsAgeKey" ] ''
@@ -43,22 +45,21 @@ in
     settings."*".IdentityAgent =
       ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
     # The agent holds more keys than sshd's MaxAuthTries (6), so name the one the lab
-    # trusts (modules/server.nix) instead of letting ssh offer them all.
+    # trusts (modules/nixos/server.nix) instead of letting ssh offer them all.
     settings."lab-*" = {
-      User = "josh";
+      User = vars.user;
       IdentityFile = "~/.ssh/lab.pub";
       IdentitiesOnly = "yes";
     };
   };
-  home.file.".ssh/lab.pub".text =
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVCdVXgBfljpv3nqraSApsBRM7Lg5U/L8HIXTNXesBn\n";
+  home.file.".ssh/lab.pub".text = "${vars.keys.controller}\n";
 
   programs.git = {
-    settings.user.email = "josh@joshthomas.dev";
+    settings.user.email = vars.email;
     signing.signer = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
   };
 
-  programs.jujutsu.settings.user.email = "josh@joshthomas.dev";
+  programs.jujutsu.settings.user.email = vars.email;
 
   programs.ghostty = {
     enable = true;

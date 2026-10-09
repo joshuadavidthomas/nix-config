@@ -1,12 +1,11 @@
 # Identity is shared; each host sets user.email and signing.signer.
-{ pkgs, ... }: {
+{ vars, ... }: {
   programs.git = {
     enable = true;
-    settings.user.name = "Josh Thomas";
-    # 1Password "github.com" key
+    settings.user.name = vars.name;
     signing = {
       format = "ssh";
-      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFu+mS88ARLvrHMl3CshOJRL/Ft3TJRr/dG+hTq39aNW";
+      key = vars.keys.signing;
       signByDefault = true;
     };
   };
@@ -22,6 +21,6 @@
 
   programs.jujutsu = {
     enable = true;
-    settings.user.name = "Josh Thomas";
+    settings.user.name = vars.name;
   };
 }
