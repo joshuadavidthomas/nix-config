@@ -1,7 +1,5 @@
 # Set up NixOS-WSL
 
-Last applied before the October 2026 changes to `home/`. Not tested since.
-
 ## What you need
 
 - WSL from the Microsoft Store

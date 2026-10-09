@@ -2,9 +2,9 @@
 
 ## WSL
 
-- [ ] Apply `work-wsl` with the new `home/`
-- [ ] Get the age key from 1Password on WSL: set `secrets.op` to the Windows `op.exe`
-- [ ] Test commit signing with `op-ssh-sign.exe`
+- [x] Apply `work-wsl` with the new `home/`
+- [x] Get the age key from 1Password on WSL: set `secrets.op` to the Windows `op.exe`
+- [x] Test commit signing with `op-ssh-sign.exe`
 
 ## Homelab
 
