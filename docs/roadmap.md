@@ -16,6 +16,17 @@
 - [ ] Lab boxes as remote builders for each other and for the Mac
 - [ ] `system.autoUpgrade` on the lab boxes
 
+## Monitoring
+
+Design: [Homelab monitoring](research/homelab-monitoring.md).
+
+- [ ] A Fly machine with VictoriaMetrics, VictoriaLogs, vmalert and Grafana
+- [ ] Vector on the lab boxes, in `modules/server.nix`
+- [ ] Alert rules in vmalert
+- [ ] A heartbeat Worker on Cloudflare
+- [ ] Agent access through the VictoriaMetrics MCP server
+- [ ] A second Vector sink to Cloudflare Basin
+
 ## Mac
 
 - [ ] Declare the apps that Homebrew does not install

@@ -45,6 +45,10 @@ Docs:
 - [Secrets](docs/secrets.md)
 - [Roadmap](docs/roadmap.md)
 
+Research:
+
+- [Homelab monitoring](docs/research/homelab-monitoring.md)
+
 ## How it works
 
 `flake.nix` has one configuration for each kind of machine: `mac` for all Apple Silicon Macs,
