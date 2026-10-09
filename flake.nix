@@ -72,7 +72,7 @@
             nixpkgsConfig
             ./hosts/work-wsl
             home-manager.nixosModules.home-manager
-            (homeManagerFor "nixos")
+            (homeManagerFor "josh")
           ];
         };
       }

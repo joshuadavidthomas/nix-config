@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   wsl.enable = true;
-  wsl.defaultUser = "nixos"; # renaming the WSL user takes extra steps; see the NixOS-WSL docs
+  wsl.defaultUser = "josh"; # renaming it on an installed system needs `nixos-rebuild boot` and a restart (docs/new-wsl.md)
   wsl.interop.register = true;   # re-register the binfmt handler so Windows .exe files run
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -14,7 +14,7 @@
   # security.pki.certificateFiles = [ ./corp-root-ca.pem ]; # if the network inspects TLS
   # work-only settings (work git email, proxies) live here, never in home/josh.nix
 
-  home-manager.users.nixos = {
+  home-manager.users.josh = {
     home.packages = [ pkgs.wsl-open ];
     programs.neovim.extraPackages = [ pkgs.gcc ]; # cc for tree-sitter parsers; the Mac uses Xcode's
     home.sessionVariables.BROWSER = "wsl-open";
@@ -33,7 +33,7 @@
     };
   };
 
-  users.users.nixos.shell = pkgs.fish;
+  users.users.josh.shell = pkgs.fish;
 
   # copy the value from /etc/nixos/configuration.nix; never bump it
   system.stateVersion = "26.05";

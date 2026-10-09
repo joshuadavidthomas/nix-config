@@ -5,6 +5,8 @@
 - [x] Apply `work-wsl` with the new `home/`
 - [x] Get the age key from 1Password on WSL: set `secrets.op` to the Windows `op.exe`
 - [x] Test commit signing with `op-ssh-sign.exe`
+- [ ] Rename the user to `josh` on the work laptop. See
+      [Rename the user on an installed system](new-wsl.md#rename-the-user-on-an-installed-system).
 
 ## Homelab
 
