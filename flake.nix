@@ -9,6 +9,10 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
     home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+    colmena.url = "github:nix-community/colmena";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     # the Homebrew release nix-homebrew installs; its own pin trails upstream
     nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.9";
@@ -29,7 +33,7 @@
     tokyonight.flake = false;
   };
 
-  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, nix-homebrew, ... }:
+  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-wsl, nix-darwin, home-manager, nix-homebrew, disko, colmena, ... }:
     let
       nixpkgsConfig = {
         nixpkgs.config.allowUnfree = true;
@@ -43,6 +47,9 @@
         home-manager.extraSpecialArgs = { inherit inputs; };
         home-manager.users.${user} = import ./home/josh.nix;
       };
+
+      # the homelab boxes, by hostname; each has a hosts/<name>
+      labs = [ "lab-1" ];
     in
     {
       # every machine applies this; project devenvs can reuse it:
@@ -57,16 +64,35 @@
       });
       checks = self.packages;
 
-      nixosConfigurations.work-wsl = nixpkgs.lib.nixosSystem {
+      nixosConfigurations = {
+        work-wsl = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            nixos-wsl.nixosModules.default
+            nixpkgsConfig
+            ./hosts/work-wsl
+            home-manager.nixosModules.home-manager
+            (homeManagerFor "nixos")
+          ];
+        };
+      }
+      # nixos-anywhere installs a lab box from here; colmenaHive deploys it afterwards
+      // nixpkgs.lib.genAttrs labs (name: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [
-          nixos-wsl.nixosModules.default
-          nixpkgsConfig
-          ./hosts/work-wsl
-          home-manager.nixosModules.home-manager
-          (homeManagerFor "nixos")
-        ];
-      };
+        modules = [ disko.nixosModules.disko ./hosts/${name} ];
+      });
+
+      # `colmena apply` from the Mac; every build runs on the boxes themselves
+      colmenaHive = colmena.lib.makeHive ({
+        meta.nixpkgs = import nixpkgs { system = "x86_64-linux"; };
+        defaults = {
+          imports = [ disko.nixosModules.disko ];
+          deployment.buildOnTarget = true;
+        };
+      } // nixpkgs.lib.genAttrs labs (name: {
+        imports = [ ./hosts/${name} ];
+        deployment.targetHost = name; # Tailscale MagicDNS
+      }));
 
       # any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname
       darwinConfigurations.mac = nix-darwin.lib.darwinSystem {

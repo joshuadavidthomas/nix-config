@@ -24,6 +24,7 @@ in
   # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
   # (e.g. `rebuild --rollback`).
   home.packages = [
+    inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena # deploys the homelab
     (pkgs.writeShellScriptBin "rebuild" ''
       exec sudo /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
     '')
@@ -41,7 +42,16 @@ in
     includes = [ "~/.orbstack/ssh/config" ];
     settings."*".IdentityAgent =
       ''"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"'';
+    # The agent holds more keys than sshd's MaxAuthTries (6), so name the one the lab
+    # trusts (modules/server.nix) instead of letting ssh offer them all.
+    settings."lab-*" = {
+      User = "josh";
+      IdentityFile = "~/.ssh/lab.pub";
+      IdentitiesOnly = "yes";
+    };
   };
+  home.file.".ssh/lab.pub".text =
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVCdVXgBfljpv3nqraSApsBRM7Lg5U/L8HIXTNXesBn\n";
 
   programs.git = {
     settings.user.email = "josh@joshthomas.dev";
