@@ -9,7 +9,6 @@
 ## Homelab
 
 - [x] Set up `lab-2` and `lab-3`
-- [ ] Roll back `lab-1` from the boot menu once
 - [ ] Secrets on the lab boxes, with age keys from their SSH host keys. Start with a Tailscale
       auth key.
 - [ ] A binary cache on one lab box
