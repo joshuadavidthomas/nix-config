@@ -16,6 +16,7 @@
 
   home-manager.users.nixos = {
     home.packages = [ pkgs.wsl-open ];
+    programs.neovim.extraPackages = [ pkgs.gcc ]; # cc for tree-sitter parsers; the Mac uses Xcode's
     home.sessionVariables.BROWSER = "wsl-open";
     programs.gh.settings.browser = "wsl-open";
     programs.git = {
