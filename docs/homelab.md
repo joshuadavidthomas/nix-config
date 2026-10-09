@@ -1,4 +1,4 @@
-# About the homelab
+# How the homelab works
 
 The homelab boxes are named `lab-1`, `lab-2` and so on. They share one module,
 `modules/server.nix`. Each box has a small directory with its hostname, its disk layout and

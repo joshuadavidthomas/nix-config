@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Known problems, by symptom. For the background, see [History](../explanation/history.md).
+Known problems, by symptom. For the background, see [History](history.md).
 
 ## Any machine
 
@@ -35,7 +35,7 @@ Known problems, by symptom. For the background, see [History](../explanation/his
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `cannot execute binary file` running a Windows `.exe` | WSL's interop handler isn't registered | `wsl.interop.register = true` |
-| `Failed to start the systemd user session`, or switches end in exit status 4 | Another distro holds the UID-1000 session | Start NixOS first; see [Set up NixOS-WSL](../how-to/set-up-nixos-wsl.md#if-other-distributions-are-running) |
+| `Failed to start the systemd user session`, or switches end in exit status 4 | Another distro holds the UID-1000 session | Start NixOS first; see [Set up NixOS-WSL](set-up-nixos-wsl.md#if-other-distributions-are-running) |
 | A downloaded binary fails with `No such file or directory` | NixOS has no standard dynamic loader | `programs.nix-ld.enable = true` |
 | Certificate errors on downloads | The corporate network inspects TLS | Add the root CA with `security.pki.certificateFiles` |
 

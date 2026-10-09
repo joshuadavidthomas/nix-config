@@ -3,7 +3,7 @@
 This repo started on Oct 7, 2026, from a plan named "Going all in on Nix". The plan had one
 goal: one repo that describes all machines, and a `devenv.nix` in each project. It had five
 phases, each with a test for "done". This page tells how each phase went, and where the plan
-was wrong. For the current status, see the [roadmap](../roadmap.md).
+was wrong. For the current status, see the [roadmap](roadmap.md).
 
 ## Before Nix
 
@@ -27,7 +27,7 @@ has three settings for Windows interop:
 - SSH and git signing through the Windows programs of 1Password
 
 Nobody has applied the WSL host since the Mac work changed `home/`. The
-[roadmap](../roadmap.md#wsl) lists the work that it needs.
+[roadmap](roadmap.md#wsl) lists the work that it needs.
 
 ## Phase 3: the Mac
 
@@ -41,7 +41,7 @@ configuration. Many details changed:
 | Install Homebrew first | nix-homebrew installs Homebrew. Its Homebrew version was older than the installed one, so the repo pins a newer version. |
 | Run `chsh` after the switch | With `users.knownUsers` and the existing user ID, nix-darwin sets the login shell. The plan said that it cannot. |
 | Remove mise slowly | All of mise went at once. |
-| sops only on the homelab | sops on all machines, in activation steps. See [About secrets](secrets.md). |
+| sops only on the homelab | sops on all machines, in activation steps. See [How secrets work](secrets.md). |
 | `sudo nix run …` for the first switch | It needs `sudo -H`. Without `-H`, Nix uses the cache of `root` and downloads all inputs again. |
 
 Most problems in the first switch came from parts of the old setup:
@@ -74,7 +74,7 @@ Three warnings showed on each build. Each had a cause and got a fix:
 Some tools were not in nixpkgs, or nixpkgs had older versions. A newer atuin had already
 migrated the history database. llm needed newer Python libraries than nixpkgs had, so uv2nix
 builds it from a lock file. This is how `pkgs/` and the overlay started. See
-[About the design](design.md).
+[Design decisions](design.md).
 
 Secrets took the most time. In the final design, 1Password holds one sops key, and sops holds
 all other secrets. On the way, three facts came out. Activation steps do not get your PATH.
@@ -94,7 +94,7 @@ A build on the Mac also found an app bug that the Linux CI did not find.
 
 The bigger problem was the agents. They run commands without a prompt, so direnv did not load
 the environment for them. The fix took four attempts. One attempt used all the processes on
-the Mac. See [About coding agents and direnv](agents.md).
+the Mac. See [Coding agents and direnv](agents.md).
 
 CI also moved to devenv. It is slower than with mise, even with a cache for the Nix store.
 
@@ -112,7 +112,7 @@ and colmena deploys to it. Each step needed a change to the plan:
 - The first colmena deploy built a different system from the installed one. The hive did not
   have a module that `nixosSystem` adds.
 
-See [About the homelab](homelab.md).
+See [How the homelab works](homelab.md).
 
 ## What stayed the same
 

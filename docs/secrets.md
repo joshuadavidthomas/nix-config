@@ -1,4 +1,4 @@
-# About secrets
+# How secrets work
 
 Nix copies the contents of each `.nix` file into `/nix/store`. All users can read the store.
 So the configuration must not contain secrets. This repo gets secrets to a machine in two

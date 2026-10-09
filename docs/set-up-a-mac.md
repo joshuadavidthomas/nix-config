@@ -1,4 +1,4 @@
-# How to set up a new Mac
+# Set up a new Mac
 
 The configuration supports Apple Silicon Macs only.
 

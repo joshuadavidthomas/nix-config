@@ -1,34 +1,35 @@
 # Docs
 
-## Tutorials
+New to Nix? Start with [First steps with Nix](first-steps.md).
 
-- [First steps with Nix](tutorials/first-steps.md)
+## Machines
 
-## How-to guides
+- [Set up a new Mac](set-up-a-mac.md)
+- [Set up NixOS-WSL](set-up-nixos-wsl.md)
+- [Install a homelab box](install-a-lab-box.md)
+- [How the homelab works](homelab.md)
+- [Apply, update and roll back](apply-update-roll-back.md)
 
-- [Set up a new Mac](how-to/set-up-a-mac.md)
-- [Set up NixOS-WSL](how-to/set-up-nixos-wsl.md)
-- [Install a homelab box](how-to/install-a-lab-box.md)
-- [Move a project from mise to devenv](how-to/move-a-project-to-devenv.md)
-- [Add or change a secret](how-to/manage-secrets.md)
-- [Apply, update and roll back](how-to/apply-update-roll-back.md)
+## Projects
 
-## Reference
+- [Move a project from mise to devenv](move-a-project-to-devenv.md)
+- [Coding agents and direnv](agents.md)
 
-- [Repo layout and flake outputs](reference/repo.md)
-- [Commands](reference/commands.md)
-- [Nix syntax](reference/nix-syntax.md)
-- [Troubleshooting](reference/troubleshooting.md)
+## Secrets
 
-## Explanation
+- [Add or change a secret](manage-secrets.md)
+- [How secrets work](secrets.md)
 
-- [About Nix](explanation/nix.md)
-- [About the design](explanation/design.md)
-- [About secrets](explanation/secrets.md)
-- [About coding agents and direnv](explanation/agents.md)
-- [About the homelab](explanation/homelab.md)
-- [History](explanation/history.md)
+## Nix
 
-## Planning
+- [What "Nix" means](nix.md)
+- [Nix syntax](nix-syntax.md)
+- [Commands](commands.md)
+- [Troubleshooting](troubleshooting.md)
 
+## This repo
+
+- [Repo layout and flake outputs](repo-layout.md)
+- [Design decisions](design.md)
+- [History](history.md)
 - [Roadmap](roadmap.md)

@@ -1,6 +1,6 @@
 # Roadmap
 
-For the work so far, see [History](explanation/history.md).
+For the work so far, see [History](history.md).
 
 | Phase | Where | Goal | Status |
 | --- | --- | --- | --- |

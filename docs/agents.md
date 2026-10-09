@@ -1,4 +1,4 @@
-# About coding agents and direnv
+# Coding agents and direnv
 
 Coding agents (Claude Code, Codex, opencode, pi, amp) do much of the work in these projects.
 They need the same environment as a person in a terminal. Two things make this difficult: how

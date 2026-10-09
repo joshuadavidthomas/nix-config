@@ -1,9 +1,9 @@
-# How to set up NixOS-WSL
+# Set up NixOS-WSL
 
 This procedure installs NixOS as a WSL distribution and applies the `work-wsl` host.
 
 > **Caution:** The `work-wsl` host has not been applied since the Mac changes to `home/`.
-> Expect 1Password CLI warnings and long builds. See the [roadmap](../roadmap.md#wsl).
+> Expect 1Password CLI warnings and long builds. See the [roadmap](roadmap.md#wsl).
 
 ## Install NixOS-WSL
 

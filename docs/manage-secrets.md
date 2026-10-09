@@ -1,4 +1,4 @@
-# How to add or change a secret
+# Add or change a secret
 
 Secrets are in `secrets/`, encrypted with sops. To decrypt them, the machine needs the age key
 at `~/.config/sops/age/keys.txt`. A Mac gets this key from 1Password when you first apply the

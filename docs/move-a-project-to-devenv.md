@@ -1,4 +1,4 @@
-# How to move a project from mise to devenv
+# Move a project from mise to devenv
 
 This procedure replaces `mise.toml`, setup scripts and docker-compose with devenv. This repo
 installs devenv and direnv on each machine.

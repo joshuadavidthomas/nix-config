@@ -1,6 +1,6 @@
 # First steps with Nix
 
-In this tutorial, we use Nix to run a program, then find it in the store. Next, we read a value
+Here, we use Nix to run a program, then find it in the store. Next, we read a value
 from the Mac configuration. Last, we add a package and roll the change back. At the end, the
 Mac is the same as at the start.
 
@@ -134,5 +134,5 @@ The file and the Mac now match again.
 
 ## Next
 
-- [About Nix](../explanation/nix.md) explains the store, generations and modules.
-- [Apply, update and roll back](../how-to/apply-update-roll-back.md) covers daily changes.
+- [What "Nix" means](nix.md) explains the store, generations and modules.
+- [Apply, update and roll back](apply-update-roll-back.md) covers daily changes.

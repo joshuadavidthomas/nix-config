@@ -1,4 +1,4 @@
-# How to install a homelab box
+# Install a homelab box
 
 This procedure installs NixOS on a box from the Mac. The examples use `lab-2`. Use the next
 free number.
@@ -103,4 +103,4 @@ The deploy ends with `Activation successful`.
 | The box does not answer after the install | The box has a new IP address | Find its MAC address on the router. On macOS, `arp -an` shows MAC addresses without leading zeros. |
 | The box is not on the router either | The box did not boot NixOS | Look at its screen. It can be at the BIOS boot menu or on the USB stick. |
 
-For the reasons behind these steps, see [About the homelab](../explanation/homelab.md).
+For the reasons behind these steps, see [How the homelab works](homelab.md).

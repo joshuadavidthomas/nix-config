@@ -1,4 +1,4 @@
-# About the design
+# Design decisions
 
 Before this repo, mise managed the tools, the dotfiles and a bootstrap task. chezmoi and yadm
 came before mise. Each tool managed part of a machine. This repo describes all of each
@@ -45,7 +45,7 @@ the apps, and Nix installs the command-line tools.
 Claude Code, Codex, opencode and pi have new releases almost every day. T3 Code updates them.
 An updater cannot write to `/nix/store`. So `home/agents.nix` installs each agent with the
 agent's own installer, and only if the agent is missing. Nix still controls their settings
-and hooks. See [About coding agents and direnv](agents.md).
+and hooks. See [Coding agents and direnv](agents.md).
 
 ## One configuration for each type of machine
 
@@ -62,7 +62,7 @@ settings that are the same on all machines.
 
 The SSH keys and the git signing key are in 1Password. One age key, also in 1Password,
 decrypts all other secrets. No secret goes into `/nix/store`, which all users can read. This
-is why the repo can be public. See [About secrets](secrets.md).
+is why the repo can be public. See [How secrets work](secrets.md).
 
 ## Good practice
 

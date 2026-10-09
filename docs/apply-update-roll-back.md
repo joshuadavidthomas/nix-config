@@ -1,4 +1,4 @@
-# How to apply, update and roll back
+# Apply, update and roll back
 
 ## Apply changes
 

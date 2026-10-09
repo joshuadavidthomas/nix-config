@@ -1,4 +1,4 @@
-# About Nix
+# What "Nix" means
 
 "Nix" is the name of about ten different things. When a document says "Nix", first find which
 one it means.
@@ -64,7 +64,7 @@ blog posts and in the first boot of NixOS-WSL.
 Coding agents write much of the Nix in this repo. Their most frequent error is an option name
 that does not exist. Evaluation finds this error at once, so tell the agent to run
 `nix flake check` before it finishes. Also tell it to explain each construct that is not in
-the [syntax reference](../reference/nix-syntax.md). Then you understand the configuration too.
+the [syntax reference](nix-syntax.md). Then you understand the configuration too.
 
 ## More information
 
