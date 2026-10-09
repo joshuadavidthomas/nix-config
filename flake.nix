@@ -86,11 +86,16 @@
       colmenaHive = colmena.lib.makeHive ({
         meta.nixpkgs = import nixpkgs { system = "x86_64-linux"; };
         defaults = {
-          imports = [ disko.nixosModules.disko ];
           deployment.buildOnTarget = true;
+          # colmena's lib comes from plain `import nixpkgs`, which lacks the flake's version
+          # info; without these the system calls itself 26.05pre-git
+          system.nixos.versionSuffix = nixpkgs.lib.trivial.versionSuffix;
+          system.nixos.revision = nixpkgs.lib.trivial.revisionWithDefault null;
         };
       } // nixpkgs.lib.genAttrs labs (name: {
-        imports = [ ./hosts/${name} ];
+        # every module nixosSystem used, including the one nixpkgs adds itself (the
+        # `nixpkgs` registry pin), so colmena deploys exactly what was installed
+        imports = self.nixosConfigurations.${name}._module.args.modules;
         deployment.targetHost = name; # Tailscale MagicDNS
       }));
 
