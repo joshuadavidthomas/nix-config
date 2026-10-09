@@ -69,4 +69,4 @@ age key from 1Password and decrypts the secrets.
 
 ## License
 
-Personal project.
+[MIT](LICENSE). The encrypted MonoLisa fonts in `secrets/fonts/` are not covered.
