@@ -1,6 +1,12 @@
 # The config lives in its own repo (github.com/joshuadavidthomas/nvim); Nix provides
 # the editor and providers and makes sure the checkout exists.
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+let
+  # The Mac uses Xcode's compilers. Linux gets gcc, for tree-sitter parsers and for Python
+  # packages that have no wheel for the venv's Python (pynvim's greenlet).
+  compilers = lib.optionals pkgs.stdenv.isLinux [ pkgs.gcc ];
+in
+{
   programs.neovim = {
     enable = true;
     defaultEditor = true;
@@ -12,6 +18,7 @@
     withPython3 = true;
     withRuby = false;
     sideloadInitLua = true; # never write ~/.config/nvim/init.lua
+    extraPackages = compilers;
   };
 
   home.activation.nvimConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -19,7 +26,7 @@
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nvim "$HOME/.config/nvim"
     fi
     if [ ! -e "$HOME/.config/nvim/.venv" ]; then
-      run ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
+      run env PATH="${lib.concatMapStrings (p: "${p}/bin:") compilers}$PATH" ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
         || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
     fi
   '';

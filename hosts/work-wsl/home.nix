@@ -12,7 +12,6 @@
       exec sudo nixos-rebuild switch --flake "$HOME/.nix-config#work-wsl" "$@"
     '')
   ];
-  programs.neovim.extraPackages = [ pkgs.gcc ]; # cc for tree-sitter parsers; the Mac uses Xcode's
   home.sessionVariables.BROWSER = "wsl-open";
   programs.gh.settings.browser = "wsl-open";
   programs.git = {
