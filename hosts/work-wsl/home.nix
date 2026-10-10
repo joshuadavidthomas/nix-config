@@ -6,12 +6,8 @@
     # time, it copies the opnix token from 1Password for Windows (modules/secrets.nix).
     (pkgs.writeShellScriptBin "rebuild" ''
       if ! sudo test -s /etc/opnix-token; then
-        if token=$(op.exe read ${lib.escapeShellArg vars.opnixToken}) && [ -n "$token" ]; then
-          printf '%s\n' "$token" | sudo sh -c 'umask 077; cat > /etc/opnix-token'
-          sudo systemctl restart opnix-secrets 2>/dev/null || true
-        else
-          echo "rebuild: couldn't read the opnix token with op.exe; run 'sudo opnix token set'" >&2
-        fi
+        op.exe read ${lib.escapeShellArg vars.opnixToken} | sudo sh -c 'umask 077; cat > /etc/opnix-token'
+        sudo systemctl restart opnix-secrets 2>/dev/null || true
       fi
       exec sudo nixos-rebuild switch --flake "$HOME/.nix-config#work-wsl" "$@"
     '')

@@ -52,9 +52,6 @@
    rebuild
    ```
 
-   If `rebuild` cannot read the token, see
-   [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
-
 9. Close NixOS and start it again.
 10. Make sure that the SSH agent shows your 1Password keys:
 

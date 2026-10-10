@@ -38,9 +38,6 @@ item is set in `vars.opnixToken`.
 | WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
 | New Mac | The bootstrap | `op` with the 1Password app, after you sign in |
 
-If `rebuild` on WSL cannot run `op.exe`, put the token there by hand: run
-`sudo opnix token set`, paste the token, and press Enter. Then run `rebuild` again.
-
 ## Add a secret
 
 1. Add the item to the vault `dotfiles`, or add a field to an item that is there.
