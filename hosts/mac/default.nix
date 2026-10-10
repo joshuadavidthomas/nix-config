@@ -80,6 +80,8 @@
     {
       monolisaNormal = font "MonoLisa Normal" "MonoLisaNormal.ttf";
       monolisaItalic = font "MonoLisa Italic" "MonoLisaItalic.ttf";
+      monolisaVariableNormal = font "MonoLisa Variable Normal" "MonoLisaVariableNormal.ttf";
+      monolisaVariableItalic = font "MonoLisa Variable Italic" "MonoLisaVariableItalic.ttf";
     };
 
   home-manager.users.${vars.user}.imports = [ ./home.nix ];
