@@ -50,6 +50,7 @@ in
     usage
     uv
     wakatime-cli
+    xcodegen
     yazi
     zoxide
     ;

@@ -4,6 +4,7 @@
   # (modules/secrets.nix).
   home.packages = [
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena # deploys the homelab
+    pkgs.xcodegen # generates .xcodeproj files for iOS apps
     (pkgs.writeShellScriptBin "rebuild" ''
       if ! sudo test -s /etc/opnix-token; then
         if token=$(/usr/local/bin/op ${lib.escapeShellArgs vars.opnixTokenArgs}) && [ -n "$token" ]; then
