@@ -20,7 +20,6 @@ in
     atuin
     bun
     cargo-binstall
-    cf
     delta
     devenv
     eza

@@ -57,7 +57,7 @@
       # `nix build .#<name>` and `nix flake check` build the packages from ./pkgs on their own
       packages = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (system: {
         inherit (import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ self.overlays.default ]; })
-          atuin cf lisette llm;
+          atuin lisette llm;
       });
       checks = self.packages;
 

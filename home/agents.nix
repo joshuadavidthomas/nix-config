@@ -3,6 +3,7 @@
 # Claude Code, Codex, opencode and pi release almost daily and T3 Code updates them in
 # place, which only works when each comes from its own installer. Nix makes sure they're
 # installed (activation below) and owns their config; the tools own their binaries.
+# Cloudflare's `cf` CLI is installed the same way: it's in beta and releases too often to pin.
 #
 # atuin's hooks (`atuin hook install <agent>`) are declared here; herdr and orca install
 # their own helper scripts, and the hook entries below only call them when present.
@@ -80,7 +81,7 @@ in
           || warnEcho "Codex install failed; rerun the switch to retry"
       fi
 
-      for pkg in @opencode/cli @earendil-works/pi-coding-agent; do
+      for pkg in @opencode/cli @earendil-works/pi-coding-agent cf; do
         if [ ! -d "$NPM_CONFIG_PREFIX/lib/node_modules/$pkg" ]; then
           run npm install -g --prefix "$NPM_CONFIG_PREFIX" --allow-scripts="$pkg" "$pkg" \
             || warnEcho "$pkg install failed; rerun the switch to retry"

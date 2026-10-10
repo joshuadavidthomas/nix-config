@@ -7,6 +7,7 @@
 | A command-line tool or language, on all machines | `home.packages` in `home/default.nix` |
 | A tool that is already configured | The file in `home/` that configures it |
 | A coding agent, or its settings and hooks | `home/agents.nix` |
+| A tool that releases too often to pin, such as cf | The npm installs in `home/agents.nix` |
 | A tool or setting on the Mac only | `hosts/mac/home.nix` |
 | A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
 | A Homebrew formula that nixpkgs does not have | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
@@ -70,7 +71,13 @@ take 20 minutes or more.
 
 4. Copy the correct hash from the error into the file.
 
-For cf, follow the steps in `pkgs/cf/default.nix`.
+## Update the npm tools
+
+The coding agents update themselves. cf does not. Update it with:
+
+```sh
+npm install -g cf@latest
+```
 
 ## Update inputs
 

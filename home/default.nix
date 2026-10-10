@@ -27,7 +27,6 @@ in
   home.packages = (with pkgs; [
     bun
     cargo-binstall
-    cf
     curl
     delta
     devenv
