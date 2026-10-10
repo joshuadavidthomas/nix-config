@@ -71,13 +71,22 @@ take 20 minutes or more.
 
 4. Copy the correct hash from the error into the file.
 
-## Update the npm tools
+## Update everything
 
-The coding agents update themselves. cf does not. Update it with:
+Do this about once a week, in this order:
 
-```sh
-npm install -g cf@latest
-```
+1. [Update inputs](#update-inputs). Record the change. Apply it on each machine.
+2. On each machine that you use, run:
+
+   ```sh
+   topgrade
+   ```
+
+Nix pins the tools in the configuration. topgrade updates what Nix does not pin: Homebrew
+and its apps, the npm tools (cf and others), `uv tool` installs, the coding agents, Neovim
+plugins, rustup toolchains, and Determinate Nix on the Mac. `home/topgrade.nix` configures it.
+
+Apply first, so that topgrade updates what the new configuration installs.
 
 ## Update inputs
 

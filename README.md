@@ -66,7 +66,8 @@ have are in `pkgs/`.
 
 Coding agents (Claude Code, Codex, opencode, pi) install and update themselves. Nix only makes
 sure that they are installed, and writes their settings. Cloudflare's `cf` CLI is installed the
-same way, with npm, because it is in beta and releases too often to pin.
+same way, with npm, because it is in beta and releases too often to pin. topgrade updates what
+Nix does not pin. See [Update everything](docs/changes.md#update-everything).
 
 Secrets are in 1Password, not in the repo. On every machine, opnix reads them with a
 1Password service account and writes each one to a file. An apply copies the service account

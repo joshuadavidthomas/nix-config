@@ -16,6 +16,7 @@ in
     ./neovim.nix
     ./nix.nix
     ./shell.nix
+    ./topgrade.nix
   ];
 
   home.stateVersion = "26.05"; # set once; don't bump it on upgrades
@@ -56,7 +57,6 @@ in
     rustup
     tldr
     todoist-cli
-    topgrade
     usage
     uv
     wakatime-cli
