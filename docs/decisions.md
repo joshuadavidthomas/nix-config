@@ -31,8 +31,9 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Reason: the secrets are already in 1Password. sops only added a second system.
 - **opnix reads the secrets, with a 1Password service account, on every machine.** The Mac uses
   the same service account as the other machines, not the 1Password app integration. The
-  service account token is the only secret that a machine gets from outside opnix: an apply
-  copies it from 1Password (colmena from the Mac, `rebuild` on the Mac and WSL).
+  service account token is the only secret that a machine gets from outside opnix: `rebuild`
+  copies it from 1Password on the Mac and WSL, and colmena copies the Mac's token to the lab
+  boxes. Your user on the Mac can read the token, so agents on the Mac can read the vault.
 - **Start with one shared vault, `dotfiles`, that the service account reads.** Split it later
   by reader, for example a separate vault for agents in sandboxed VMs.
   Reason: a service account cannot get access to more vaults after it is created. New items in

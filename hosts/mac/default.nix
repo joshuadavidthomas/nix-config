@@ -66,6 +66,9 @@
 
   # MonoLisa is licensed, so it's kept in 1Password, not in the repo. macOS ignores symlinked
   # fonts, so opnix writes the files straight into ~/Library/Fonts.
+  # colmena reads /etc/opnix-token to copy it to the lab boxes (flake.nix)
+  services.onepassword-secrets.users = [ vars.user ];
+
   services.onepassword-secrets.secrets =
     let
       font = item: file: {

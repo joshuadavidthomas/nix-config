@@ -5,7 +5,7 @@
   name = "Josh Thomas";
   email = "josh@joshthomas.dev";
 
-  # `op` arguments that print the opnix service account token, for colmena and `rebuild`
+  # `op` arguments that print the opnix service account token, for `rebuild` and bootstrap.sh
   # (modules/secrets.nix). Not `op read`: secret references can't contain the title's ':'.
   opnixTokenArgs = [ "item" "get" "Service Account Auth Token: dotfiles" "--vault" "Private" "--fields" "credential" "--reveal" ];
 

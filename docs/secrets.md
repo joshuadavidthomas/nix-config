@@ -33,7 +33,7 @@ item is set in `vars.opnixTokenArgs`.
 
 | Machine | When | How |
 | --- | --- | --- |
-| Lab box | Each `colmena apply` | colmena runs `op` on the Mac. 1Password asks you to approve. |
+| Lab box | Each `colmena apply` | colmena copies the Mac's `/etc/opnix-token`. Your user on the Mac can read it. |
 | Mac | `rebuild`, if the token is missing | `op` with the 1Password app. 1Password must be unlocked. |
 | WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
 | New Mac | The bootstrap | `op` with the 1Password app, after you sign in |
@@ -66,7 +66,7 @@ The reference is `op://dotfiles/<item>/<field>`. For a Document or an attached f
 1. In 1Password, on the service account, make a new token. Save it in the token item.
    Revoke the old token.
 2. On the Mac and WSL, remove the old token, then apply: `sudo rm /etc/opnix-token`, then
-   `rebuild`. The lab boxes get the new token at the next `colmena apply`.
+   `rebuild`. Then run `colmena apply`: the lab boxes get the Mac's new token.
 3. Fetch the secrets again. See [Change a secret](#change-a-secret).
 
 ## Rate limit

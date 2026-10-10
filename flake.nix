@@ -76,11 +76,11 @@
           system.nixos.versionSuffix = nixpkgs.lib.trivial.versionSuffix;
           system.nixos.revision = nixpkgs.lib.trivial.revisionWithDefault null;
 
-          # Each deploy copies the opnix token from 1Password on the Mac to /etc/opnix-token
-          # (modules/secrets.nix). opnix waits for it, so a box's first deploy fetches its
-          # secrets.
+          # Each deploy copies the Mac's own opnix token to /etc/opnix-token (modules/secrets.nix),
+          # so it needs no 1Password approval. opnix waits for it, so a box's first deploy
+          # fetches its secrets.
           deployment.keys.opnix-token = {
-            keyCommand = [ "op" ] ++ vars.opnixTokenArgs;
+            keyFile = "/etc/opnix-token";
             destDir = "/etc";
           };
           systemd.services.opnix-secrets = {

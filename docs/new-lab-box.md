@@ -100,8 +100,8 @@ The output ends with `Connection refused` and `### Done! ###`. That is the resta
    colmena apply --on lab-2
    ```
 
-   1Password asks you to approve: colmena reads the opnix token from 1Password and copies it
-   to the lab box. The output ends with `Activation successful`.
+   colmena copies the Mac's opnix token to the lab box. The output ends with
+   `Activation successful`.
 
 ## If it stops
 
