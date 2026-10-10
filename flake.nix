@@ -75,6 +75,18 @@
           # info; without these the system calls itself 26.05pre-git
           system.nixos.versionSuffix = nixpkgs.lib.trivial.versionSuffix;
           system.nixos.revision = nixpkgs.lib.trivial.revisionWithDefault null;
+
+          # Each deploy copies the opnix token from 1Password on the Mac to /etc/opnix-token
+          # (modules/secrets.nix). opnix waits for it, so a box's first deploy fetches its
+          # secrets.
+          deployment.keys.opnix-token = {
+            keyCommand = [ "op" "read" vars.opnixToken ];
+            destDir = "/etc";
+          };
+          systemd.services.opnix-secrets = {
+            wants = [ "opnix-token-key.service" ];
+            after = [ "opnix-token-key.service" ];
+          };
         };
       } // nixpkgs.lib.genAttrs labs (name: {
         # every module nixosSystem used, including the one nixpkgs adds itself (the

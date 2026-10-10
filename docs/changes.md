@@ -35,7 +35,7 @@
    | Machine | Command |
    | --- | --- |
    | Mac | `rebuild` |
-   | Work laptop (WSL) | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
+   | Work laptop (WSL) | `rebuild` |
    | All lab boxes | `colmena apply`, on the Mac, in `~/.nix-config` |
    | One lab box | `colmena apply --on lab-2`, on the Mac, in `~/.nix-config` |
 

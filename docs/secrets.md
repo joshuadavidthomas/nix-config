@@ -28,26 +28,18 @@ except that home-manager waits for it on NixOS.
 
 ## Put the token on a machine
 
-Do this once for each machine. On a new Mac, the bootstrap asks for the token.
+Each machine copies the token from 1Password to `/etc/opnix-token` when you apply. The token
+item is set in `vars.opnixToken`.
 
-1. Put the token in `/etc/opnix-token`:
+| Machine | When | How |
+| --- | --- | --- |
+| Lab box | Each `colmena apply` | colmena runs `op read` on the Mac. 1Password asks you to approve. |
+| Mac | `rebuild`, if the token is missing | `op` with the 1Password app. 1Password must be unlocked. |
+| WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
+| New Mac | The bootstrap | You paste the token |
 
-   | Machine | Command |
-   | --- | --- |
-   | Mac | `op read "op://Private/Service Account Auth Token: dotfiles/credential" \| sudo sh -c 'umask 077; cat > /etc/opnix-token'` |
-   | Lab box, from the Mac | `op read "op://Private/Service Account Auth Token: dotfiles/credential" \| ssh lab-2 sudo opnix token set` |
-   | WSL | `sudo opnix token set`. Paste the token, then press Enter. |
-
-2. Fetch the secrets, and run home-manager again so that atuin logs in:
-
-   | Machine | Command |
-   | --- | --- |
-   | Mac | `sudo launchctl kickstart -k system/org.nixos.opnix-secrets`, then `rebuild` |
-   | Lab box, from the Mac | `ssh lab-2 sudo systemctl restart opnix-secrets home-manager-josh` |
-   | WSL | `sudo systemctl restart opnix-secrets home-manager-josh` |
-
-If the machine has no configuration from this repo yet, put the token there first. The first
-apply then fetches the secrets.
+If `rebuild` on WSL cannot run `op.exe`, put the token there by hand: run
+`sudo opnix token set`, paste the token, and press Enter. Then run `rebuild` again.
 
 ## Add a secret
 
@@ -64,13 +56,21 @@ The reference is `op://dotfiles/<item>/<field>`. For a Document or an attached f
 ## Change a secret
 
 1. Change it in 1Password.
-2. Fetch the secrets again on each machine. Use the commands in step 2 of
-   [Put the token on a machine](#put-the-token-on-a-machine).
+2. Fetch the secrets again on each machine:
+
+   | Machine | Command |
+   | --- | --- |
+   | Mac | `sudo launchctl kickstart -k system/org.nixos.opnix-secrets` |
+   | Lab box, from the Mac | `ssh lab-2 sudo systemctl restart opnix-secrets` |
+   | WSL | `sudo systemctl restart opnix-secrets` |
 
 ## Replace the service account token
 
-1. In 1Password, on the service account, make a new token. Revoke the old one.
-2. Put the new token on each machine. See [Put the token on a machine](#put-the-token-on-a-machine).
+1. In 1Password, on the service account, make a new token. Save it in the token item.
+   Revoke the old token.
+2. On the Mac and WSL, remove the old token, then apply: `sudo rm /etc/opnix-token`, then
+   `rebuild`. The lab boxes get the new token at the next `colmena apply`.
+3. Fetch the secrets again. See [Change a secret](#change-a-secret).
 
 ## Rate limit
 
@@ -85,9 +85,10 @@ op service-account ratelimit
 
 | What you see | Cause | Action |
 | --- | --- | --- |
-| `atuin: opnix hasn't fetched the account from 1Password yet` | No token, or opnix has not run yet | Do [Put the token on a machine](#put-the-token-on-a-machine) |
-| `Token file /etc/opnix-token does not exist` in the opnix log | No token | The same as above |
-| Commits on a lab box fail with a signing error | opnix has not written the signing key | The same as above |
-| A secret is old | opnix fetches only when its list changes or the machine starts | Do step 2 of [Put the token on a machine](#put-the-token-on-a-machine) |
+| `rebuild: couldn't read the opnix token from 1Password` | 1Password is locked, or its CLI integration is off | Unlock 1Password. Turn on Settings > Developer > Integrate with 1Password CLI. Run `rebuild` again. |
+| `atuin: opnix hasn't fetched the account from 1Password yet` | opnix had no token, or has not finished | Apply again |
+| `Token file /etc/opnix-token does not exist` in the opnix log | No token | Apply again. See [Put the token on a machine](#put-the-token-on-a-machine). |
+| Commits on a lab box fail with a signing error | opnix has not written the signing key | Run `colmena apply --on <box>` |
+| A secret is old | opnix fetches only when its list changes or the machine starts | See [Change a secret](#change-a-secret) |
 
 The opnix log is `journalctl -u opnix-secrets` on NixOS and `/var/log/opnix-secrets.log` on a Mac.

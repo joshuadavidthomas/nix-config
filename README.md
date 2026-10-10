@@ -33,7 +33,7 @@ Then apply changes with:
 | Machine | Command |
 | --- | --- |
 | Mac | `rebuild` |
-| Work laptop | `sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl` |
+| Work laptop | `rebuild` |
 | Homelab | `colmena apply`, on the Mac, in `~/.nix-config` |
 
 Docs:
@@ -68,8 +68,8 @@ Coding agents (Claude Code, Codex, opencode, pi) install and update themselves. 
 sure that they are installed, and writes their settings.
 
 Secrets are in 1Password, not in the repo. On every machine, opnix reads them with a
-1Password service account and writes each one to a file. The service account token is the only
-secret that is put on a machine by hand. `modules/secrets.nix` declares the secrets.
+1Password service account and writes each one to a file. An apply copies the service account
+token from 1Password to the machine. `modules/secrets.nix` declares the secrets.
 
 ## License
 

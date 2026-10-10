@@ -85,20 +85,6 @@ The output ends with `Connection refused` and `### Done! ###`. That is the resta
    ssh lab-2 nixos-version
    ```
 
-## Put the token on the lab box
-
-1. Put the service account token on the lab box:
-
-   ```sh
-   op read "op://Private/Service Account Auth Token: dotfiles/credential" | ssh lab-2 sudo opnix token set
-   ```
-
-2. Fetch the secrets. This also logs atuin in.
-
-   ```sh
-   ssh lab-2 sudo systemctl restart opnix-secrets home-manager-josh
-   ```
-
 ## Record and apply
 
 1. Record the change:
@@ -114,7 +100,8 @@ The output ends with `Connection refused` and `### Done! ###`. That is the resta
    colmena apply --on lab-2
    ```
 
-   The output ends with `Activation successful`.
+   1Password asks you to approve: colmena reads the opnix token from 1Password and copies it
+   to the lab box. The output ends with `Activation successful`.
 
 ## If it stops
 

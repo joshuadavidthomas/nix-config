@@ -1,9 +1,18 @@
-{ pkgs, inputs, vars, ... }: {
+{ lib, pkgs, inputs, vars, ... }: {
   # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
-  # (e.g. `rebuild --rollback`).
+  # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
+  # (modules/secrets.nix).
   home.packages = [
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena # deploys the homelab
     (pkgs.writeShellScriptBin "rebuild" ''
+      if ! sudo test -s /etc/opnix-token; then
+        if token=$(/usr/local/bin/op read ${lib.escapeShellArg vars.opnixToken}) && [ -n "$token" ]; then
+          printf '%s\n' "$token" | sudo sh -c 'umask 077; cat > /etc/opnix-token'
+          sudo launchctl kickstart -k system/org.nixos.opnix-secrets 2>/dev/null || true
+        else
+          echo "rebuild: couldn't read the opnix token from 1Password; secrets won't update" >&2
+        fi
+      fi
       exec sudo /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
     '')
   ];

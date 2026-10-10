@@ -5,6 +5,9 @@
   name = "Josh Thomas";
   email = "josh@joshthomas.dev";
 
+  # where colmena and `rebuild` read the opnix service account token (modules/secrets.nix)
+  opnixToken = "op://Private/Service Account Auth Token: dotfiles/credential";
+
   # public halves of keys kept in 1Password
   keys = {
     # "Mac mini": the lab boxes trust it for SSH, and colmena deploys with it

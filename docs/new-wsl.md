@@ -46,40 +46,37 @@
    passwd
    ```
 
-8. Put the service account token on the machine, then fetch the secrets. This logs atuin in.
-   See [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
-9. Apply again:
+8. Apply again. `rebuild` copies the opnix token from 1Password for Windows, and atuin logs in.
 
    ```sh
-   sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
+   rebuild
    ```
 
-10. Close NixOS and start it again.
-11. Make sure that the SSH agent shows your 1Password keys:
+   If `rebuild` cannot read the token, see
+   [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
+
+9. Close NixOS and start it again.
+10. Make sure that the SSH agent shows your 1Password keys:
 
     ```sh
     ssh-add -l
     ```
 
-12. Test SSH. GitHub replies with your username.
+11. Test SSH. GitHub replies with your username.
 
     ```sh
     ssh -T git@github.com
     ```
 
-13. Log in to GitHub:
+12. Log in to GitHub:
 
     ```sh
     gh auth login
     ```
 
-14. Make a signed commit on a test branch. Push it. On GitHub, the commit shows "Verified".
+13. Make a signed commit on a test branch. Push it. On GitHub, the commit shows "Verified".
 
-To apply later:
-
-```sh
-sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
-```
+To apply later, run `rebuild`.
 
 SSH settings go in `%USERPROFILE%\.ssh\config` on Windows. `ssh` runs `ssh.exe`.
 
@@ -115,8 +112,12 @@ An install from before the rename has the user `nixos`. Do this once.
    mv /home/nixos/<directory> ~/
    ```
 
-6. Put the service account token on the machine, then fetch the secrets. This logs atuin in
-   and syncs your history. See [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
+6. Apply again. `rebuild` copies the opnix token from 1Password for Windows, and atuin logs
+   in and syncs your history.
+
+   ```sh
+   rebuild
+   ```
 7. Log in to GitHub:
 
    ```sh
