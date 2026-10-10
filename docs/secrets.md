@@ -1,81 +1,93 @@
 # Secrets
 
+All secrets are in 1Password. Each machine reads them with [opnix](https://github.com/brizzbuzz/opnix)
+and a 1Password service account. The reasons are in [Decisions](decisions.md#secrets).
+
 ## Where each secret is
 
 | What | Where |
 | --- | --- |
-| SSH keys and the git signing key | 1Password. Machines use them through the 1Password SSH agent. The lab boxes have no signing key yet. |
-| The age key | 1Password, the document "nix-config sops age key" |
-| The age key on a machine | `~/.config/sops/age/keys.txt` |
-| Other secrets | `secrets/`, encrypted with sops |
-| The keys that can decrypt `secrets/` | `.sops.yaml` |
+| Secrets that the machines read | 1Password, the vault `dotfiles` |
+| The service account token | 1Password, the item "Service Account Auth Token: dotfiles" in the Private vault |
+| The token on a machine | `/etc/opnix-token` |
+| Secrets on a NixOS machine | `/var/lib/opnix/secrets/<name>` |
+| Secrets on a Mac | `~/Library/Application Support/opnix/<name>`. The MonoLisa fonts are in `~/Library/Fonts`. |
+| SSH keys and the git signing key of the Mac and WSL | 1Password. These machines use them through the 1Password SSH agent. |
+| The git signing key of the lab boxes | 1Password, the item "Lab signing key" in `dotfiles` |
 
-On a Mac, the `sopsAgeKey` step in `home/secrets.nix` gets the age key from 1Password at each
-apply until the key is present. 1Password must be unlocked, with the CLI integration on.
+The service account can read `dotfiles` and nothing else. It cannot write.
 
-## Put the age key on a machine
+## How the secrets get to a machine
 
-Do this on machines other than a Mac. On a Mac, unlock 1Password and apply again.
+`modules/secrets.nix` declares the secrets that every machine gets. `hosts/mac/default.nix`
+adds the fonts. `modules/nixos/server.nix` adds the signing key of the lab boxes.
 
-1. Make the directory:
+opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret
+when its list of secrets changes and when the machine starts. An apply does not wait for it,
+except that home-manager waits for it on NixOS.
 
-   ```sh
-   mkdir -p -m 700 ~/.config/sops/age
-   ```
+## Put the token on a machine
 
-2. Get the age key from 1Password:
+Do this once for each machine. On a new Mac, the bootstrap asks for the token.
 
-   ```sh
-   op document get "nix-config sops age key" > ~/.config/sops/age/keys.txt
-   ```
+1. Put the token in `/etc/opnix-token`:
 
-   If `op` is not installed, copy the document into the file by hand.
+   | Machine | Command |
+   | --- | --- |
+   | Mac | `op read "op://Private/Service Account Auth Token: dotfiles/credential" \| sudo sh -c 'umask 077; cat > /etc/opnix-token'` |
+   | Lab box, from the Mac | `op read "op://Private/Service Account Auth Token: dotfiles/credential" \| ssh lab-2 sudo opnix token set` |
+   | WSL | `sudo opnix token set`. Paste the token, then press Enter. |
 
-3. Limit access to the file:
+2. Fetch the secrets, and run home-manager again so that atuin logs in:
 
-   ```sh
-   chmod 600 ~/.config/sops/age/keys.txt
-   ```
+   | Machine | Command |
+   | --- | --- |
+   | Mac | `sudo launchctl kickstart -k system/org.nixos.opnix-secrets`, then `rebuild` |
+   | Lab box, from the Mac | `ssh lab-2 sudo systemctl restart opnix-secrets home-manager-josh` |
+   | WSL | `sudo systemctl restart opnix-secrets home-manager-josh` |
+
+If the machine has no configuration from this repo yet, put the token there first. The first
+apply then fetches the secrets.
+
+## Add a secret
+
+1. Add the item to the vault `dotfiles`, or add a field to an item that is there.
+2. Declare the secret in `services.onepassword-secrets.secrets`. For a secret on every
+   machine, use `modules/secrets.nix`. For a secret on some machines, use `hosts/` or
+   `modules/nixos/server.nix`. The name must be camelCase, for example `atuinPassword`.
+3. Use the file at `config.services.onepassword-secrets.secretPaths.<name>`. In home-manager,
+   use `osConfig` in place of `config`.
+
+The reference is `op://dotfiles/<item>/<field>`. For a Document or an attached file, set
+`kind = "file"` and use `op://dotfiles/<item>/<file name>`.
 
 ## Change a secret
 
-1. Open the secrets file:
+1. Change it in 1Password.
+2. Fetch the secrets again on each machine. Use the commands in step 2 of
+   [Put the token on a machine](#put-the-token-on-a-machine).
 
-   ```sh
-   sops secrets/secrets.yaml
-   ```
+## Replace the service account token
 
-2. Change the value. Save the file.
-3. Record the change.
+1. In 1Password, on the service account, make a new token. Revoke the old one.
+2. Put the new token on each machine. See [Put the token on a machine](#put-the-token-on-a-machine).
 
-To read one value:
+## Rate limit
+
+1Password Families allows 1,000 service account requests a day for the whole account. Each
+fetch reads each secret once. To see the use:
 
 ```sh
-sops decrypt --extract '["atuin"]["username"]' secrets/secrets.yaml
+op service-account ratelimit
 ```
 
-To use a secret in the configuration, decrypt it in a step that runs after `sopsAgeKey`. The
-`monolisa` step in `hosts/mac/home.nix` is an example.
+## If it stops
 
-## Add an encrypted file
+| What you see | Cause | Action |
+| --- | --- | --- |
+| `atuin: opnix hasn't fetched the account from 1Password yet` | No token, or opnix has not run yet | Do [Put the token on a machine](#put-the-token-on-a-machine) |
+| `Token file /etc/opnix-token does not exist` in the opnix log | No token | The same as above |
+| Commits on a lab box fail with a signing error | opnix has not written the signing key | The same as above |
+| A secret is old | opnix fetches only when its list changes or the machine starts | Do step 2 of [Put the token on a machine](#put-the-token-on-a-machine) |
 
-1. Encrypt the file:
-
-   ```sh
-   sops encrypt --filename-override secrets/fonts/font.ttf.json \
-     --input-type binary --output-type json font.ttf > secrets/fonts/font.ttf.json
-   ```
-
-2. In the step that uses the file, decrypt it with `--input-type json --output-type binary`.
-
-## Add or replace an age key
-
-1. Change `keys` in `.sops.yaml`.
-2. Encrypt each file for the new keys (fish):
-
-   ```sh
-   for f in secrets/secrets.yaml secrets/fonts/*.json; sops updatekeys $f; end
-   ```
-
-3. If you replaced the age key, put the new key in the 1Password document.
-4. Record the change.
+The opnix log is `journalctl -u opnix-secrets` on NixOS and `/var/log/opnix-secrets.log` on a Mac.

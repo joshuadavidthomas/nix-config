@@ -1,6 +1,6 @@
 # Identity is shared. The Mac and WSL sign commits with the 1Password key through
-# 1Password's signer. The lab boxes have no signing key yet (docs/roadmap.md), so commits
-# there can't be signed. The work laptop sets its own email.
+# 1Password's signer. The lab boxes sign with their shared key (modules/nixos/server.nix).
+# The work laptop sets its own email.
 { lib, vars, ... }: {
   programs.git = {
     enable = true;
@@ -8,7 +8,7 @@
     settings.user.email = lib.mkDefault vars.email;
     signing = {
       format = "ssh";
-      key = vars.keys.signing;
+      key = lib.mkDefault vars.keys.signing;
       signByDefault = true;
     };
   };

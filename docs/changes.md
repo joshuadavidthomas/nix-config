@@ -18,7 +18,7 @@
 | A value that more than one machine uses: username, email, a public key | `vars.nix` |
 | The source of a package (release or unstable) | `overlay.nix` |
 | A package that nixpkgs does not have | `pkgs/`. See [Add a package that nixpkgs does not have](#add-a-package-that-nixpkgs-does-not-have). |
-| A secret | `secrets/`. See [Secrets](secrets.md). |
+| A secret | 1Password, then `modules/secrets.nix`. See [Add a secret](secrets.md#add-a-secret). |
 
 ## Apply a change
 

@@ -64,6 +64,24 @@
 
   system.defaults.dock.autohide = true;
 
+  # MonoLisa is licensed, so it's kept in 1Password, not in the repo. macOS ignores symlinked
+  # fonts, so opnix writes the files straight into ~/Library/Fonts.
+  services.onepassword-secrets.secrets =
+    let
+      font = item: file: {
+        reference = "op://dotfiles/${item}/${file}";
+        kind = "file";
+        path = "${config.users.users.${vars.user}.home}/Library/Fonts/${file}";
+        owner = vars.user;
+        group = "staff";
+        mode = "0644";
+      };
+    in
+    {
+      monolisaNormal = font "MonoLisa Normal" "MonoLisaNormal.ttf";
+      monolisaItalic = font "MonoLisa Italic" "MonoLisaItalic.ttf";
+    };
+
   home-manager.users.${vars.user}.imports = [ ./home.nix ];
 
   system.stateVersion = 6; # nix-darwin's value for new installs; never bump

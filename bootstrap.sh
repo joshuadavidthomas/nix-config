@@ -7,16 +7,18 @@
 # what's already done.
 #
 #   1. Install Determinate Nix.
-#   2. Switch straight from GitHub. That installs Homebrew, every app (1Password included)
-#      and tool, and clones this repo to ~/.nix-config. Secret-backed steps wait.
-#   3. Wait for you to sign in to 1Password and turn on its CLI integration.
-#   4. Switch again from ~/.nix-config: the age key comes from 1Password and every secret
-#      (atuin, fonts, ...) falls into place.
+#   2. Ask for the 1Password service account token and put it in /etc/opnix-token.
+#   3. Switch straight from GitHub. That installs Homebrew, every app and tool, and clones
+#      this repo to ~/.nix-config. opnix starts to fetch the secrets (atuin, fonts, ...).
+#   4. Wait for opnix, then switch again from ~/.nix-config, so that the steps that use the
+#      secrets (atuin's login) run.
 set -eu
 
 flake=github:joshuadavidthomas/nix-config
 config=mac
-op=/usr/local/bin/op
+token=/etc/opnix-token
+# the first secret that modules/secrets.nix writes on a Mac
+secret="$HOME/Library/Application Support/opnix/atuinPassword"
 
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 
@@ -37,27 +39,39 @@ fi
 PATH=/nix/var/nix/profiles/default/bin:$PATH
 export PATH
 
-# 2. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
+# 2. The service account token: the only secret put on a machine by hand. Read from the
+# terminal, not stdin, which is this script when it's piped from curl.
+if ! sudo test -s "$token"; then
+  say "Paste the token from the 1Password item \"Service Account Auth Token: dotfiles\" (Private vault), then press Enter"
+  stty -echo < /dev/tty
+  read -r value < /dev/tty
+  stty echo < /dev/tty
+  printf '%s\n' "$value" | sudo sh -c "umask 077; cat > $token"
+fi
+
+# 3. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   say "First switch, straight from GitHub"
   sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
 fi
 
-# 3. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
-# you to approve the CLI (Touch ID), so wait on that.
-if ! "$op" vault list >/dev/null 2>&1; then
-  say "Sign in to 1Password, turn on Settings > Developer > Integrate with 1Password CLI, then approve the prompt"
-  open -a 1Password || true
-  printf 'Waiting for 1Password'
-  until "$op" vault list >/dev/null 2>&1; do
-    printf '.'
-    sleep 5
+# 4. opnix runs as a launchd service, beside the switch. Wait for it, then switch again.
+if [ ! -e "$secret" ]; then
+  say "Waiting for opnix to fetch the secrets from 1Password"
+  # on a rerun the service may have run before the token was there
+  sudo launchctl kickstart -k system/org.nixos.opnix-secrets 2>/dev/null || true
+  tries=0
+  until [ -e "$secret" ]; do
+    tries=$((tries + 1))
+    if [ "$tries" -gt 60 ]; then
+      echo "opnix fetched nothing in 2 minutes; see /var/log/opnix-secrets.log" >&2
+      exit 1
+    fi
+    sleep 2
   done
-  echo
 fi
 
-# 4. Second switch, from the local clone, now that secrets can unlock.
 say "Switching again from ~/.nix-config"
 sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$config"
 
-say "Done. Open a new terminal; from now on, \`rebuild\` applies changes."
+say "Done. Sign in to 1Password and turn on its SSH agent. Open a new terminal; from now on, \`rebuild\` applies changes."

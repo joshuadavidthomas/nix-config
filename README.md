@@ -17,7 +17,7 @@ up each machine by hand.
 | Work laptop | [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) |
 | Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated with [colmena](https://colmena.cli.rs) over Tailscale |
 | User settings | [home-manager](https://github.com/nix-community/home-manager), shared by all machines |
-| Secrets | [sops](https://github.com/getsops/sops), with the age key in 1Password |
+| Secrets | 1Password, read with [opnix](https://github.com/brizzbuzz/opnix) and a service account |
 | Version control | [jj](https://github.com/jj-vcs/jj) |
 
 ## Getting started
@@ -67,9 +67,10 @@ have are in `pkgs/`.
 Coding agents (Claude Code, Codex, opencode, pi) install and update themselves. Nix only makes
 sure that they are installed, and writes their settings.
 
-Secrets are encrypted in `secrets/`. When 1Password is unlocked, an apply on the Mac gets the
-age key from 1Password and decrypts the secrets.
+Secrets are in 1Password, not in the repo. On every machine, opnix reads them with a
+1Password service account and writes each one to a file. The service account token is the only
+secret that is put on a machine by hand. `modules/secrets.nix` declares the secrets.
 
 ## License
 
-[MIT](LICENSE). The encrypted MonoLisa fonts in `secrets/fonts/` are not covered.
+[MIT](LICENSE).

@@ -3,7 +3,6 @@
 ## WSL
 
 - [x] Apply `work-wsl` with the new `home/`
-- [x] Get the age key from 1Password on WSL: set `secrets.op` to the Windows `op.exe`
 - [x] Test commit signing with `op-ssh-sign.exe`
 - [ ] Rename the user to `josh` on the work laptop. See
       [Rename the user on an installed system](new-wsl.md#rename-the-user-on-an-installed-system).
@@ -19,10 +18,13 @@
 
 See [Decisions](decisions.md#secrets).
 
-- [ ] Create the shared vault and a read-only service account for it
-- [ ] Read secrets from 1Password with opnix, on every machine
-- [ ] Remove sops: atuin, the MonoLisa fonts (as 1Password Documents), the age key
-- [ ] A shared signing key for the lab boxes, registered on GitHub
+- [x] Create the vault `dotfiles` and a read-only service account for it
+- [x] Read secrets from 1Password with opnix, on every machine
+- [x] Remove sops: atuin, the MonoLisa fonts (as 1Password Documents), the age key
+- [ ] Put the service account token on each machine: the Mac, WSL, `lab-1`, `lab-2`, `lab-3`
+- [ ] Delete the 1Password document "nix-config sops age key"
+- [x] A shared signing key for the lab boxes
+- [ ] Register the lab signing key on GitHub
 - [ ] A Tailscale auth key in 1Password, so that a new lab box joins without the login URL
 - [ ] After a few days of use, check `op service-account ratelimit`
 

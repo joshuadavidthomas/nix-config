@@ -1,6 +1,7 @@
 # Builds every machine in flake.nix: NixOS (WSL, the lab boxes, VMs) or nix-darwin (the Mac).
-# Each gets the overlay, the base module for its OS in modules/, and home-manager for
-# vars.user with home/. hosts/<name> adds the rest, including its own home.nix.
+# Each gets the overlay, the base module for its OS in modules/, the secrets from 1Password,
+# and home-manager for vars.user with home/. hosts/<name> adds the rest, including its own
+# home.nix.
 { self, inputs, vars }:
 name: { system }:
 let
@@ -17,6 +18,8 @@ systemFunc {
       nixpkgs.overlays = [ self.overlays.default ];
     }
     ../modules/${os}
+    inputs.opnix."${os}Modules".default
+    ../modules/secrets.nix
     ../hosts/${name}
     inputs.home-manager."${os}Modules".home-manager
     {

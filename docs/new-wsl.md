@@ -46,8 +46,8 @@
    passwd
    ```
 
-8. Put the age key on the machine. See
-   [Put the age key on a machine](secrets.md#put-the-age-key-on-a-machine).
+8. Put the service account token on the machine, then fetch the secrets. This logs atuin in.
+   See [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
 9. Apply again:
 
    ```sh
@@ -83,9 +83,6 @@ sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
 
 SSH settings go in `%USERPROFILE%\.ssh\config` on Windows. `ssh` runs `ssh.exe`.
 
-To get the age key from 1Password at each apply, set `secrets.op` in
-`hosts/work-wsl/home.nix` to the Windows `op.exe` (unverified).
-
 ## Rename the user on an installed system
 
 An install from before the rename has the user `nixos`. Do this once.
@@ -112,32 +109,21 @@ An install from before the rename has the user `nixos`. Do this once.
 
 4. Start NixOS. You are the user `josh`, with the user ID that `nixos` had. Your old files
    are in `/home/nixos`.
-5. Move the age key:
-
-   ```sh
-   mkdir -p -m 700 ~/.config/sops/age
-   mv /home/nixos/.config/sops/age/keys.txt ~/.config/sops/age/
-   ```
-
-6. Move the other directories that you want to keep, for example your projects:
+5. Move the directories that you want to keep, for example your projects:
 
    ```sh
    mv /home/nixos/<directory> ~/
    ```
 
-7. Apply again. This logs atuin in and syncs your history.
-
-   ```sh
-   sudo nixos-rebuild switch --flake ~/.nix-config#work-wsl
-   ```
-
-8. Log in to GitHub:
+6. Put the service account token on the machine, then fetch the secrets. This logs atuin in
+   and syncs your history. See [Put the token on a machine](secrets.md#put-the-token-on-a-machine).
+7. Log in to GitHub:
 
    ```sh
    gh auth login
    ```
 
-9. When `/home/nixos` has nothing more that you need, remove it:
+8. When `/home/nixos` has nothing more that you need, remove it:
 
    ```sh
    sudo rm -rf /home/nixos

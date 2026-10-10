@@ -15,7 +15,6 @@ in
     ./git.nix
     ./neovim.nix
     ./nix.nix
-    ./secrets.nix
     ./shell.nix
   ];
 

@@ -8,6 +8,6 @@
 - Keep secrets out of `.nix` files.
 - Never change `stateVersion`.
 - Do not apply a change unless the owner asks. Give the owner the command.
-- Do not edit `flake.lock` or `secrets/` unless the owner asks.
+- Do not edit `flake.lock` unless the owner asks.
 - When you change `bootstrap.sh`, `flake.nix`, `lib/`, `vars.nix`, `hosts/`, `modules/` or an activation step,
   update `README.md` and `docs/` in the same change.

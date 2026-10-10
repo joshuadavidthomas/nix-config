@@ -16,6 +16,9 @@
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     # the Homebrew release nix-homebrew installs; its own pin trails upstream
     nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.9";
+    # reads secrets from 1Password with a service account (modules/secrets.nix)
+    opnix.url = "github:brizzbuzz/opnix";
+    opnix.inputs.nixpkgs.follows = "nixpkgs";
 
     # builds Python apps from a uv.lock (pkgs/llm)
     pyproject-nix.url = "github:pyproject-nix/pyproject.nix";

@@ -27,8 +27,8 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 - **opnix reads the secrets, with a 1Password service account, on every machine.** The Mac uses
   the same service account as the other machines, not the 1Password app integration. The
   service account token is the only secret that is put on a machine by hand.
-- **Start with one shared vault that the service account reads.** Split it later by reader, for
-  example a separate vault for agents in sandboxed VMs.
+- **Start with one shared vault, `dotfiles`, that the service account reads.** Split it later
+  by reader, for example a separate vault for agents in sandboxed VMs.
   Reason: a service account cannot get access to more vaults after it is created. New items in
   a vault that it can already read need no change.
 - **The account is 1Password Families.** Service accounts have a limit of 1,000 requests a day
@@ -54,7 +54,6 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 
 ## Not decided
 
-- The name of the shared vault.
 - The repo structure: layers, as now, or one file per feature, as in
   [Goxore/nixconf](https://github.com/Goxore/nixconf). Decide when the lab boxes get roles.
 - The VM tool: microvm.nix, libvirt or incus.

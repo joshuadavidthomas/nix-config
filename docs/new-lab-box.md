@@ -85,6 +85,20 @@ The output ends with `Connection refused` and `### Done! ###`. That is the resta
    ssh lab-2 nixos-version
    ```
 
+## Put the token on the lab box
+
+1. Put the service account token on the lab box:
+
+   ```sh
+   op read "op://Private/Service Account Auth Token: dotfiles/credential" | ssh lab-2 sudo opnix token set
+   ```
+
+2. Fetch the secrets. This also logs atuin in.
+
+   ```sh
+   ssh lab-2 sudo systemctl restart opnix-secrets home-manager-josh
+   ```
+
 ## Record and apply
 
 1. Record the change:
