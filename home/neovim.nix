@@ -2,8 +2,7 @@
 # the editor and providers and makes sure the checkout exists.
 { lib, pkgs, ... }:
 let
-  # The Mac uses Xcode's compilers. Linux gets gcc, for tree-sitter parsers and for Python
-  # packages that have no wheel for the venv's Python (pynvim's greenlet).
+  # cc for tree-sitter parsers; the Mac uses Xcode's
   compilers = lib.optionals pkgs.stdenv.isLinux [ pkgs.gcc ];
 in
 {
@@ -26,7 +25,7 @@ in
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nvim "$HOME/.config/nvim"
     fi
     # every switch: a no-op when the venv is current, and it repairs one that a failed run left
-    run env PATH="${lib.concatMapStrings (p: "${p}/bin:") compilers}$PATH" ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
+    run ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
       || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
   '';
 }
