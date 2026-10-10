@@ -17,8 +17,10 @@ in
 
   # Log atuin in to sync wherever it isn't yet (fresh install, rebuilt machine), then pull
   # history down. Skipped once logged in.
+  # `atuin status` exits 1 when logged out, so read its output first; under activation's
+  # pipefail, piping it to grep would never match.
   home.activation.atuinLogin = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    if ${atuin} status 2>&1 | grep -q "not logged in"; then
+    if [[ "$(${atuin} status 2>&1 || true)" == *"not logged in"* ]]; then
       if [ ! -r ${secret.atuinPassword} ]; then
         warnEcho "atuin: opnix hasn't fetched the account from 1Password yet (docs/secrets.md); switch again when it has"
       elif [[ -v DRY_RUN ]]; then
