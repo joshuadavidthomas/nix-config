@@ -7,12 +7,13 @@
 # what's already done.
 #
 #   1. Install Determinate Nix.
-#   2. Switch straight from GitHub. That installs Homebrew, every app (1Password included)
-#      and tool, and clones this repo to ~/.nix-config. Secret-backed steps wait.
-#   3. Wait for you to sign in to 1Password and turn on its CLI integration.
-#   4. Copy the opnix token from 1Password to /etc/opnix-token, and wait for opnix to fetch
+#   2. Install Homebrew with its own installer; after that it updates itself.
+#   3. Switch straight from GitHub. That installs every app (1Password included) and tool,
+#      and clones this repo to ~/.nix-config. Secret-backed steps wait.
+#   4. Wait for you to sign in to 1Password and turn on its CLI integration.
+#   5. Copy the opnix token from 1Password to /etc/opnix-token, and wait for opnix to fetch
 #      the secrets (atuin, fonts, ...).
-#   5. Switch again from ~/.nix-config, so that the steps that use the secrets (atuin's
+#   6. Switch again from ~/.nix-config, so that the steps that use the secrets (atuin's
 #      login) run.
 set -eu
 
@@ -42,13 +43,21 @@ fi
 PATH=/nix/var/nix/profiles/default/bin:$PATH
 export PATH
 
-# 2. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
+# 2. Homebrew. Its installer won't prompt for the password when NONINTERACTIVE is set, so
+# cache sudo first.
+if [ ! -x /opt/homebrew/bin/brew ]; then
+  say "Installing Homebrew"
+  sudo -v
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# 3. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   say "First switch, straight from GitHub"
   sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
 fi
 
-# 3. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
+# 4. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
 # you to approve the CLI (Touch ID), so wait on that.
 if ! sudo test -s "$token" && ! "$op" vault list >/dev/null 2>&1; then
   say "Sign in to 1Password, turn on Settings > Developer > Integrate with 1Password CLI, then approve the prompt"
@@ -61,7 +70,7 @@ if ! sudo test -s "$token" && ! "$op" vault list >/dev/null 2>&1; then
   echo
 fi
 
-# 4. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
+# 5. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
 if ! sudo test -s "$token"; then
   say "Copying the opnix token from 1Password"
   # vars.opnixTokenArgs
@@ -82,7 +91,7 @@ if [ ! -e "$secret" ]; then
   done
 fi
 
-# 5. Second switch, from the local clone, now that the secrets are there.
+# 6. Second switch, from the local clone, now that the secrets are there.
 say "Switching again from ~/.nix-config"
 sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$config"
 

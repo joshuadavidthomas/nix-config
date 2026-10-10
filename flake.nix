@@ -13,9 +13,6 @@
     disko.inputs.nixpkgs.follows = "nixpkgs";
     colmena.url = "github:nix-community/colmena";
     colmena.inputs.nixpkgs.follows = "nixpkgs";
-    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-    # the Homebrew release nix-homebrew installs; its own pin trails upstream
-    nix-homebrew.inputs.brew-src.url = "github:Homebrew/brew/7.0.9";
     # reads secrets from 1Password with a service account (modules/secrets.nix)
     opnix.url = "github:brizzbuzz/opnix";
     opnix.inputs.nixpkgs.follows = "nixpkgs";

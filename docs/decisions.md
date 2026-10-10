@@ -58,6 +58,21 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   GitHub as a signing key. Agents commit as the owner; they do not have a separate identity.
   Reason: the owner's own key stays in 1Password, and there is one key to manage.
 
+## Updates
+
+- **Homebrew installs and updates itself.** Its own installer installs `brew` (bootstrap.sh),
+  and `brew update` keeps it current. Nix only declares the formulae and casks.
+  Reason: Homebrew releases about twice a week. Pinned in the flake, it had to be bumped by hand.
+- **Tools that release faster than nixpkgs update themselves.** The coding agents and cf are
+  installed with their own installers or npm, not packaged in Nix.
+- **topgrade updates what Nix does not pin. Run it by hand about once a week, after the Nix
+  update.** Steps are in [Update everything](changes.md#update-everything).
+  Reason: the Mac keeps its sudo password, so a scheduled run cannot finish. A run by hand
+  also shows what changed, when a beta tool breaks.
+- **topgrade does not run its `system` step on NixOS.**
+  Reason: that step runs `nixos-rebuild` without `--flake`, which builds `/etc/nixos`, not
+  this repo.
+
 ## Project environments
 
 - **direnv, with nix-direnv, loads project environments.** The mise `layouts` plugin from the old

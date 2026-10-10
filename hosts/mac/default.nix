@@ -1,7 +1,5 @@
 # Any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname.
-{ config, inputs, lib, vars, ... }: {
-  imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
-
+{ config, lib, vars, ... }: {
   # installs op to /usr/local/bin, the only place the 1Password app integration accepts
   programs._1password = {
     enable = true;
@@ -14,15 +12,8 @@
     "${config.users.users.${vars.user}.home}/.lmstudio/bin" # lms, managed by LM Studio
   ];
 
-  # Installs Homebrew itself, so a fresh Mac needs nothing but Nix. autoMigrate takes over
-  # an existing /opt/homebrew in place.
-  nix-homebrew = {
-    enable = true;
-    user = vars.user;
-    autoMigrate = true;
-  };
-
-  # GUI apps stay in Homebrew; Nix owns the CLI.
+  # GUI apps stay in Homebrew; Nix owns the CLI. Homebrew itself comes from its own installer
+  # (bootstrap.sh) and updates itself; Nix only declares what it installs.
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall"; # anything not declared here gets removed
