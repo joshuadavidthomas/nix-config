@@ -5,8 +5,7 @@ A new Mac needs no change to the repo.
 ## What you need
 
 - A Mac with Apple Silicon
-- The service account token: the item "Service Account Auth Token: dotfiles" in your
-  Private vault in 1Password. Open it on another device.
+- Your 1Password account
 
 ## Procedure
 
@@ -17,27 +16,28 @@ A new Mac needs no change to the repo.
    curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
    ```
 
-3. When the bootstrap asks for the token, paste it and press Enter. The token does not show.
-4. Sign in to the 1Password app.
-5. In 1Password, turn on Settings > Developer > Use the SSH agent.
-6. Open a new terminal.
-7. Log in to GitHub:
+3. When the bootstrap asks for 1Password, sign in to the 1Password app.
+4. In 1Password, turn on Settings > Developer > Integrate with 1Password CLI.
+5. Approve the Touch ID prompt. The bootstrap copies the opnix token from 1Password.
+6. In 1Password, turn on Settings > Developer > Use the SSH agent.
+7. Open a new terminal.
+8. Log in to GitHub:
 
    ```sh
    gh auth login
    ```
 
-8. Test SSH. GitHub replies with your username.
+9. Test SSH. GitHub replies with your username.
 
    ```sh
    ssh -T git@github.com
    ```
 
-9. Apply again. This gives Nix the GitHub token.
+10. Apply again. This gives Nix the GitHub token.
 
-   ```sh
-   rebuild
-   ```
+    ```sh
+    rebuild
+    ```
 
 You can run the bootstrap again at any time.
 
@@ -49,4 +49,5 @@ You can run the bootstrap again at any time.
 | `$HOME ('/Users/josh') is not owned by you` | `sudo` without `-H` | Use `sudo -H` |
 | `darwin-rebuild: command not found` | The terminal started before the first apply | Open a new terminal |
 | `Refusing to load formula … from untrusted tap` | The tap is not in `taps` | Add the tap to `taps` in `hosts/mac/default.nix` |
-| `opnix fetched nothing in 2 minutes` | The token is wrong, or the Mac is offline | Read `/var/log/opnix-secrets.log`. To enter the token again, run `sudo rm /etc/opnix-token` and the bootstrap. |
+| The bootstrap waits for 1Password and does not continue | The CLI integration is off, or 1Password is locked | Do steps 3 to 5 |
+| `opnix fetched nothing in 2 minutes` | The token is wrong, or the Mac is offline | Read `/var/log/opnix-secrets.log`. To copy the token again, run `sudo rm /etc/opnix-token` and the bootstrap. |

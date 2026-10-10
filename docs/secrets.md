@@ -36,7 +36,7 @@ item is set in `vars.opnixToken`.
 | Lab box | Each `colmena apply` | colmena runs `op read` on the Mac. 1Password asks you to approve. |
 | Mac | `rebuild`, if the token is missing | `op` with the 1Password app. 1Password must be unlocked. |
 | WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
-| New Mac | The bootstrap | You paste the token |
+| New Mac | The bootstrap | `op` with the 1Password app, after you sign in |
 
 If `rebuild` on WSL cannot run `op.exe`, put the token there by hand: run
 `sudo opnix token set`, paste the token, and press Enter. Then run `rebuild` again.
