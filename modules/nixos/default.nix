@@ -15,5 +15,9 @@
     after = [ "opnix-secrets.service" ];
   };
 
+  # prebuilt Linux binaries need a standard dynamic loader: the coding agents' installers,
+  # uv's Python builds, VS Code's WSL server
+  programs.nix-ld.enable = true;
+
   environment.systemPackages = [ pkgs.git ];
 }

@@ -135,4 +135,4 @@ An install from before the rename has the user `nixos`. Do this once.
 | `Failed to start the systemd user session for 'josh'` | Another WSL distribution uses the session for user ID 1000 | Run `wsl --shutdown`. Start NixOS before other distributions. |
 | Each apply ends with exit status 4 | The same as above | The same as above |
 | `cannot execute binary file` for a Windows program | WSL interop is not registered | Keep `wsl.interop.register = true` |
-| A downloaded program shows `No such file or directory` | NixOS has no standard dynamic loader | Keep `programs.nix-ld.enable = true` |
+| A downloaded program shows `No such file or directory` | NixOS has no standard dynamic loader | Keep `programs.nix-ld.enable = true` in `modules/nixos/default.nix` |
