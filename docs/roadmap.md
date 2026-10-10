@@ -21,10 +21,10 @@ See [Decisions](decisions.md#secrets).
 - [x] Create the vault `dotfiles` and a read-only service account for it
 - [x] Read secrets from 1Password with opnix, on every machine
 - [x] Remove sops: atuin, the MonoLisa fonts (as 1Password Documents), the age key
-- [ ] Apply on each machine, so that it gets the opnix token: the Mac, WSL, the lab boxes
+- [ ] Apply on WSL, so that it gets the opnix token. The Mac and the lab boxes are done.
 - [ ] Delete the 1Password document "nix-config sops age key"
 - [x] A shared signing key for the lab boxes
-- [ ] Register the lab signing key on GitHub
+- [x] Register the lab signing key on GitHub
 - [ ] A Tailscale auth key in 1Password, so that a new lab box joins without the login URL
 - [ ] After a few days of use, check `op service-account ratelimit`
 
