@@ -25,9 +25,8 @@ in
     if [ ! -e "$HOME/.config/nvim" ]; then
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nvim "$HOME/.config/nvim"
     fi
-    if [ ! -e "$HOME/.config/nvim/.venv" ]; then
-      run env PATH="${lib.concatMapStrings (p: "${p}/bin:") compilers}$PATH" ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
-        || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
-    fi
+    # every switch: a no-op when the venv is current, and it repairs one that a failed run left
+    run env PATH="${lib.concatMapStrings (p: "${p}/bin:") compilers}$PATH" ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
+      || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
   '';
 }
