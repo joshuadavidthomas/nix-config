@@ -10,6 +10,11 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   same shells, tools, languages and coding agents. Only what a platform cannot have is
   different: Mac apps, WSL interop, server services. These go in `hosts/<name>/`.
   Reason: the same environment on every machine is the purpose of this repo.
+- **The Mac keeps its sudo password.** Agents edit and build the Mac configuration; the owner
+  runs `rebuild`. WSL and the lab boxes have passwordless sudo.
+  Reason: the Mac mini has no Touch ID, and passwordless sudo would let any agent on the Mac be
+  root. A sudo rule for `rebuild` alone does not help: an agent that applies the
+  configuration can put root access in it.
 - **The lab boxes are general servers.** They run Nix builds, GitHub runners, remote agents in
   their own worktrees, VMs and self-hosted services. They are not minimal servers.
 - **Later, microvms can take agent and development work off the lab boxes.** Then a lab box can
