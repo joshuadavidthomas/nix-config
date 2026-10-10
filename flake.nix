@@ -80,7 +80,7 @@
           # (modules/secrets.nix). opnix waits for it, so a box's first deploy fetches its
           # secrets.
           deployment.keys.opnix-token = {
-            keyCommand = [ "op" "read" vars.opnixToken ];
+            keyCommand = [ "op" ] ++ vars.opnixTokenArgs;
             destDir = "/etc";
           };
           systemd.services.opnix-secrets = {

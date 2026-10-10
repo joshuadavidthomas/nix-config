@@ -6,7 +6,7 @@
     inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena # deploys the homelab
     (pkgs.writeShellScriptBin "rebuild" ''
       if ! sudo test -s /etc/opnix-token; then
-        if token=$(/usr/local/bin/op read ${lib.escapeShellArg vars.opnixToken}) && [ -n "$token" ]; then
+        if token=$(/usr/local/bin/op ${lib.escapeShellArgs vars.opnixTokenArgs}) && [ -n "$token" ]; then
           printf '%s\n' "$token" | sudo sh -c 'umask 077; cat > /etc/opnix-token'
           sudo launchctl kickstart -k system/org.nixos.opnix-secrets 2>/dev/null || true
         else

@@ -20,7 +20,6 @@ flake=github:joshuadavidthomas/nix-config
 config=mac
 op=/usr/local/bin/op
 token=/etc/opnix-token
-token_ref="op://Private/Service Account Auth Token: dotfiles/credential" # vars.opnixToken
 # the first secret that modules/secrets.nix writes on a Mac
 secret="$HOME/Library/Application Support/opnix/atuinPassword"
 
@@ -65,7 +64,8 @@ fi
 # 4. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
 if ! sudo test -s "$token"; then
   say "Copying the opnix token from 1Password"
-  value=$("$op" read "$token_ref")
+  # vars.opnixTokenArgs
+  value=$("$op" item get "Service Account Auth Token: dotfiles" --vault Private --fields credential --reveal)
   printf '%s\n' "$value" | sudo sh -c "umask 077; cat > $token"
 fi
 if [ ! -e "$secret" ]; then

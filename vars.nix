@@ -5,8 +5,9 @@
   name = "Josh Thomas";
   email = "josh@joshthomas.dev";
 
-  # where colmena and `rebuild` read the opnix service account token (modules/secrets.nix)
-  opnixToken = "op://Private/Service Account Auth Token: dotfiles/credential";
+  # `op` arguments that print the opnix service account token, for colmena and `rebuild`
+  # (modules/secrets.nix). Not `op read`: secret references can't contain the title's ':'.
+  opnixTokenArgs = [ "item" "get" "Service Account Auth Token: dotfiles" "--vault" "Private" "--fields" "credential" "--reveal" ];
 
   # public halves of keys kept in 1Password
   keys = {

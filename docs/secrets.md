@@ -29,11 +29,11 @@ except that home-manager waits for it on NixOS.
 ## Put the token on a machine
 
 Each machine copies the token from 1Password to `/etc/opnix-token` when you apply. The token
-item is set in `vars.opnixToken`.
+item is set in `vars.opnixTokenArgs`.
 
 | Machine | When | How |
 | --- | --- | --- |
-| Lab box | Each `colmena apply` | colmena runs `op read` on the Mac. 1Password asks you to approve. |
+| Lab box | Each `colmena apply` | colmena runs `op` on the Mac. 1Password asks you to approve. |
 | Mac | `rebuild`, if the token is missing | `op` with the 1Password app. 1Password must be unlocked. |
 | WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
 | New Mac | The bootstrap | `op` with the 1Password app, after you sign in |
