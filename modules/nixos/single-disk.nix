@@ -1,6 +1,13 @@
-# One disk: an EFI system partition and an ext4 root. disko partitions and formats it at
-# install; after that it only declares the mounts. A host whose disk isn't nvme0n1 sets
-# disko.devices.disk.main.device.
+# One disk: an EFI system partition and a root, ext4 by default. disko partitions and
+# formats it at install; after that it only declares the mounts. A host whose disk isn't
+# nvme0n1 sets disko.devices.disk.main.device.
+#
+# A host can choose another root filesystem, for example XFS for yonder's reflink clones:
+#
+#   disko.devices.disk.main.content.partitions.root.content.format = "xfs";
+#
+# The format applies only at install. Set it in the commit that the box is installed from.
+# A box that gets a format other than the one on its disk does not boot.
 { inputs, lib, ... }: {
   imports = [ inputs.disko.nixosModules.disko ];
 
@@ -24,7 +31,7 @@
           size = "100%";
           content = {
             type = "filesystem";
-            format = "ext4";
+            format = lib.mkDefault "ext4";
             mountpoint = "/";
           };
         };
