@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Prepares an Amp orb (Debian 12, x86_64) to work on this repo: single-user Nix with flakes
+# and a warm store for `nix flake check`. Amp runs it once per fresh orb and again on stale
+# snapshots, so every step skips what's already done. Docs: docs/orbs.md.
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+step() {
+  local name=$1 start=$SECONDS
+  shift
+  printf '\n==> %s\n' "$name"
+  "$@"
+  printf '==> %s: %ss\n' "$name" "$((SECONDS - start))"
+}
+
+nix_profile="$HOME/.nix-profile"
+nix_conf_dir="$HOME/.config/nix"
+
+install_nix() {
+  if [ -x "$nix_profile/bin/nix" ]; then
+    echo "already installed"
+    return
+  fi
+  # Single-user: no daemon to keep running across orb pauses and snapshots.
+  # The installer adds the profile hook to ~/.bash_profile and ~/.bashrc.
+  curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon --yes
+}
+
+configure_nix() {
+  mkdir -p "$nix_conf_dir"
+  # .agents/resume writes access-tokens.conf from the thread's GitHub token; !include skips
+  # it when it's missing. Same layout as home/nix.nix. Setup output goes into a snapshot
+  # that other threads reuse, so drop any token a previous resume left behind.
+  rm -f "$nix_conf_dir/access-tokens.conf"
+  cat > "$nix_conf_dir/nix.conf" <<'EOF'
+experimental-features = nix-command flakes
+max-jobs = auto
+!include access-tokens.conf
+EOF
+}
+
+warm_store() {
+  # Fetch every input, evaluate every configuration and build the packages from pkgs/, so an
+  # agent's first `nix flake check` doesn't start from an empty store. Evaluate and build
+  # apart: a plain `nix flake check` does both at once and runs out of memory on a small orb.
+  nix flake archive --json >/dev/null
+  nix flake check --no-build
+  local system checks
+  system=$(nix eval --impure --raw --expr builtins.currentSystem)
+  checks=$(nix eval --json ".#checks.$system" --apply builtins.attrNames | jq -r '.[]')
+  # shellcheck disable=SC2086 # one installable per check
+  nix build --no-link $(printf ".#checks.$system.%s " $checks)
+}
+
+write_agent_notes() {
+  # Amp gives agents in the orb this file in addition to the repo's AGENTS.md
+  local notes="$HOME/.config/amp/AGENTS.md"
+  local marker="<!-- nix-config orb notes -->"
+  if grep -Fqx "$marker" "$notes" 2>/dev/null; then
+    echo "already written"
+    return
+  fi
+  mkdir -p "$(dirname "$notes")"
+  cat >> "$notes" <<EOF
+$marker
+# nix-config in an Amp orb
+
+- On a small orb (a1.small, about 3 GB of memory), \`nix flake check\` uses about 2.7 GB to
+  evaluate the configurations. If a change makes it build a package too, it can run out of
+  memory. Then run \`nix flake check --no-build\`, and build the package on its own with
+  \`nix build .#<name>\`.
+- This orb cannot apply a configuration, build the Mac configuration, read secrets or sign
+  commits. See docs/orbs.md.
+EOF
+}
+
+# GitHub limits anonymous flake fetches to 60 requests an hour. Use Amp's token for this run
+# only; it is never written to disk here.
+if [ -n "${GH_TOKEN:-}" ]; then
+  export NIX_CONFIG="access-tokens = github.com=$GH_TOKEN"
+fi
+
+step "Install Nix" install_nix
+# The installer can't change this running script's environment
+# shellcheck disable=SC1091
+source "$nix_profile/etc/profile.d/nix.sh"
+step "Configure Nix" configure_nix
+step "Warm the store for nix flake check" warm_store
+step "Write notes for agents" write_agent_notes

@@ -2,8 +2,7 @@
 
 - Read `docs/decisions.md` before you change machines, secrets or the repo structure. If it
   does not answer a question, ask the owner. Do not guess.
-- Use jj, not git. Record a change with `jj describe -m "…"`, then `jj new`.
-- After you add a file, run `jj status`.
+- Nix sees only the files that git tracks. After you add a file, run `git add <file>`.
 - Run `nix flake check` before you record a change.
 - Keep secrets out of `.nix` files.
 - Never change `stateVersion`.
