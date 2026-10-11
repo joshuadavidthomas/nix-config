@@ -24,6 +24,10 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 
 - **The lab is a trusted network behind Tailscale.** The lab boxes are not open to the
   internet. Where simple and hardened conflict, choose simple.
+- **A new lab box joins Tailscale by itself, with the tag `lab`.** It uses the secret of a
+  Tailscale OAuth client, from 1Password.
+  Reason: no lab box is set up by hand. An auth key expires after 90 days at most; the client
+  secret does not. A tagged node's key does not expire.
 
 ## Secrets
 

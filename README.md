@@ -18,7 +18,6 @@ up each machine by hand.
 | Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated with [colmena](https://colmena.cli.rs) over Tailscale |
 | User settings | [home-manager](https://github.com/nix-community/home-manager), shared by all machines |
 | Secrets | 1Password, read with [opnix](https://github.com/brizzbuzz/opnix) and a service account |
-| Version control | [jj](https://github.com/jj-vcs/jj) |
 
 ## Getting started
 
@@ -70,7 +69,9 @@ sure that they are installed, and writes their settings.
 
 Secrets are in 1Password, not in the repo. On every machine, opnix reads them with a
 1Password service account and writes each one to a file. An apply copies the service account
-token from 1Password to the machine. `modules/secrets.nix` declares the secrets.
+token from 1Password to the machine. `modules/secrets.nix` declares the secrets. A new lab
+box gets the token at install, and joins Tailscale by itself with a Tailscale OAuth client
+from 1Password.
 
 ## License
 

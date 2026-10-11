@@ -26,7 +26,22 @@
   home-manager.users.${vars.user}.programs.git.signing.key =
     config.services.onepassword-secrets.secretPaths.gitSigningKey;
 
-  services.tailscale.enable = true;
+  # A new lab box joins the tailnet on its first boot, tagged lab, with the secret of a
+  # Tailscale OAuth client (docs/new-lab-box.md). tailscaled-autoconnect logs in only when the
+  # box is logged out, so a box that is already on the tailnet keeps its node.
+  services.onepassword-secrets.secrets.tailscaleAuthKey.reference =
+    "op://dotfiles/Homelab Tailscale OAuth/client secret";
+  services.tailscale = {
+    enable = true;
+    authKeyFile = config.services.onepassword-secrets.secretPaths.tailscaleAuthKey;
+    # keys from an OAuth client are ephemeral unless told otherwise
+    authKeyParameters = { ephemeral = false; preauthorized = true; };
+    extraUpFlags = [ "--advertise-tags=tag:lab" ];
+  };
+  systemd.services.tailscaled-autoconnect = {
+    wants = [ "opnix-secrets.service" ];
+    after = [ "opnix-secrets.service" ];
+  };
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
   environment.systemPackages = [ pkgs.htop ];

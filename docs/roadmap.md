@@ -25,7 +25,10 @@ See [Decisions](decisions.md#secrets).
 - [ ] Delete the 1Password document "nix-config sops age key"
 - [x] A shared signing key for the lab boxes
 - [x] Register the lab signing key on GitHub
-- [ ] A Tailscale auth key in 1Password, so that a new lab box joins without the login URL
+- [x] A new lab box joins Tailscale by itself, with the tag `lab`
+- [x] Make the Tailscale OAuth client and its item in 1Password. See
+      [The Tailscale client](secrets.md#the-tailscale-client).
+- [ ] Give `lab-1`, `lab-2` and `lab-3` the tag `lab`, in the Tailscale admin console
 - [ ] After a few days of use, check `op service-account ratelimit`
 
 ## Monitoring

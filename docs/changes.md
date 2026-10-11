@@ -23,14 +23,7 @@
 ## Apply a change
 
 1. Run `nix flake check`.
-2. Record the change:
-
-   ```sh
-   jj describe -m "Add ripgrep"
-   jj new
-   ```
-
-3. Apply:
+2. Apply:
 
    | Machine | Command |
    | --- | --- |
@@ -95,15 +88,11 @@ For cf, follow the steps in `pkgs/cf/default.nix`.
    nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
    ```
 
-3. Record the change. Apply it on each machine.
+3. Apply it on each machine.
 
 If an update breaks a machine:
 
-1. Restore the lock file from the change before the update:
-
-   ```sh
-   jj restore --from <change> flake.lock
-   ```
+1. Restore `flake.lock` to its version before the update.
 
 2. Apply.
 3. Update one input at a time. Apply after each. Stop at the input that breaks the machine.
@@ -133,8 +122,7 @@ Lab boxes do this every day.
 
 | What you see | Cause | Action |
 | --- | --- | --- |
-| `path '…' does not exist` for a new file | jj did not record the file | Run `jj status` |
-| `git commit` makes an empty commit | jj recorded the change first | Use `jj describe` and `jj new`. Remove the empty commit with `jj abandon`. |
+| `path '…' does not exist` for a new file | Nix sees only the files that version control tracks | Track the file |
 | A GitHub rate limit error during an update | Nix has no GitHub token | Run `gh auth login`. Apply again. |
 | `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/git.nix` |
 | home-manager stops and names a `.bak` file | An old backup is in the way | Move the old `.bak` file. Apply again. |

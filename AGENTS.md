@@ -2,8 +2,8 @@
 
 - Read `docs/decisions.md` before you change machines, secrets or the repo structure. If it
   does not answer a question, ask the owner. Do not guess.
-- Nix sees only the files that git tracks. After you add a file, run `git add <file>`.
-- Run `nix flake check` before you record a change.
+- Nix sees only the files that version control tracks. Track a file after you add it.
+- Run `nix flake check` after every change.
 - Keep secrets out of `.nix` files.
 - Never change `stateVersion`.
 - Do not apply a change unless the owner asks. Give the owner the command.

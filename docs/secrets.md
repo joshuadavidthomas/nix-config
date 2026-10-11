@@ -14,13 +14,14 @@ and a 1Password service account. The reasons are in [Decisions](decisions.md#sec
 | Secrets on a Mac | `~/Library/Application Support/opnix/<name>`. The MonoLisa fonts are in `~/Library/Fonts`. |
 | SSH keys and the git signing key of the Mac and WSL | 1Password. These machines use them through the 1Password SSH agent. |
 | The git signing key of the lab boxes | 1Password, the item "Lab signing key" in `dotfiles` |
+| The Tailscale OAuth client of the lab boxes | 1Password, the item "Homelab Tailscale OAuth" in `dotfiles` |
 
 The service account can read `dotfiles` and nothing else. It cannot write.
 
 ## How the secrets get to a machine
 
 `modules/secrets.nix` declares the secrets that every machine gets. `hosts/mac/default.nix`
-adds the fonts. `modules/nixos/server.nix` adds the signing key of the lab boxes.
+adds the fonts. `modules/nixos/server.nix` adds the signing key and the Tailscale client of the lab boxes.
 
 opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret
 when its list of secrets changes and when the machine starts. An apply does not wait for it,
@@ -33,6 +34,7 @@ item is set in `vars.opnixTokenArgs`.
 
 | Machine | When | How |
 | --- | --- | --- |
+| New lab box | The install | nixos-anywhere copies the Mac's `/etc/opnix-token`. See [Set up a lab box](new-lab-box.md#install). |
 | Lab box | Each `colmena apply` | colmena copies the Mac's `/etc/opnix-token`. Your user on the Mac can read it. |
 | Mac | `rebuild`, if the token is missing | `op` with the 1Password app. 1Password must be unlocked. |
 | WSL | `rebuild`, if the token is missing | `op.exe` with 1Password for Windows |
@@ -68,6 +70,26 @@ The reference is `op://dotfiles/<item>/<field>`. For a Document or an attached f
 2. On the Mac and WSL, remove the old token, then apply: `sudo rm /etc/opnix-token`, then
    `rebuild`. Then run `colmena apply`: the lab boxes get the Mac's new token.
 3. Fetch the secrets again. See [Change a secret](#change-a-secret).
+
+## The Tailscale client
+
+A new lab box joins Tailscale with the secret of a Tailscale OAuth client, with the tag `lab`.
+The lab box gives the client secret to `tailscale up` in place of an auth key, and Tailscale
+makes a new auth key from it each time. The client secret does not expire; only the auth
+keys that it makes do. Make the client once:
+
+1. In the Tailscale admin console, open Settings > Trust credentials. Add a credential of
+   the kind OAuth. Give it the scope Auth Keys (`auth_keys`), with Write, and the tag
+   `tag:lab`.
+2. Copy the client secret. It starts with `tskey-client-`. Tailscale shows it only once.
+3. In 1Password, in the vault `dotfiles`, make an item named "Homelab Tailscale OAuth".
+   Put the client secret in the field `client secret`. The lab boxes do not use the client
+   ID; keep it in the field `client id` for reference.
+
+The tag `lab` must be in `tagOwners` in the tailnet policy. A lab box that is already on the
+tailnet keeps its node: the client is used only when a lab box is logged out.
+
+To replace the client, make a new one, put its secret in the item, and delete the old one.
 
 ## Rate limit
 
