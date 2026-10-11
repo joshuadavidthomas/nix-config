@@ -50,6 +50,21 @@ example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.s
 4. Add its name to `packages` in `flake.nix`.
 5. Add the package to the configuration, for example to `home.packages`.
 
+## When nixpkgs has an older version
+
+cache.nixos.org has only the packages that nixpkgs defines. If you change the version of a
+package, every machine and every orb builds it from source. For a Rust or Go tool, that can
+take 20 minutes or more.
+
+1. Wait for nixpkgs, if you can. A version that is on nixpkgs `master` reaches
+   `nixpkgs-unstable` in a few days.
+2. If you cannot wait, use the release binaries from upstream, as `pkgs/atuin.nix` and
+   `pkgs/lisette.nix` do. Use a static build for Linux (`musl` in the name) where there is
+   one, so NixOS needs no patching.
+3. Build from source only if upstream has no binaries.
+4. Write in the package file when to remove it, for example "Drop once nixpkgs reaches
+   18.23.0".
+
 ## Change the version of a package in pkgs/
 
 1. Change the version.

@@ -12,6 +12,8 @@ in
       sync_address = "https://api.atuin.sh";
       enter_accept = true;
       keymap_mode = "vim-insert";
+      # Nix decides the version; the release binaries (pkgs/atuin.nix) would check for updates
+      update_check = false;
     };
   };
 
