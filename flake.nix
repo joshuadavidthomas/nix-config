@@ -31,6 +31,10 @@
     pyproject-build-systems.inputs.uv2nix.follows = "uv2nix";
     pyproject-build-systems.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    # yonder, the machines platform the lab boxes run (hosts/lab-1). Its own nixpkgs: it
+    # needs Go 1.27 and pins its Firecracker.
+    yonder.url = "github:joshuadavidthomas/yonder.dev";
+
     # source of every tokyonight theme file (bat, btop, eza, ghostty, posting, wezterm)
     tokyonight.url = "github:joshuadavidthomas/tokyonight.nvim";
     tokyonight.flake = false;
