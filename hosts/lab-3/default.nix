@@ -10,14 +10,15 @@
 
   # yonderd, as on lab-1 (see hosts/lab-1): the module, and the binaries yonder's
   # tests/lab/deploy.sh puts in /var/lib/yonder/bin, with the version pinned in flake.lock
-  # as the fallback. yonder M3 adds this box to lab-1's fabric; until that code is deployed
-  # here, yonderd runs on its own, with no machines.
+  # as the fallback.
   services.yonder.enable = true;
   services.yonder.localBinaries = true;
-  # Until M3's code is deployed here, this box announces no routes on the tailnet. Every
-  # box announces the shared .internal resolver address, and Tailscale may pick any of them
-  # to answer for the whole tailnet; on 2026-10-12 it picked lab-2, which knows none of
-  # lab-1's machines, and dev.internal stopped resolving from the Mac. M3 makes every box
-  # answer for every machine; then this line goes.
-  services.yonder.extraFlags = [ "-tailscale" "" ];
+  # A member of lab-1's fabric (yonder M3): it registers with lab-1, the coordinator,
+  # over the tailnet, and machines are placed on it from any box. -join is a flag rather
+  # than the module's join option until flake.lock moves past yonder M3.
+  services.yonder.extraFlags = [ "-join" "lab-1" ];
+  # Each box reaches the others' guests through their routes (yonder's module sets these
+  # too, from M3 on).
+  services.tailscale.useRoutingFeatures = "both";
+  services.tailscale.extraSetFlags = [ "--accept-routes" ];
 }
