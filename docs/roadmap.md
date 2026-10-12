@@ -13,7 +13,7 @@
 - [ ] A binary cache on one lab box
 - [ ] Lab boxes as remote builders for each other and for the Mac
 - [ ] `system.autoUpgrade` on the lab boxes
-- [ ] yonder on `lab-1` from its NixOS module (yonder M2); `lab-2` and `lab-3` at yonder M3
+- [x] yonder on `lab-1` from its NixOS module (yonder M2), shipped to with yonder's `tests/lab/deploy.sh`; `lab-2` and `lab-3` at yonder M3
 
 ## Secrets
 
