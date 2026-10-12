@@ -18,4 +18,8 @@
   # (`deploy.sh revert`). So shipping yonder work in progress needs no change here; bump
   # the lock only to move that fallback, or when yonder's module changes.
   services.yonder.localBinaries = true;
+  # lab-1 coordinates the fabric (yonder M3): no -join. Each box reaches the others'
+  # guests through their routes (yonder's module sets these too, from M3 on).
+  services.tailscale.useRoutingFeatures = "both";
+  services.tailscale.extraSetFlags = [ "--accept-routes" ];
 }
