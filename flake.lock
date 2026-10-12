@@ -245,6 +245,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1791594108,
+        "narHash": "sha256-XK4KceonkwD8LuMAt/vNrz982mXJM5jeHAxMwsUXXAQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "6510408d147d8c5e6d76043e899e9251756f6a75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "opnix": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -327,7 +343,8 @@
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "tokyonight": "tokyonight",
-        "uv2nix": "uv2nix"
+        "uv2nix": "uv2nix",
+        "yonder": "yonder"
       }
     },
     "stable": {
@@ -412,6 +429,24 @@
       "original": {
         "owner": "pyproject-nix",
         "repo": "uv2nix",
+        "type": "github"
+      }
+    },
+    "yonder": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1791781424,
+        "narHash": "sha256-jIuZPFoHbdDF+PWsZEPekAr3/BsfcwU+6esVh5uLd/Q=",
+        "owner": "joshuadavidthomas",
+        "repo": "yonder.dev",
+        "rev": "0570d64c00359c90ebb3c1a44926a40c343ada67",
+        "type": "github"
+      },
+      "original": {
+        "owner": "joshuadavidthomas",
+        "repo": "yonder.dev",
         "type": "github"
       }
     }
