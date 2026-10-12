@@ -14,4 +14,10 @@
   # here, yonderd runs on its own, with no machines.
   services.yonder.enable = true;
   services.yonder.localBinaries = true;
+  # Until M3's code is deployed here, this box announces no routes on the tailnet. Every
+  # box announces the shared .internal resolver address, and Tailscale may pick any of them
+  # to answer for the whole tailnet; on 2026-10-12 it picked lab-2, which knows none of
+  # lab-1's machines, and dev.internal stopped resolving from the Mac. M3 makes every box
+  # answer for every machine; then this line goes.
+  services.yonder.extraFlags = [ "-tailscale" "" ];
 }
