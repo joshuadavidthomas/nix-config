@@ -24,6 +24,17 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   their own worktrees, VMs and self-hosted services. They are not minimal servers.
 - **Later, microvms can take agent and development work off the lab boxes.** Then a lab box can
   get less of `home/`, and the VMs get all of it.
+- **Shared modules decide how; each host decides what.** A module in `modules/` gives every
+  machine that imports it the same way of doing something, with defaults. A host changes a
+  default in `hosts/<name>/` only for a fact about that machine, such as its disk or its root
+  filesystem.
+  Reason: the machines stay alike, and what differs is in one place per machine.
+- **A lab box's root is ext4, unless its host chooses another filesystem.** A box moves to
+  another filesystem, for example XFS for yonder's reflink clones, only when it is installed
+  again, one box at a time.
+  Reason: the format applies only at install. One setting for all boxes would stop every box
+  that was not installed again from starting. yonder works on any filesystem; XFS only makes
+  its creates faster.
 
 ## Network
 
