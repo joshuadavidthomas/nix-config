@@ -25,7 +25,9 @@ adds the fonts. `modules/nixos/server.nix` adds the signing key and the Tailscal
 
 opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret
 when its list of secrets changes and when the machine starts. An apply does not wait for it,
-except that home-manager waits for it on NixOS.
+except that home-manager waits for it on NixOS. On NixOS a failed fetch is retried after 10
+seconds, at most 5 times an hour (`modules/nixos/default.nix`), not opnix's own 15 minutes:
+at boot the first fetch can fail while DNS is still coming up.
 
 ## Put the token on a machine
 
@@ -108,6 +110,7 @@ op service-account ratelimit
 | `atuin: opnix hasn't fetched the account from 1Password yet` | opnix had no token, or has not finished | Apply again |
 | `Token file /etc/opnix-token does not exist` in the opnix log | No token | Apply again. See [Put the token on a machine](#put-the-token-on-a-machine). |
 | Commits on a lab box fail with a signing error | opnix has not written the signing key | Run `colmena apply --on <box>` |
+| `dial tcp: lookup …1password.com` in the opnix log, at boot | DNS was not up yet | None: it retries in 10 seconds |
 | A secret is old | opnix fetches only when its list changes or the machine starts | See [Change a secret](#change-a-secret) |
 
 The opnix log is `journalctl -u opnix-secrets` on NixOS and `/var/log/opnix-secrets.log` on a Mac.
