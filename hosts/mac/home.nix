@@ -41,6 +41,17 @@
       IdentityFile = "~/.ssh/lab.pub";
       IdentitiesOnly = "yes";
     };
+    # yonder machines (`ssh dev.internal`): microVMs on the lab boxes, reached by name over
+    # the tailnet. Their user is `agent`. Interim: every guest on a lab box trusts every
+    # SSH_AUTHORIZED_KEY* in that box's /etc/yonder/secrets.env, which holds this key as
+    # SSH_AUTHORIZED_KEY_MAC. When yonder passes keys per machine (yonder.dev
+    # wiki/designs/amp-runner-auth.md), this stays the same; only which machines trust the
+    # key changes.
+    settings."*.internal" = {
+      User = "agent";
+      IdentityFile = "~/.ssh/lab.pub";
+      IdentitiesOnly = "yes";
+    };
   };
   home.file.".ssh/lab.pub".text = "${vars.keys.controller}\n";
 

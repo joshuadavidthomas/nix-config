@@ -108,7 +108,7 @@ colmena copies the Mac's opnix token to the lab box. The output ends with
 
 | What you see | Cause | Action |
 | --- | --- | --- |
-| `Too many authentication failures` | SSH offered too many 1Password keys | Use `--ssh-option IdentityAgent=none` for the installer. Use `-o IdentitiesOnly=yes -i ~/.ssh/lab.pub` for an installed lab box. |
+| `Too many authentication failures` | SSH offered too many 1Password keys | Use `--ssh-option IdentityAgent=none` for the installer. Use `-o IdentitiesOnly=yes -i ~/.ssh/lab.pub` for an installed lab box. The Mac's SSH config does this for `lab-*` and for yonder machines (`*.internal`). |
 | `kex_exchange_identification: read: Connection reset by peer`, but ping works | sshd blocks the Mac after many failed logins | On the lab box, run `sudo systemctl restart sshd` |
 | nixos-anywhere asks for the `root@…` password again and again | The command has `PubkeyAuthentication=no` | Press Ctrl-C. Use `IdentityAgent=none`. The disk is not changed yet. |
 | The lab box does not answer after the install | The IP address changed | Find the MAC address on the router. On macOS, `arp -an` shows MAC addresses without leading zeros. |
