@@ -17,6 +17,14 @@
   users.users.root.openssh.authorizedKeys.keys = [ vars.keys.controller ]; # colmena deploys as root
   security.sudo.wheelNeedsPassword = false;
 
+  # Amp orbs log in as orb, over Tailscale SSH (docs/orbs.md). Agents' files stay out of josh's
+  # and root's homes, and each root command goes through sudo, so the journal records it. Not
+  # a boundary: wheel has passwordless sudo here.
+  users.users.orb = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+  };
+
   # Commits on the lab boxes are signed with one shared key from 1Password (docs/decisions.md).
   services.onepassword-secrets.secrets.gitSigningKey = {
     reference = "op://dotfiles/Lab signing key/private key?ssh-format=openssh";
@@ -37,6 +45,9 @@
     # keys from an OAuth client are ephemeral unless told otherwise
     authKeyParameters = { ephemeral = false; preauthorized = true; };
     extraUpFlags = [ "--advertise-tags=tag:lab" ];
+    # Tailscale SSH: the tailnet policy (tailscale-acls) decides who logs in as whom, so
+    # Amp orbs reach the box with no keys to manage. Set on every apply, not only at login.
+    extraSetFlags = [ "--ssh" ];
   };
   systemd.services.tailscaled-autoconnect = {
     wants = [ "opnix-secrets.service" ];

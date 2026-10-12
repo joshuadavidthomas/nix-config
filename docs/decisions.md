@@ -5,7 +5,12 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 
 ## Machines
 
-- **One user, `josh`, on every machine.**
+- **One user, `josh`, on every machine.** The lab boxes add `orb`, for Amp orbs.
+- **Amp orbs log in to the lab boxes as `orb`, not `root` or `josh`.** `orb` has passwordless
+  sudo, like `josh`.
+  Reason: the risk is an agent's mistake, not an attacker. A separate user keeps agents out of
+  `josh`'s keys and home, and makes root a deliberate step that the journal records. Isolating
+  the lab from the rest of the LAN is the network's job (VLANs), not the boxes'.
 - **Every machine gets the same home.** `home/` gives the Mac, WSL, the lab boxes and VMs the
   same shells, tools, languages and coding agents. Only what a platform cannot have is
   different: Mac apps, WSL interop, server services. These go in `hosts/<name>/`.

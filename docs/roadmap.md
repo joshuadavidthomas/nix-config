@@ -28,7 +28,12 @@ See [Decisions](decisions.md#secrets).
 - [x] A new lab box joins Tailscale by itself, with the tag `lab`
 - [x] Make the Tailscale OAuth client and its item in 1Password. See
       [The Tailscale client](secrets.md#the-tailscale-client).
-- [ ] Give `lab-1`, `lab-2` and `lab-3` the tag `lab`, in the Tailscale admin console
+- [x] Give `lab-1` the tag `lab`
+- [ ] Turn off `lab-1`'s key expiry in the Tailscale admin console. It has the tag but still
+      expires on 2027-04-07, because it was tagged after it logged in.
+- [ ] Give `lab-2` and `lab-3` the tag `lab`, in the Tailscale admin console. Then turn off
+      their key expiry there: a tag set in the console does not change it, only a new login
+      does. Until they have the tag, orbs cannot reach them.
 - [ ] After a few days of use, check `op service-account ratelimit`
 
 ## Monitoring

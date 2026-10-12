@@ -49,6 +49,21 @@ larger orb size removes the problem.
 - Read secrets. It has no opnix token.
 - Sign commits. The signing keys are in 1Password.
 
+## Orbs on the lab boxes
+
+An orb from any project can join the tailnet with the tag `orb`, from an Amp secret, and SSH to
+the lab boxes as the user `orb`. `modules/nixos/server.nix` makes the user and turns on
+Tailscale SSH. The tailnet policy, in the `tailscale-acls` repo, maps the tag to the user.
+
+`orb` has passwordless sudo, like `josh`. It is not a boundary. It keeps agents out of `josh`'s
+home and keys, and makes root a step that the journal records:
+
+```sh
+journalctl _COMM=sudo
+```
+
+A lab box needs the tag `lab` before orbs can reach it.
+
 ## Change the setup
 
 Edit `.agents/setup` or `.agents/resume`, then run each one twice in an orb. Push the change to
