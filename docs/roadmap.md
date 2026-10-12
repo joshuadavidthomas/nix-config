@@ -13,7 +13,8 @@
 - [ ] A binary cache on one lab box
 - [ ] Lab boxes as remote builders for each other and for the Mac
 - [ ] `system.autoUpgrade` on the lab boxes
-- [x] yonder on `lab-1` from its NixOS module (yonder M2), shipped to with yonder's `tests/lab/deploy.sh`; `lab-2` and `lab-3` at yonder M3
+- [x] yonder on `lab-1` from its NixOS module (yonder M2), shipped to with yonder's `tests/lab/deploy.sh`
+- [x] yonder's module on `lab-2` and `lab-3`, the same way (for yonder M3)
 - [ ] Optional: install lab boxes again with an XFS root, one at a time, for yonder's reflink
       clones. See [Decisions](decisions.md#machines).
 
