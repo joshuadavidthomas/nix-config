@@ -1,5 +1,5 @@
 # Every NixOS machine: WSL, the lab boxes and VMs.
-{ pkgs, vars, ... }: {
+{ lib, pkgs, vars, ... }: {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   programs.fish.enable = true;
@@ -13,6 +13,15 @@
   systemd.services."home-manager-${vars.user}" = {
     wants = [ "opnix-secrets.service" ];
     after = [ "opnix-secrets.service" ];
+  };
+
+  # opnix retries a failed fetch after 15 minutes, at most twice an hour. At boot its first
+  # fetch can fail while DNS is still coming up, even after network-online: on lab-1 it did
+  # at every boot, and with resolvconf all three of its quick retries failed too, so every
+  # secret arrived 15 minutes late. Retry within seconds instead.
+  systemd.services.opnix-secrets = {
+    serviceConfig.RestartSec = lib.mkForce "10s";
+    unitConfig.StartLimitBurst = lib.mkForce 5;
   };
 
   # prebuilt Linux binaries need a standard dynamic loader: the coding agents' installers,
