@@ -22,4 +22,11 @@
   # guests through their routes (yonder's module sets these too, from M3 on).
   services.tailscale.useRoutingFeatures = "both";
   services.tailscale.extraSetFlags = [ "--accept-routes" ];
+  # Guests ask the .internal resolver on this box through their TAPs (yonder M3); the
+  # firewall refuses unknown interfaces otherwise. yonder's own table drops everything
+  # else a guest sends the box. yonder's module does this too, from M3 on.
+  networking.firewall.extraCommands = ''
+    iptables -I nixos-fw -i yt-+ -p udp --dport 53 -j nixos-fw-accept
+    iptables -I nixos-fw -i yt-+ -p tcp --dport 53 -j nixos-fw-accept
+  '';
 }
