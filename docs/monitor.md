@@ -13,14 +13,21 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | Container | Does | Data |
 | --- | --- | --- |
 | `prepare` | Makes the data directories, then exits | |
-| `tailscale` | Joins the tailnet as `monitor`, with the tag `tag:monitor` | `/data/tailscale` |
+| `tailscale` | Joins the tailnet as `monitor`, with the tag `tag:monitor`, and serves Grafana over HTTPS | `/data/tailscale` |
 | `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
-| `grafana` | Dashboards, on port 3000, from `monitor/grafana/` | `/data/grafana` |
+| `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
-it. Vector on each lab box sends to it (`modules/nixos/server.nix`). The lab boxes and your devices reach it over the tailnet: `http://monitor:3000` for
-Grafana. The tailnet policy (`tailscale-acls`) lets lab boxes reach only ports 8428 and 9428.
+it. Vector on each lab box sends to it (`modules/nixos/server.nix`) over the tailnet. The tailnet
+policy (`tailscale-acls`) lets lab boxes reach only ports 8428 and 9428.
+
+Grafana is at <https://monitor.tail014d2.ts.net>, from your devices. `tailscale serve`
+(`monitor/tailscale/serve.json`) answers on port 443 of the tailnet addresses and passes each
+request to Grafana. Tailscale gets the certificate from Let's Encrypt and renews it; it is kept
+in `/data/tailscale/certs`. The tailnet needs HTTPS certificates turned on (DNS page of the
+admin console), which it has. Each certificate is listed in the public Certificate
+Transparency logs, so the name `monitor.tail014d2.ts.net` is public; the machine is not.
 
 Other apps in the Fly org can reach it over Fly's private network. They are all yours, and the
 lab is a trusted network ([Decisions](decisions.md#network)).
@@ -54,7 +61,7 @@ lab is a trusted network ([Decisions](decisions.md#network)).
    monitor/deploy.sh status
    ```
 
-5. Open `http://monitor:3000`, log in as `admin` with the password `admin`, and set a new
+5. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
    password. Grafana keeps it on the volume.
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
