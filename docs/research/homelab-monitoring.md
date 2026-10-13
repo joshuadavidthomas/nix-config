@@ -1,12 +1,15 @@
 # Homelab monitoring
 
-Decided on 2026-10-09. Not built yet. The tasks are in the [roadmap](../roadmap.md#monitoring).
+Decided on 2026-10-09. The exporters and Vector are configured on the lab boxes, but send nothing
+yet.
+The tasks are in the [roadmap](../roadmap.md#monitoring).
 
 ## Decision
 
-- Vector on each lab box sends metrics and logs to one Fly machine.
-- The Fly machine runs VictoriaMetrics, VictoriaLogs, vmalert and Grafana.
-- A heartbeat Worker on Cloudflare alerts when the lab boxes or the Fly machine stop sending.
+- Vector on each lab box sends metrics and logs to one Fly machine, over Tailscale.
+- The Fly machine runs VictoriaMetrics, VictoriaLogs, vmalert, Alertmanager and Grafana.
+- Alerts go to Discord, and to [hark](https://hark.ryan.ceo) on the phone.
+- A heartbeat Worker on Cloudflare alerts when the Fly machine stops sending.
 - Later, Vector also sends the same data to a Cloudflare Basin lake. The Victoria stack is the
   reference to check the lake against.
 
@@ -15,28 +18,63 @@ Decided on 2026-10-09. Not built yet. The tasks are in the [roadmap](../roadmap.
 - The Victoria stack takes about one evening to set up, with no custom code: PromQL, the stock
   node_exporter dashboards and vmalert.
 - Fly and Cloudflare are outside the homelab. A homelab outage does not stop the monitor.
+- The Fly machine joins the tailnet, like a lab box. VictoriaMetrics and VictoriaLogs have no
+  per-client auth, and the lab is a trusted network behind Tailscale
+  ([Decisions](../decisions.md#monitoring)). So there is no public endpoint, and no token on
+  the lab boxes.
 - VictoriaMetrics has an MCP server. An agent (pi, a Discord bot) can query metrics without the
   lake.
 - Vector sinks are interchangeable. Basin is one more sink, not a migration.
 
 ## Design
 
-On each lab box:
+On each lab box, in `modules/nixos/server.nix`:
 
-- Vector scrapes the exporters, or uses its own `host_metrics` source.
-- Vector keeps only the useful series.
-- Vector buffers to disk. An ISP outage leaves no gap.
-- The configuration goes in `services.vector.settings` in `modules/server.nix`.
+- node_exporter, with its `systemd` collector, and smartctl_exporter for drive health. Both
+  listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
+  the tailnet could read them.
+- Vector scrapes both exporters each 30 s and adds a `host` tag. Not Vector's own
+  `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
+  has no temperatures or drive health.
+- Vector reads the journal.
+- Now: Vector sends nothing. Metrics go to a preview on the box, logs are dropped. See
+  [Before shipping](#before-shipping).
+- Later: Vector keeps only the useful series, and buffers to disk with a set `max_size`.
+  VictoriaMetrics takes late samples, so an ISP outage leaves no gap.
 
-On Fly, one machine with one volume:
+On Fly, one machine with one volume, on the tailnet:
 
 - VictoriaMetrics receives `prometheus_remote_write`.
 - VictoriaLogs receives logs.
-- vmalert evaluates the alert rules.
-- Grafana shows the stock dashboards.
+- vmalert evaluates the alert rules. `up == 0` and `absent()` rules catch a lab box, or the
+  whole homelab, going silent.
+- vmalert cannot notify by itself. It sends alerts to Alertmanager, which posts to Discord.
+- Grafana shows the stock dashboards, over Tailscale.
 
-Panels: CPU, memory, disk use and I/O, network, temperatures, containers, drive health, UPS,
-and journald logs.
+The monitor is itself monitored: vmalert has a Watchdog rule that always fires, and
+Alertmanager sends it to the heartbeat Worker. When the Watchdog stops, the Fly machine, vmalert
+or Alertmanager is down, and the Worker alerts.
+
+hark takes its own JSON (`body`, `title`, `url`) at a secret webhook URL, not Alertmanager's
+webhook payload. So Alertmanager sends to a relay that translates. The heartbeat Worker can be
+that relay, since it already receives Alertmanager's webhooks.
+
+Panels: CPU, memory, disk use and I/O, network, temperatures, systemd units, drive health, and
+journald logs. There is no UPS.
+
+## Before shipping
+
+Check what a lab box would send:
+
+```sh
+curl -s 127.0.0.1:9598/metrics | grep -v '^#' | wc -l
+```
+
+The preview also has Vector's own metrics. `vector_component_received_events_total` for
+`component_id="journal"` is the journal's volume.
+
+To start shipping, replace Vector's two sinks in `modules/nixos/server.nix`: `preview` with a
+`prometheus_remote_write` sink with a disk buffer, and `logs` with a VictoriaLogs sink.
 
 ## Basin lake
 
@@ -101,15 +139,18 @@ Lessons:
 ## Open questions
 
 - [ ] Fly machine size, volume size, retention, and backups (vmbackup to R2)
-- [ ] Grafana access: Cloudflare Access in front of Fly, or Fly private networking over
-      Tailscale?
+- [ ] The Fly machine's Tailscale tag, and what the tailnet policy (tailscale-acls) lets it
+      and `tag:lab` reach
 - [ ] How does the Pipelines sink partition by default? Is day and host possible before custom
       partitioning?
 - [ ] Vector straight to Pipelines, or an ingest Worker in front for per-host tokens and
       validation?
 - [ ] Does the "Analytics SQL binding" in Wrangler 4.145 query Basin SQL or Analytics Engine? If
       Basin SQL, Workers can query without a token.
-- [ ] Which 50 to 100 series per host to keep?
+- [ ] Which 50 to 100 series per host to keep? Choose from the preview.
+- [ ] Which journal priorities to keep? Check the volume in the preview first.
+- [ ] Does hark ignore unknown fields? If so, a template could replace the relay.
+- [ ] Discord through Alertmanager's `discord_configs`, or through the relay too?
 - [ ] Where does the agent run: a Discord bot, pi, or opencode?
 
 ## References

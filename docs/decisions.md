@@ -45,6 +45,17 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Reason: no lab box is set up by hand. An auth key expires after 90 days at most; the client
   secret does not. A tagged node's key does not expire.
 
+## Monitoring
+
+Design: [Homelab monitoring](research/homelab-monitoring.md).
+
+- **The monitoring machine on Fly joins the tailnet.** The lab boxes send to it over
+  Tailscale, and Grafana is reached over Tailscale.
+  Reason: the lab is a trusted network behind Tailscale. VictoriaMetrics and VictoriaLogs have
+  no per-client auth, and a public endpoint would need a token on each lab box.
+- **Alerts go to hark, and probably to Discord.**
+- **No UPS.** The old one died, so nothing runs NUT.
+
 ## Secrets
 
 - **1Password is the only source of secrets, on every machine.** sops goes away.

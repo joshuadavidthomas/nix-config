@@ -55,6 +55,50 @@
   };
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
+  # Monitoring (docs/research/homelab-monitoring.md). The exporters listen on localhost only:
+  # tailscale0 is trusted, so on 0.0.0.0 every tailnet node could read them. Vector scrapes
+  # them and reads the journal. Until the Fly machine exists, nothing leaves the box: metrics
+  # go to a local preview, logs are dropped.
+  services.prometheus.exporters.node = {
+    enable = true;
+    listenAddress = "127.0.0.1";
+    enabledCollectors = [ "systemd" ]; # unit states, in place of container metrics
+  };
+  services.prometheus.exporters.smartctl = {
+    enable = true; # drive health; scans every disk
+    listenAddress = "127.0.0.1";
+  };
+  services.vector = {
+    enable = true;
+    journaldAccess = true;
+    settings = {
+      sources.exporters = {
+        type = "prometheus_scrape";
+        endpoints = map (e: "http://127.0.0.1:${toString e.port}/metrics")
+          (with config.services.prometheus.exporters; [ node smartctl ]);
+        scrape_interval_secs = 30;
+      };
+      sources.journal.type = "journald";
+      sources.vector.type = "internal_metrics"; # shows the journal's volume in the preview
+      transforms.metrics = {
+        type = "remap";
+        inputs = [ "exporters" ];
+        source = ''.tags.host = "${config.networking.hostName}"'';
+      };
+      # What would be shipped: curl 127.0.0.1:9598/metrics. Shipping replaces these two sinks.
+      sinks.preview = {
+        type = "prometheus_exporter";
+        inputs = [ "metrics" "vector" ];
+        address = "127.0.0.1:9598";
+      };
+      sinks.logs = {
+        type = "blackhole";
+        inputs = [ "journal" ];
+        print_interval_secs = 0;
+      };
+    };
+  };
+
   environment.systemPackages = [ pkgs.htop ];
 
   system.stateVersion = "26.05"; # set at install; never bump it
