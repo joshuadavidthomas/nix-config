@@ -8,6 +8,10 @@
   boot.loader.efi.canTouchEfiVariables = true;
   hardware.enableRedistributableFirmware = true; # NIC firmware and CPU microcode
 
+  # Swap, compressed in memory (up to half of it, zstd): when memory runs out, a build or a VM
+  # slows down instead of being killed. No swap partition (modules/nixos/single-disk.nix).
+  zramSwap.enable = true;
+
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
