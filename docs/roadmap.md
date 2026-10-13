@@ -45,10 +45,15 @@ See [Decisions](decisions.md#secrets).
 
 Design: [Homelab monitoring](research/homelab-monitoring.md).
 
-- [ ] A Fly machine with VictoriaMetrics, VictoriaLogs, vmalert and Grafana
-- [ ] Vector on the lab boxes, in `modules/nixos/server.nix`
-- [ ] Alert rules in vmalert
-- [ ] A heartbeat Worker on Cloudflare
+- [ ] node_exporter, smartctl_exporter and Vector on the lab boxes, in
+      `modules/nixos/server.nix`, sending nothing yet. Written; apply with `colmena apply`.
+- [ ] Choose the series and journal priorities to keep, from the preview. See
+      [Before shipping](research/homelab-monitoring.md#before-shipping).
+- [ ] A Fly machine on the tailnet with VictoriaMetrics, VictoriaLogs, vmalert, Alertmanager
+      and Grafana
+- [ ] Vector ships to the Fly machine: replace its two sinks
+- [ ] Alert rules in vmalert, and Alertmanager to Discord
+- [ ] A heartbeat Worker on Cloudflare, which also relays alerts to hark
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin
 
