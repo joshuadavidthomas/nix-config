@@ -81,7 +81,12 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 ## Change it
 
 Edit `monitor/machine.json` or the files next to it, then run `monitor/deploy.sh` again. When
-the machine exists, it runs `fly machine update`, which keeps the volume.
+the machine exists, it runs `fly machine update`, which keeps the volume. Each deploy restarts
+every container; Grafana's users and password are on the volume and stay.
+
+`deploy.sh` puts the contents of each `local_path` file into the config before it calls
+flyctl. flyctl can read `local_path` itself, but on an update it keeps the contents it sent
+before for every file that the machine already has, so a changed file would not arrive.
 
 To update a service, change its image tag. Use a tag, not a digest: Fly does not take
 `tag@digest`.
@@ -111,6 +116,11 @@ short time.
   Fly accepts the machine without them, and then starts nothing. A machine that got such a
   config can stay stuck after the config is fixed; destroy it and run `monitor/deploy.sh`
   again. The volume keeps the data.
+- **A container ignores a setting in its `env`.** When the image sets the same variable
+  itself, the image's value wins and Fly gives no warning. The Grafana image sets
+  `GF_PATHS_DATA`, so the `grafana` container sets it in its `cmd` (`GF_PATHS_DATA=/data/grafana
+  exec /run.sh`) instead. Check a running process's variables with
+  `tr '\0' '\n' < /proc/<pid>/environ` in `fly machine exec`.
 - **A container gets "Connection refused" from VictoriaMetrics or VictoriaLogs on
   `localhost`.** They listen on IPv4 only unless they have `-enableTCP6`, and `localhost` can
   be `::1`.
