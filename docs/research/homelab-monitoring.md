@@ -1,8 +1,7 @@
 # Homelab monitoring
 
-Decided on 2026-10-09. The exporters and Vector are configured on the lab boxes, but send nothing
-yet.
-The tasks are in the [roadmap](../roadmap.md#monitoring).
+Decided on 2026-10-09. The lab boxes send metrics and logs to the monitor on Fly; alerts and
+backups are not built yet. The tasks are in the [roadmap](../roadmap.md#monitoring).
 
 ## Decision
 
@@ -38,10 +37,11 @@ On each lab box, in `modules/nixos/server.nix`:
   `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
   has no temperatures or drive health.
 - Vector reads the journal.
-- Now: Vector sends nothing. Metrics go to a preview on the box, logs are dropped. See
-  [Before shipping](#before-shipping).
-- Later: Vector buffers to disk with a set `max_size`. VictoriaMetrics takes late samples, so
-  an ISP outage leaves no gap.
+- Vector sends metrics to VictoriaMetrics with `prometheus_remote_write`, and the journal to
+  VictoriaLogs through its Elasticsearch bulk API, both to `monitor` over the tailnet. Of
+  Vector's own metrics it sends only buffer sizes, errors and dropped events.
+- Vector buffers to disk: 4 GB for metrics, about 2.5 days, and 1 GB for logs.
+  VictoriaMetrics takes late samples, so an outage of the monitor or the ISP leaves no gap.
 
 On Fly, one machine with one volume, on the tailnet as `monitor`, with no public IP. Each
 service is a container from its publisher's image; see [The monitor](../monitor.md):
@@ -92,9 +92,9 @@ sudo udevadm trigger --action=add --subsystem-match=nvme
 
 A box that is installed or restarts later gets the access at boot.
 
-## Before shipping
+## Check what a lab box sends
 
-Check what a lab box would send:
+On the box:
 
 ```sh
 curl -s 127.0.0.1:9598/metrics | grep -v '^#' | wc -l
@@ -104,8 +104,12 @@ The preview also has Vector's own metrics. `vector_component_received_events_tot
 `component_id="journal"` is the journal's volume. Vector reads the journal from the start of the
 boot when it first starts, so that counter starts high.
 
-To start shipping, replace Vector's two sinks in `modules/nixos/server.nix`: `preview` with a
-`prometheus_remote_write` sink with a disk buffer, and `logs` with a VictoriaLogs sink.
+What arrived, from a lab box (orbs cannot reach the monitor; your devices can):
+
+```sh
+curl -s 'http://monitor:8428/api/v1/query?query=count+by+(host)+({host!=""})'
+curl -s http://monitor:9428/select/logsql/query -d 'query=_time:5m | limit 5'
+```
 
 ## Basin lake
 

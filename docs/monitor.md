@@ -19,7 +19,7 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `grafana` | Dashboards, on port 3000 | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
-it. The lab boxes and your devices reach it over the tailnet: `http://monitor:3000` for
+it. Vector on each lab box sends to it (`modules/nixos/server.nix`). The lab boxes and your devices reach it over the tailnet: `http://monitor:3000` for
 Grafana. The tailnet policy (`tailscale-acls`) lets lab boxes reach only ports 8428 and 9428.
 
 Other apps in the Fly org can reach it over Fly's private network. They are all yours, and the
@@ -56,6 +56,9 @@ lab is a trusted network ([Decisions](decisions.md#network)).
 
 5. Open `http://monitor:3000`, log in as `admin` with the password `admin`, and set a new
    password. Grafana keeps it on the volume.
+
+Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
+there; see [Check what a lab box sends](research/homelab-monitoring.md#check-what-a-lab-box-sends).
 
 ## Change it
 

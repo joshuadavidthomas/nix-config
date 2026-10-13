@@ -57,8 +57,8 @@
 
   # Monitoring (docs/research/homelab-monitoring.md). The exporters listen on localhost only:
   # tailscale0 is trusted, so on 0.0.0.0 every tailnet node could read them. Vector scrapes
-  # them and reads the journal. Until the Fly machine exists, nothing leaves the box: metrics
-  # go to a local preview, logs are dropped.
+  # them, reads the journal, and sends both to the monitor over the tailnet (docs/monitor.md).
+  # It buffers to disk, so an outage of the monitor or the ISP leaves no gap.
   services.prometheus.exporters.node = {
     enable = true;
     listenAddress = "127.0.0.1";
@@ -79,7 +79,7 @@
         scrape_interval_secs = 30;
       };
       sources.journal.type = "journald";
-      sources.vector.type = "internal_metrics"; # shows the journal's volume in the preview
+      sources.vector.type = "internal_metrics";
       # The exporters' own Go runtime and HTTP handler stats; everything node_* and smartctl_*
       # stays, for the stock dashboards
       transforms.useful = {
@@ -87,21 +87,45 @@
         inputs = [ "exporters" ];
         condition = ''!match(string!(.name), r'^(go|process|promhttp)_')'';
       };
+      # Of Vector's own metrics, only what shows a backlog or lost events
+      transforms.vectorHealth = {
+        type = "filter";
+        inputs = [ "vector" ];
+        condition = ''match(string!(.name), r'^vector_(buffer_|component_errors_total|component_discarded_events_total)')'';
+      };
       transforms.metrics = {
         type = "remap";
-        inputs = [ "useful" ];
+        inputs = [ "useful" "vectorHealth" ];
         source = ''.tags.host = "${config.networking.hostName}"'';
       };
-      # What would be shipped: curl 127.0.0.1:9598/metrics. Shipping replaces these two sinks.
+      sinks.victoriametrics = {
+        type = "prometheus_remote_write";
+        inputs = [ "metrics" ];
+        endpoint = "http://monitor:8428/api/v1/write";
+        healthcheck.enabled = false; # VictoriaMetrics answers 204, which the check counts as failure
+        # about 1.5 GB a day of samples, so about 2.5 days of outage
+        buffer = { type = "disk"; max_size = 4 * 1024 * 1024 * 1024; when_full = "block"; };
+      };
+      # VictoriaLogs takes Elasticsearch's bulk API. One log stream for each box and unit.
+      sinks.victorialogs = {
+        type = "elasticsearch";
+        inputs = [ "journal" ];
+        endpoints = [ "http://monitor:9428/insert/elasticsearch/" ];
+        mode = "bulk";
+        api_version = "v8";
+        healthcheck.enabled = false;
+        query = {
+          _msg_field = "message";
+          _time_field = "timestamp";
+          _stream_fields = "host,_SYSTEMD_UNIT";
+        };
+        buffer = { type = "disk"; max_size = 1024 * 1024 * 1024; when_full = "block"; };
+      };
+      # What this box sends, and Vector's own metrics: curl 127.0.0.1:9598/metrics
       sinks.preview = {
         type = "prometheus_exporter";
         inputs = [ "metrics" "vector" ];
         address = "127.0.0.1:9598";
-      };
-      sinks.logs = {
-        type = "blackhole";
-        inputs = [ "journal" ];
-        print_interval_secs = 0;
       };
     };
   };
