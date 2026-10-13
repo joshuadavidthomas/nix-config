@@ -122,8 +122,14 @@
     {
       "name": "grafana",
       "image": "grafana/grafana-oss:13.0.2",
+      "entrypoint": [
+        "/bin/sh",
+        "-c"
+      ],
+      "cmd": [
+        "GF_PATHS_DATA=/data/grafana exec /run.sh"
+      ],
       "env": {
-        "GF_PATHS_DATA": "/data/grafana",
         "GF_PLUGINS_PREINSTALL_SYNC": "victoriametrics-logs-datasource",
         "GF_ANALYTICS_REPORTING_ENABLED": "false"
       },

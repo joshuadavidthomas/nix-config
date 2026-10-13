@@ -7,6 +7,8 @@ datasources:
     uid: victoriametrics
     url: http://localhost:8428
     isDefault: true
+    jsonData:
+      timeInterval: 30s # the lab boxes' scrape interval, so rate() windows hold two samples
   - name: VictoriaLogs
     type: victoriametrics-logs-datasource
     uid: victorialogs

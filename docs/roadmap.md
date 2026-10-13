@@ -56,8 +56,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
       on Fly without Tailscale. See [The monitor](monitor.md).
 - [x] The monitor's Tailscale client, its secret in the Fly app, and the first deploy
 - [x] Vector ships to the monitor
-- [ ] Grafana: Node Exporter Full and the SMART dashboard, and the `instance` and `job` labels
-      they need. On the monitor; apply the labels with `colmena apply`.
+- [x] Grafana: Node Exporter Full and the SMART dashboard, and the `instance` and `job` labels
+      they need
 - [ ] vmalert, Alertmanager and the backup container on the monitor
 - [ ] Alert rules in vmalert, and Alertmanager to Discord
 - [ ] A heartbeat Worker on Cloudflare, which also relays alerts to hark

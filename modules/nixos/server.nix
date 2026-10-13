@@ -91,7 +91,8 @@
       transforms.vectorHealth = {
         type = "filter";
         inputs = [ "vector" ];
-        condition = ''match(string!(.name), r'^vector_(buffer_|component_errors_total|component_discarded_events_total)')'';
+        # inside Vector its own metrics are named without the vector_ prefix, in the namespace vector
+        condition = ''.namespace == "vector" && match(string!(.name), r'^(buffer_|component_errors_total$|component_discarded_events_total$)')'';
       };
       transforms.metrics = {
         type = "remap";
@@ -101,7 +102,7 @@
           .tags.host = "${config.networking.hostName}"
           .tags.instance = .tags.host
           name = string!(.name)
-          .tags.job = if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "vector_") { "vector" } else { "node" }
+          .tags.job = if .namespace == "vector" { "vector" } else if starts_with(name, "smartctl_") { "smartctl" } else { "node" }
         '';
       };
       sinks.victoriametrics = {
