@@ -33,14 +33,15 @@ On each lab box, in `modules/nixos/server.nix`:
 - node_exporter, with its `systemd` collector, and smartctl_exporter for drive health. Both
   listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
   the tailnet could read them.
-- Vector scrapes both exporters each 30 s and adds a `host` tag. Not Vector's own
+- Vector scrapes both exporters each 30 s, drops the exporters' own Go runtime and HTTP stats
+  (`go_*`, `process_*`, `promhttp_*`), and adds a `host` tag. Not Vector's own
   `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
   has no temperatures or drive health.
 - Vector reads the journal.
 - Now: Vector sends nothing. Metrics go to a preview on the box, logs are dropped. See
   [Before shipping](#before-shipping).
-- Later: Vector keeps only the useful series, and buffers to disk with a set `max_size`.
-  VictoriaMetrics takes late samples, so an ISP outage leaves no gap.
+- Later: Vector buffers to disk with a set `max_size`. VictoriaMetrics takes late samples, so
+  an ISP outage leaves no gap.
 
 On Fly, one machine with one volume, on the tailnet:
 
@@ -62,6 +63,34 @@ that relay, since it already receives Alertmanager's webhooks.
 Panels: CPU, memory, disk use and I/O, network, temperatures, systemd units, drive health, and
 journald logs. There is no UPS.
 
+## What the lab boxes send
+
+Measured on 2026-10-13, from the preview and the journal of all three boxes:
+
+- About 1,700 series a box, 5,100 in all: every `node_*` and `smartctl_*` series. 705 of each
+  box's are `node_systemd_unit_state` (141 units × 5 states). Each yonder VM adds a unit and a
+  network interface, so series come and go with the VMs.
+- About 15 million samples a day in all. At VictoriaMetrics' usual 1 byte or less for each
+  sample, that is about 15 MB a day, or 5 GB a year.
+- About 50,000 journal lines a day a box, nearly all info (priority 6), none debug. The most
+  are from tailscaled, systemd, user sessions and each yonder VM (about 760 a day a VM). The
+  warnings and errors are harmless systemd notices.
+
+So VictoriaMetrics gets every `node_*` series, and VictoriaLogs the whole journal: both are
+small, and the stock dashboards need the full set. A short list of about 100 series a box is
+for the Basin lake only, where each row costs.
+
+Drive health needs one more step on a box that was running when smartctl_exporter was first
+applied: nixpkgs gives the exporter its access to `/dev/nvme*` with a udev rule that runs only
+when the device is added. Until the box restarts, the exporter gets "Permission denied" and
+sends only `smartctl_devices` and its build info. Without a restart:
+
+```sh
+sudo udevadm trigger --action=add --subsystem-match=nvme
+```
+
+A box that is installed or restarts later gets the access at boot.
+
 ## Before shipping
 
 Check what a lab box would send:
@@ -71,7 +100,8 @@ curl -s 127.0.0.1:9598/metrics | grep -v '^#' | wc -l
 ```
 
 The preview also has Vector's own metrics. `vector_component_received_events_total` for
-`component_id="journal"` is the journal's volume.
+`component_id="journal"` is the journal's volume. Vector reads the journal from the start of the
+boot when it first starts, so that counter starts high.
 
 To start shipping, replace Vector's two sinks in `modules/nixos/server.nix`: `preview` with a
 `prometheus_remote_write` sink with a disk buffer, and `logs` with a VictoriaLogs sink.
@@ -95,7 +125,8 @@ A `logs` table: `ts`, `host`, `unit`, `level`, `message`.
   functions for reshaping and rates.
 - Counters (CPU seconds, bytes) need `lag()` for rates. Gauges (memory, temperature, free bytes)
   are read directly. The agent's schema description must say which metric is which.
-- 3 hosts × 100 series × one sample each 30 s is about 860,000 rows a day.
+- 3 hosts × 100 series × one sample each 30 s is about 860,000 rows a day. All 1,700 series a
+  box would be about 15 million: the Basin sink gets a short list, not every series.
 - Partition by day and host if possible. Custom Pipelines partitioning is not released yet.
 
 | Panel | Metric | Query |
@@ -147,8 +178,7 @@ Lessons:
       validation?
 - [ ] Does the "Analytics SQL binding" in Wrangler 4.145 query Basin SQL or Analytics Engine? If
       Basin SQL, Workers can query without a token.
-- [ ] Which 50 to 100 series per host to keep? Choose from the preview.
-- [ ] Which journal priorities to keep? Check the volume in the preview first.
+- [ ] Which 100 or so series a box go to the Basin lake?
 - [ ] Does hark ignore unknown fields? If so, a template could replace the relay.
 - [ ] Discord through Alertmanager's `discord_configs`, or through the relay too?
 - [ ] Where does the agent run: a Discord bot, pi, or opencode?

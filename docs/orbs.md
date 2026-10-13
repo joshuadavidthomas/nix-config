@@ -55,6 +55,9 @@ An orb from any project can join the tailnet with the tag `orb`, from an Amp sec
 the lab boxes as the user `orb`. `modules/nixos/server.nix` makes the user and turns on
 Tailscale SSH. The tailnet policy, in the `tailscale-acls` repo, maps the tag to the user.
 
+In a thread with the Tailscale plugin, its `tailscale_connect` tool installs Tailscale and
+joins the orb with the orb's workload identity. After that, `ssh orb@lab-1` works.
+
 `orb` has passwordless sudo, like `josh`. It is not a boundary. It keeps agents out of `josh`'s
 home and keys, and makes root a step that the journal records:
 
