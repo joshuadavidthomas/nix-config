@@ -52,7 +52,8 @@ service is a container from its publisher's image; see [The monitor](../monitor.
 - vmalert evaluates the alert rules. `up == 0` and `absent()` rules catch a lab box, or the
   whole homelab, going silent.
 - vmalert cannot notify by itself. It sends alerts to Alertmanager, which posts to Discord.
-- Grafana shows the stock dashboards, over Tailscale.
+- Grafana shows the stock dashboards, over HTTPS on the tailnet, with a certificate from
+  Tailscale.
 
 The monitor is itself monitored: vmalert has a Watchdog rule that always fires, and
 Alertmanager sends it to the heartbeat Worker. When the Watchdog stops, the Fly machine, vmalert
