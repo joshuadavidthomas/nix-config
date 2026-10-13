@@ -33,7 +33,8 @@ On each lab box, in `modules/nixos/server.nix`:
   listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
   the tailnet could read them.
 - Vector scrapes both exporters each 30 s, drops the exporters' own Go runtime and HTTP stats
-  (`go_*`, `process_*`, `promhttp_*`), and adds a `host` tag. Not Vector's own
+  (`go_*`, `process_*`, `promhttp_*`), and adds the tags `host`, `instance` and `job`. The stock
+  dashboards select by `instance` and `job`. Not Vector's own
   `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
   has no temperatures or drive health.
 - Vector reads the journal.

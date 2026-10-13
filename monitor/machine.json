@@ -131,6 +131,18 @@
         {
           "guest_path": "/etc/grafana/provisioning/datasources/monitor.yaml",
           "local_path": "grafana/datasources.yaml"
+        },
+        {
+          "guest_path": "/etc/grafana/provisioning/dashboards/monitor.yaml",
+          "local_path": "grafana/dashboards.yaml"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/node-exporter-full.json",
+          "local_path": "grafana/dashboards/node-exporter-full.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/smartctl.json",
+          "local_path": "grafana/dashboards/smartctl.json"
         }
       ],
       "depends_on": [

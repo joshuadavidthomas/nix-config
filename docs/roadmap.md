@@ -55,8 +55,10 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] The monitor in `monitor/`: Tailscale, VictoriaMetrics, VictoriaLogs and Grafana. Tested
       on Fly without Tailscale. See [The monitor](monitor.md).
 - [x] The monitor's Tailscale client, its secret in the Fly app, and the first deploy
+- [x] Vector ships to the monitor
+- [ ] Grafana: Node Exporter Full and the SMART dashboard, and the `instance` and `job` labels
+      they need. On the monitor; apply the labels with `colmena apply`.
 - [ ] vmalert, Alertmanager and the backup container on the monitor
-- [ ] Vector ships to the monitor. Written and tried from `lab-1`; apply with `colmena apply`.
 - [ ] Alert rules in vmalert, and Alertmanager to Discord
 - [ ] A heartbeat Worker on Cloudflare, which also relays alerts to hark
 - [ ] Agent access through the VictoriaMetrics MCP server
