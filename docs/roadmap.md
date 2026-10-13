@@ -49,8 +49,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
       `modules/nixos/server.nix`, sending nothing yet
 - [x] Choose the series and journal priorities to keep, from the preview. See
       [What the lab boxes send](research/homelab-monitoring.md#what-the-lab-boxes-send).
-- [ ] Drive health on `lab-1`, `lab-2` and `lab-3`: restart them, or run the `udevadm` command
-      in [What the lab boxes send](research/homelab-monitoring.md#what-the-lab-boxes-send)
+- [x] Drive health on `lab-1`, `lab-2` and `lab-3`: the `udevadm` command in
+      [What the lab boxes send](research/homelab-monitoring.md#what-the-lab-boxes-send)
 - [ ] A Fly machine on the tailnet with VictoriaMetrics, VictoriaLogs, vmalert, Alertmanager
       and Grafana
 - [ ] Vector ships to the Fly machine: replace its two sinks
