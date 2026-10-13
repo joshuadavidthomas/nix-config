@@ -36,9 +36,9 @@ See [Decisions](decisions.md#secrets).
 - [x] Give `lab-1` the tag `lab`
 - [ ] Turn off `lab-1`'s key expiry in the Tailscale admin console. It has the tag but still
       expires on 2027-04-07, because it was tagged after it logged in.
-- [ ] Give `lab-2` and `lab-3` the tag `lab`, in the Tailscale admin console. Then turn off
-      their key expiry there: a tag set in the console does not change it, only a new login
-      does. Until they have the tag, orbs cannot reach them.
+- [x] Give `lab-2` and `lab-3` the tag `lab`, in the Tailscale admin console
+- [ ] Turn off `lab-2`'s and `lab-3`'s key expiry there: a tag set in the console does not
+      change it, only a new login does.
 - [ ] After a few days of use, check `op service-account ratelimit`
 
 ## Monitoring
