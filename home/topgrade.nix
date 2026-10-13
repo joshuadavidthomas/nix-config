@@ -14,5 +14,6 @@
         "system"
       ];
     };
+    settings.commands.Amp = "amp update"; # topgrade has no built-in step for it
   };
 }

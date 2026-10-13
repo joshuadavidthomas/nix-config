@@ -1,6 +1,6 @@
 # Coding agents and the hooks other tools add to them.
 #
-# Claude Code, Codex, opencode and pi release almost daily and T3 Code updates them in
+# Amp, Claude Code, Codex, opencode and pi release almost daily and T3 Code updates them in
 # place, which only works when each comes from its own installer. Nix makes sure they're
 # installed (activation below) and owns their config; the tools own their binaries.
 # Cloudflare's `cf` CLI is installed the same way: it's in beta and releases too often to pin.
@@ -58,8 +58,6 @@ let
   ]);
 in
 {
-  home.packages = [ pkgs.amp-cli ];
-
   home.sessionVariables.NPM_CONFIG_PREFIX = npmPrefix;
 
   # Install each agent only if it's missing; afterwards it updates itself (or T3 Code does).
@@ -74,6 +72,12 @@ in
       if [ ! -x "$HOME/.local/bin/claude" ]; then
         run ${pkgs.bash}/bin/bash -c 'curl -fsSL https://claude.ai/install.sh | bash' \
           || warnEcho "Claude Code install failed; rerun the switch to retry"
+      fi
+
+      # binary in ~/.amp/bin, symlinked into ~/.local/bin
+      if [ ! -x "$HOME/.local/bin/amp" ]; then
+        run ${pkgs.bash}/bin/bash -c 'curl -fsSL https://ampcode.com/install.sh | bash' \
+          || warnEcho "Amp install failed; rerun the switch to retry"
       fi
 
       if [ ! -x "$HOME/.local/bin/codex" ]; then

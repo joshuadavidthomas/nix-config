@@ -68,7 +68,7 @@ uses, such as the username and the public keys, are in `vars.nix`.
 `nixpkgs-unstable`. Runtimes and libraries come from the release. Packages that nixpkgs does not
 have are in `pkgs/`.
 
-Coding agents (Claude Code, Codex, opencode, pi) install and update themselves. Nix only makes
+Coding agents (Amp, Claude Code, Codex, opencode, pi) install and update themselves. Nix only makes
 sure that they are installed, and writes their settings. Cloudflare's `cf` CLI is installed the
 same way, with npm, because it is in beta and releases too often to pin. topgrade updates what
 Nix does not pin. See [Update everything](docs/changes.md#update-everything).
