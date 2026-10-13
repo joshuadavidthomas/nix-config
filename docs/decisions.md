@@ -53,6 +53,21 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   Tailscale, and Grafana is reached over Tailscale.
   Reason: the lab is a trusted network behind Tailscale. VictoriaMetrics and VictoriaLogs have
   no per-client auth, and a public endpoint would need a token on each lab box.
+- **The monitor has its own tag, `tag:monitor`, and no public IP.** The tailnet policy lets
+  lab boxes reach it on ports 8428 and 9428 only.
+  Reason: lab boxes may not open connections on the tailnet. `tag:lab` would also give the
+  monitor what lab boxes get: SSH from orbs and approved subnet routes.
+- **The monitor is a multi-container Fly machine, deployed with `fly machine run
+  --machine-config`.** Each service runs from its publisher's image. The files are in
+  `monitor/` in this repo.
+  Reason: the services are the usual Docker Compose stack, so there is no image to build and
+  no process supervisor to keep. The Vector configuration, the alert rules and the dashboards
+  depend on each other, so they change in one pull request.
+- **Metrics are kept 1 year and logs 30 days, on the machine's volume. Backups go to R2
+  each night.**
+  Reason: neither VictoriaMetrics nor VictoriaLogs reads data from object storage, and at
+  homelab volume a 10 GB volume holds years. History in R2 that is queried when needed is the
+  Basin lake's job.
 - **Alerts go to hark, and probably to Discord.**
 - **No UPS.** The old one died, so nothing runs NUT.
 

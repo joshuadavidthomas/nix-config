@@ -1,0 +1,164 @@
+{
+  "restart": {
+    "policy": "always"
+  },
+  "containers": [
+    {
+      "name": "prepare",
+      "image": "busybox:1.37",
+      "cmd": [
+        "sh",
+        "-c",
+        "mkdir -p /data/tailscale /data/vm /data/vl /data/grafana && chown 472:0 /data/grafana"
+      ],
+      "restart": {
+        "policy": "no"
+      }
+    },
+    {
+      "name": "tailscale",
+      "image": "tailscale/tailscale:v1.102.5",
+      "entrypoint": [
+        "/bin/sh",
+        "-c"
+      ],
+      "cmd": [
+        "TS_AUTHKEY=\"${TS_AUTHKEY}?ephemeral=false&preauthorized=true\" exec /usr/local/bin/containerboot"
+      ],
+      "env": {
+        "TS_HOSTNAME": "monitor",
+        "TS_EXTRA_ARGS": "--advertise-tags=tag:monitor",
+        "TS_STATE_DIR": "/data/tailscale",
+        "TS_USERSPACE": "false",
+        "TS_AUTH_ONCE": "true"
+      },
+      "secrets": [
+        {
+          "env_var": "TS_AUTHKEY"
+        }
+      ],
+      "depends_on": [
+        {
+          "name": "prepare",
+          "condition": "exited_successfully"
+        }
+      ],
+      "restart": {
+        "policy": "always"
+      }
+    },
+    {
+      "name": "victoriametrics",
+      "image": "victoriametrics/victoria-metrics:v1.154.0",
+      "cmd": [
+        "-storageDataPath=/data/vm",
+        "-retentionPeriod=1y",
+        "-httpListenAddr=:8428",
+        "-enableTCP6"
+      ],
+      "depends_on": [
+        {
+          "name": "prepare",
+          "condition": "exited_successfully"
+        }
+      ],
+      "healthchecks": [
+        {
+          "name": "http",
+          "kind": "liveness",
+          "http": {
+            "port": 8428,
+            "path": "/health",
+            "scheme": "http",
+            "method": "GET"
+          },
+          "interval": 15,
+          "timeout": 5,
+          "grace_period": 10,
+          "failure_threshold": 3,
+          "success_threshold": 1
+        }
+      ],
+      "restart": {
+        "policy": "always"
+      }
+    },
+    {
+      "name": "victorialogs",
+      "image": "victoriametrics/victoria-logs:v1.53.0",
+      "cmd": [
+        "-storageDataPath=/data/vl",
+        "-retentionPeriod=30d",
+        "-httpListenAddr=:9428",
+        "-enableTCP6"
+      ],
+      "depends_on": [
+        {
+          "name": "prepare",
+          "condition": "exited_successfully"
+        }
+      ],
+      "healthchecks": [
+        {
+          "name": "http",
+          "kind": "liveness",
+          "http": {
+            "port": 9428,
+            "path": "/health",
+            "scheme": "http",
+            "method": "GET"
+          },
+          "interval": 15,
+          "timeout": 5,
+          "grace_period": 10,
+          "failure_threshold": 3,
+          "success_threshold": 1
+        }
+      ],
+      "restart": {
+        "policy": "always"
+      }
+    },
+    {
+      "name": "grafana",
+      "image": "grafana/grafana-oss:13.0.2",
+      "env": {
+        "GF_PATHS_DATA": "/data/grafana",
+        "GF_PLUGINS_PREINSTALL_SYNC": "victoriametrics-logs-datasource",
+        "GF_ANALYTICS_REPORTING_ENABLED": "false"
+      },
+      "files": [
+        {
+          "guest_path": "/etc/grafana/provisioning/datasources/monitor.yaml",
+          "local_path": "grafana/datasources.yaml"
+        }
+      ],
+      "depends_on": [
+        {
+          "name": "prepare",
+          "condition": "exited_successfully"
+        }
+      ],
+      "healthchecks": [
+        {
+          "name": "http",
+          "kind": "liveness",
+          "http": {
+            "port": 3000,
+            "path": "/api/health",
+            "scheme": "http",
+            "method": "GET"
+          },
+          "interval": 15,
+          "timeout": 5,
+          "grace_period": 60,
+          "failure_threshold": 3,
+          "success_threshold": 1
+        }
+      ],
+      "restart": {
+        "policy": "always"
+      }
+    }
+  ]
+}
