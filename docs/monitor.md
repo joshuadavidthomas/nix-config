@@ -16,7 +16,7 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `tailscale` | Joins the tailnet as `monitor`, with the tag `tag:monitor` | `/data/tailscale` |
 | `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
-| `grafana` | Dashboards, on port 3000 | `/data/grafana` |
+| `grafana` | Dashboards, on port 3000, from `monitor/grafana/` | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
 it. Vector on each lab box sends to it (`modules/nixos/server.nix`). The lab boxes and your devices reach it over the tailnet: `http://monitor:3000` for
@@ -59,6 +59,24 @@ lab is a trusted network ([Decisions](decisions.md#network)).
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
 there; see [Check what a lab box sends](research/homelab-monitoring.md#check-what-a-lab-box-sends).
+
+## Dashboards
+
+Grafana loads its data sources and dashboards from `monitor/grafana/` at start:
+
+- **Node Exporter Full** (grafana.com 1860): CPU, memory, disks, network, temperatures and
+  systemd units. Choose a box with "Instance".
+- **SMARTctl Exporter Dashboard** (22604): drive health.
+- Logs: Explore, with the data source VictoriaLogs. For example `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
+
+Both dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
+(`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl` or
+`vector`.
+
+Changes made in Grafana are not saved. To change a dashboard or add one, put its JSON in
+`monitor/grafana/dashboards/`, add it to the `grafana` container's `files` in
+`monitor/machine.json`, and deploy. A dashboard downloaded from grafana.com may name its data
+source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `__inputs`.
 
 ## Change it
 

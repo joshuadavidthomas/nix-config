@@ -96,7 +96,13 @@
       transforms.metrics = {
         type = "remap";
         inputs = [ "useful" "vectorHealth" ];
-        source = ''.tags.host = "${config.networking.hostName}"'';
+        # instance and job are what the stock dashboards select by
+        source = ''
+          .tags.host = "${config.networking.hostName}"
+          .tags.instance = .tags.host
+          name = string!(.name)
+          .tags.job = if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "vector_") { "vector" } else { "node" }
+        '';
       };
       sinks.victoriametrics = {
         type = "prometheus_remote_write";
