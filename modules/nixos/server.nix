@@ -80,9 +80,16 @@
       };
       sources.journal.type = "journald";
       sources.vector.type = "internal_metrics"; # shows the journal's volume in the preview
+      # The exporters' own Go runtime and HTTP handler stats; everything node_* and smartctl_*
+      # stays, for the stock dashboards
+      transforms.useful = {
+        type = "filter";
+        inputs = [ "exporters" ];
+        condition = ''!match(string!(.name), r'^(go|process|promhttp)_')'';
+      };
       transforms.metrics = {
         type = "remap";
-        inputs = [ "exporters" ];
+        inputs = [ "useful" ];
         source = ''.tags.host = "${config.networking.hostName}"'';
       };
       # What would be shipped: curl 127.0.0.1:9598/metrics. Shipping replaces these two sinks.
