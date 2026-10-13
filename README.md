@@ -18,6 +18,7 @@ up each machine by hand.
 | Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated with [colmena](https://colmena.cli.rs) over Tailscale |
 | User settings | [home-manager](https://github.com/nix-community/home-manager), shared by all machines |
 | Secrets | 1Password, read with [opnix](https://github.com/brizzbuzz/opnix) and a service account |
+| Monitoring | VictoriaMetrics, VictoriaLogs and Grafana on a [Fly](https://fly.io) machine, fed by Vector on the lab boxes |
 
 ## Getting started
 
@@ -45,6 +46,7 @@ Docs:
 - [Decisions](docs/decisions.md)
 - [Roadmap](docs/roadmap.md)
 - [Amp orbs](docs/orbs.md)
+- [The monitor](docs/monitor.md)
 
 Research:
 
@@ -58,7 +60,8 @@ way: the overlay, the base module for the OS in `modules/`, and home-manager wit
 the user. So every machine has the same shells, tools, languages and coding agents.
 `hosts/<name>/` adds what only that machine or platform can have, such as Mac apps or WSL
 interop. The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring
-exporters and Vector ([Homelab monitoring](docs/research/homelab-monitoring.md)). Values that more than one machine
+exporters and Vector ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
+the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine
 uses, such as the username and the public keys, are in `vars.nix`.
 
 `overlay.nix` selects the source of each package. Command-line tools come from

@@ -1,0 +1,13 @@
+# Grafana reads this at start (monitor/machine.json). The containers share one network, so
+# both stores are on localhost.
+apiVersion: 1
+datasources:
+  - name: VictoriaMetrics
+    type: prometheus # VictoriaMetrics speaks PromQL, so the stock node_exporter dashboards work
+    uid: victoriametrics
+    url: http://localhost:8428
+    isDefault: true
+  - name: VictoriaLogs
+    type: victoriametrics-logs-datasource
+    uid: victorialogs
+    url: http://localhost:9428

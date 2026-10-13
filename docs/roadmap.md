@@ -51,8 +51,11 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
       [What the lab boxes send](research/homelab-monitoring.md#what-the-lab-boxes-send).
 - [x] Drive health on `lab-1`, `lab-2` and `lab-3`: the `udevadm` command in
       [What the lab boxes send](research/homelab-monitoring.md#what-the-lab-boxes-send)
-- [ ] A Fly machine on the tailnet with VictoriaMetrics, VictoriaLogs, vmalert, Alertmanager
-      and Grafana
+- [x] `tag:monitor` in the tailnet policy (tailscale-acls #10)
+- [x] The monitor in `monitor/`: Tailscale, VictoriaMetrics, VictoriaLogs and Grafana. Tested
+      on Fly without Tailscale. See [The monitor](monitor.md).
+- [ ] The monitor's Tailscale client, its secret in the Fly app, and the first deploy
+- [ ] vmalert, Alertmanager and the backup container on the monitor
 - [ ] Vector ships to the Fly machine: replace its two sinks
 - [ ] Alert rules in vmalert, and Alertmanager to Discord
 - [ ] A heartbeat Worker on Cloudflare, which also relays alerts to hark

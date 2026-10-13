@@ -43,7 +43,8 @@ On each lab box, in `modules/nixos/server.nix`:
 - Later: Vector buffers to disk with a set `max_size`. VictoriaMetrics takes late samples, so
   an ISP outage leaves no gap.
 
-On Fly, one machine with one volume, on the tailnet:
+On Fly, one machine with one volume, on the tailnet as `monitor`, with no public IP. Each
+service is a container from its publisher's image; see [The monitor](../monitor.md):
 
 - VictoriaMetrics receives `prometheus_remote_write`.
 - VictoriaLogs receives logs.
@@ -169,9 +170,7 @@ Lessons:
 
 ## Open questions
 
-- [ ] Fly machine size, volume size, retention, and backups (vmbackup to R2)
-- [ ] The Fly machine's Tailscale tag, and what the tailnet policy (tailscale-acls) lets it
-      and `tag:lab` reach
+- [ ] How the backup container runs `vmbackup` and VictoriaLogs snapshots to R2 each night
 - [ ] How does the Pipelines sink partition by default? Is day and host possible before custom
       partitioning?
 - [ ] Vector straight to Pipelines, or an ingest Worker in front for per-host tokens and
