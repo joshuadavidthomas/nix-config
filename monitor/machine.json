@@ -221,6 +221,9 @@
         "python3",
         "/app/relay.py"
       ],
+      "env": {
+        "HARK_APP_ID": "app_jtxjHf9n2_zQS3ag"
+      },
       "secrets": [
         {
           "env_var": "HARK_WEBHOOK_URL"
