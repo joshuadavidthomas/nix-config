@@ -278,7 +278,8 @@
         "GF_ANALYTICS_REPORTING_ENABLED": "false",
         "GF_SERVER_ROOT_URL": "https://monitor.tail014d2.ts.net/",
         "GF_SERVER_HTTP_ADDR": "127.0.0.1",
-        "GF_SECURITY_COOKIE_SECURE": "true"
+        "GF_SECURITY_COOKIE_SECURE": "true",
+        "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": "/etc/grafana/dashboards/overview.json"
       },
       "files": [
         {
@@ -296,6 +297,10 @@
         {
           "guest_path": "/etc/grafana/dashboards/smartctl.json",
           "local_path": "grafana/dashboards/smartctl.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/overview.json",
+          "local_path": "grafana/dashboards/overview.json"
         }
       ],
       "depends_on": [

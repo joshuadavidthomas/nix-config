@@ -92,8 +92,14 @@ than the interval reads 0 in VictoriaMetrics, not empty.
 
 Grafana loads its data sources and dashboards from `monitor/grafana/` at start:
 
-- **Node Exporter Full** (grafana.com 1860): CPU, memory, disks, network, temperatures and
-  systemd units. Choose a box with "Instance".
+- **Homelab overview**, the home page (`overview.json`, written for this monitor): all boxes
+  at once, over the last 30 minutes, refreshing every 10 s. A row of current values (firing
+  alerts, last data, CPU, memory, root disk, hottest sensor, drive wear), graphs with a line
+  for each box (CPU, memory, network, disk I/O, load against cores, temperatures, yonder VMs,
+  swap, Vector's queue), the firing alerts, and the journal's warnings and errors. The trends
+  that are not alerts are here.
+- **Node Exporter Full** (grafana.com 1860): everything about one box. Choose it with
+  "Instance".
 - **SMARTctl Exporter Dashboard** (22604): drive health.
 - Logs: Explore, with the data source VictoriaLogs. For example `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
 
