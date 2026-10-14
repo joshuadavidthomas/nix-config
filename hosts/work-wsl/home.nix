@@ -2,6 +2,8 @@
 { lib, pkgs, vars, ... }: {
   home.packages = [
     pkgs.wsl-open
+    # Many CLIs (fly, Go programs) ignore $BROWSER and call xdg-open.
+    (pkgs.writeShellScriptBin "xdg-open" ''exec ${lib.getExe pkgs.wsl-open} "$@"'')
     # Apply ~/.nix-config; extra arguments pass through (e.g. `rebuild --rollback`). The first
     # time, it copies the opnix token from 1Password for Windows (modules/secrets.nix).
     (pkgs.writeShellScriptBin "rebuild" ''
@@ -23,6 +25,7 @@
   };
   programs.jujutsu.settings.user.email = "jthomas@westervelt.com";
   home.shellAliases = {
+    op = "op.exe";
     ssh = "ssh.exe";
     ssh-add = "ssh-add.exe";
   };
