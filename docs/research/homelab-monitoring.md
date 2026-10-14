@@ -61,7 +61,7 @@ service is a container from its publisher's image; see [The monitor](../monitor.
 The monitor is itself monitored: vmalert has a Watchdog rule that always fires, and
 Alertmanager sends it to a heartbeat outside the monitor. When the Watchdog stops, the Fly
 machine, vmalert or Alertmanager is down, and the heartbeat alerts. The heartbeat is a
-Cloudflare Worker or healthchecks.io; not decided.
+Cloudflare Worker with a Durable Object (`monitor/heartbeat`).
 
 hark takes its own JSON (`body`, `title`, `url`) at a secret webhook URL, not Alertmanager's
 webhook payload. So Alertmanager sends to a small relay on the monitor that translates.

@@ -4,6 +4,10 @@ Alertmanager posts each group of alerts to its webhook as one JSON document, and
 its own JSON (https://hark.ryan.ceo/docs), so this rewrites one into the other. It listens on
 127.0.0.1:9099. When hark refuses, it answers 502, so Alertmanager tries again; the
 Idempotency-Key keeps a retry from reaching the phone twice.
+
+POST /heartbeat is the always-firing Watchdog, about every minute. It goes on to the heartbeat
+Worker on Cloudflare (monitor/heartbeat), which tells hark when the pings stop. Sending it
+through here means a dead relay stops the heartbeat too.
 """
 
 import hashlib
@@ -17,6 +21,8 @@ HARK_URL = os.environ["HARK_WEBHOOK_URL"]
 # Grafana, registered as a hark app: a tap opens the alerts page inside hark, not in Safari
 HARK_APP_ID = os.environ.get("HARK_APP_ID")
 ALERTS_PAGE = "https://monitor.tail014d2.ts.net/alerting/list"
+HEARTBEAT_URL = os.environ.get("HEARTBEAT_URL")
+HEARTBEAT_TOKEN = os.environ.get("HEARTBEAT_TOKEN")
 
 
 def to_hark(group):
@@ -53,6 +59,9 @@ class Relay(BaseHTTPRequestHandler):
 
     def do_POST(self):
         group = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        if self.path == "/heartbeat":
+            self.reply(self.forward_heartbeat())
+            return
         request = urllib.request.Request(
             HARK_URL,
             data=json.dumps(to_hark(group)).encode(),
@@ -66,6 +75,22 @@ class Relay(BaseHTTPRequestHandler):
             detail = error.read().decode() if isinstance(error, urllib.error.HTTPError) else ""
             print(f"hark refused {group.get('groupKey')}: {error} {detail}", flush=True)
             status = 502
+        self.reply(status)
+
+    def forward_heartbeat(self):
+        if not HEARTBEAT_URL:
+            return 200
+        request = urllib.request.Request(
+            HEARTBEAT_URL, method="POST", headers={"Authorization": f"Bearer {HEARTBEAT_TOKEN}"}
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=15):
+                return 200
+        except OSError as error:
+            print(f"heartbeat failed: {error}", flush=True)
+            return 502
+
+    def reply(self, status):
         self.send_response(status)
         self.end_headers()
 
