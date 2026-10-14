@@ -29,6 +29,9 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   default in `hosts/<name>/` only for a fact about that machine, such as its disk or its root
   filesystem.
   Reason: the machines stay alike, and what differs is in one place per machine.
+- **The lab boxes swap to zram, compressed in memory, not to disk.**
+  Reason: without swap, a box that runs out of memory kills a process, such as a VM or
+  yonderd. zram needs no partition, so the installed boxes get it without a reinstall.
 - **A lab box's root is ext4, unless its host chooses another filesystem.** A box moves to
   another filesystem, for example XFS for yonder's reflink clones, only when it is installed
   again, one box at a time.
