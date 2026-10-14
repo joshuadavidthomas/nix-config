@@ -75,7 +75,8 @@ in
   # Monitoring (docs/research/homelab-monitoring.md). The exporters listen on localhost only:
   # tailscale0 is trusted, so on 0.0.0.0 every tailnet node could read them. Vector scrapes
   # them, reads the journal, and sends both to the monitor over the tailnet (docs/monitor.md).
-  # It buffers to disk, so an outage of the monitor or the ISP leaves no gap.
+  # It buffers to disk, so an outage of the monitor or the ISP leaves no gap, though the queued
+  # samples arrive thinned (docs/roadmap.md).
   services.prometheus.exporters.node = {
     enable = true;
     listenAddress = "127.0.0.1";

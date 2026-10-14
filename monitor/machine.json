@@ -148,8 +148,12 @@
       ],
       "depends_on": [
         {
-          "name": "prepare",
-          "condition": "exited_successfully"
+          "name": "victoriametrics",
+          "condition": "healthy"
+        },
+        {
+          "name": "alertmanager",
+          "condition": "healthy"
         }
       ],
       "healthchecks": [

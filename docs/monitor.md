@@ -144,7 +144,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 
 | Alert | When |
 | --- | --- |
-| `BoxSilent` | A lab box sent no metrics for 3 minutes. Its other alerts are held back. |
+| `BoxSilent` | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
 | `DriveFailing`, `DriveCriticalWarning` | A drive fails its SMART check, or reports an NVMe critical warning |
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
