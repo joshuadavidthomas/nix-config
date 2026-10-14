@@ -96,9 +96,25 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager
 (`monitor/alertmanager/alertmanager.yml`), which sends it to hark through a relay
 (`monitor/hark/relay.py`). The relay rewrites Alertmanager's JSON into hark's: the summary is
-the alert and the box, the body has a line for each alert, and a tap opens Grafana's alerts.
+the alert and the box, and the body has a line for each alert. A tap opens Grafana's alerts
+inside hark: Grafana is registered as a hark app (`HARK_APP_ID` in `monitor/machine.json`).
 hark gets a second message when an alert resolves, and a repeat each 12 hours while it fires.
 The hark webhook URL is the Fly secret `HARK_WEBHOOK_URL`; only the `hark` container gets it.
+
+Grafana became a hark app with hark's API. The published `harkctl` (0.4.3) has no `apps`
+command, although hark's docs and app show one, so log in with the app scopes and call the
+API. The login keeps harkctl's other scopes; the token stays in the config file:
+
+```sh
+npx harkctl@latest auth login --client-name "harkctl" \
+  --scope notifications:send --scope interactions:create --scope interactions:read \
+  --scope activities:read --scope activities:write --scope devices:read \
+  --scope services:read --scope services:write --scope apps:read --scope apps:write
+cfg="$HOME/Library/Application Support/hark/config.json"
+curl -s -X POST "$(jq -r '.apiUrl // "https://hark.ryan.ceo"' "$cfg")/api/agent/apps" \
+  -H "Authorization: Bearer $(jq -r .token "$cfg")" -H 'Content-Type: application/json' \
+  -d '{"name": "Homelab", "url": "https://monitor.tail014d2.ts.net"}'
+```
 
 Every alert goes to your phone, so there are few: each needs a person, soon, and fires rarely.
 Trends that can wait, such as drive wear, temperatures, swap and Vector's queues, are on the

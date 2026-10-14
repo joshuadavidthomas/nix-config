@@ -14,6 +14,8 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HARK_URL = os.environ["HARK_WEBHOOK_URL"]
+# Grafana, registered as a hark app: a tap opens the alerts page inside hark, not in Safari
+HARK_APP_ID = os.environ.get("HARK_APP_ID")
 ALERTS_PAGE = "https://monitor.tail014d2.ts.net/alerting/list"
 
 
@@ -27,11 +29,14 @@ def to_hark(group):
         line = alert.get("annotations", {}).get("summary") or alert["labels"].get("alertname", "")
         lines.append(("Resolved: " if alert["status"] == "resolved" else "") + line)
     resolved = group["status"] == "resolved"
-    return {
+    message = {
         "summary": (("Resolved: " if resolved else "") + title)[:500],
         "body": "\n".join(lines)[:8000] or title,
         "url": ALERTS_PAGE,
     }
+    if HARK_APP_ID:
+        message["appId"] = HARK_APP_ID
+    return message
 
 
 def idempotency_key(group):
