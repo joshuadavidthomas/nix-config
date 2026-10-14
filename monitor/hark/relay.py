@@ -23,6 +23,8 @@ HARK_APP_ID = os.environ.get("HARK_APP_ID")
 ALERTS_PAGE = "https://monitor.tail014d2.ts.net/alerting/list"
 HEARTBEAT_URL = os.environ.get("HEARTBEAT_URL")
 HEARTBEAT_TOKEN = os.environ.get("HEARTBEAT_TOKEN")
+# Cloudflare refuses urllib's own User-Agent (Python-urllib) with error 1010
+USER_AGENT = "homelab-monitor-relay"
 
 
 def to_hark(group):
@@ -65,7 +67,11 @@ class Relay(BaseHTTPRequestHandler):
         request = urllib.request.Request(
             HARK_URL,
             data=json.dumps(to_hark(group)).encode(),
-            headers={"Content-Type": "application/json", "Idempotency-Key": idempotency_key(group)},
+            headers={
+                "Content-Type": "application/json",
+                "Idempotency-Key": idempotency_key(group),
+                "User-Agent": USER_AGENT,
+            },
         )
         try:
             with urllib.request.urlopen(request, timeout=15) as response:
@@ -81,7 +87,9 @@ class Relay(BaseHTTPRequestHandler):
         if not HEARTBEAT_URL:
             return 200
         request = urllib.request.Request(
-            HEARTBEAT_URL, method="POST", headers={"Authorization": f"Bearer {HEARTBEAT_TOKEN}"}
+            HEARTBEAT_URL,
+            method="POST",
+            headers={"Authorization": f"Bearer {HEARTBEAT_TOKEN}", "User-Agent": USER_AGENT},
         )
         try:
             with urllib.request.urlopen(request, timeout=15):

@@ -64,8 +64,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [ ] Backups of the monitor's volume to R2. Fly keeps a daily snapshot for 5 days already.
 - [x] A relay from Alertmanager to hark, and only the alerts that need you soon
 - [ ] In about a month, review how often each alert fired and whether it needed you
-- [ ] A heartbeat outside the monitor: a Cloudflare Worker (`monitor/heartbeat`). Written and
-      tested locally; deploy it, then give the relay its address
+- [x] A heartbeat outside the monitor: a Cloudflare Worker (`monitor/heartbeat`)
+- [ ] Test the heartbeat for real: stop the monitor for 6 minutes
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin
 
