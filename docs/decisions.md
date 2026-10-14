@@ -71,6 +71,10 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   Reason: neither VictoriaMetrics nor VictoriaLogs reads data from object storage, and at
   homelab volume a 10 GB volume holds years. History in R2 that is queried when needed is the
   Basin lake's job.
+- **The heartbeat is a Cloudflare Worker with a Durable Object.** The monitor pings it through
+  the hark relay; when the pings stop for 5 minutes, it tells hark.
+  Reason: it must run outside the monitor, and Cloudflare will be used anyway (the Basin lake).
+  A Durable Object's alarm needs no polling, and Cloudflare retries it when hark fails.
 - **Alerts go to hark, and only alerts that need you soon. No Discord.**
   Reason: an alert that is not read, or that is so frequent it gets ignored, does nothing, and
   a Discord channel would not be read. The record of past alerts is in Grafana. Discord was

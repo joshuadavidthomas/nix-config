@@ -1,0 +1,21 @@
+// The monitor's heartbeat Worker (src/index.js, docs/monitor.md). Deploy from this directory
+// with `npx wrangler@4.151.0 deploy`. Its secrets, HEARTBEAT_TOKEN and HARK_WEBHOOK_URL, are
+// set with `wrangler secret put`, from 1Password.
+{
+  "name": "homelab-heartbeat",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "durable_objects": {
+    "bindings": [{ "name": "HEARTBEAT", "class_name": "Heartbeat" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Heartbeat"] }],
+  "vars": {
+    // Alertmanager pings about every minute
+    "SILENT_AFTER_SECONDS": "300",
+    // the same as Alertmanager's repeat_interval
+    "REMIND_AFTER_SECONDS": "43200",
+    "GRAFANA_URL": "https://monitor.tail014d2.ts.net/",
+    "HARK_APP_ID": "app_jtxjHf9n2_zQS3ag"
+  }
+}

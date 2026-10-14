@@ -149,7 +149,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |
-| `Watchdog` | Always. It will go to a heartbeat outside the monitor, which alerts when it stops. |
+| `Watchdog` | Always. It is the heartbeat, below. |
 
 In about a month, count how often each alert fired, and whether it needed you. Fix or delete
 one that didn't. vmalert keeps the history in VictoriaMetrics, as the series `ALERTS`.
@@ -173,6 +173,41 @@ gets it within a minute; the relay logs `sent firing … "delivered":1` (`fly lo
 fly machine exec <id> -a homelab-monitor-joshthomasdev --container grafana \
   'wget -qO- --header="Content-Type: application/json" --post-data="[{\"labels\":{\"alertname\":\"TestAlert\"},\"annotations\":{\"summary\":\"Test\"}}]" 127.0.0.1:9093/api/v2/alerts'
 ```
+
+## Heartbeat
+
+A dead monitor can't say it's dead, so a Worker on Cloudflare listens for it
+(`monitor/heartbeat`). Alertmanager sends the always-firing `Watchdog` to the relay about every
+minute, and the relay sends it on to the Worker's `/ping`, with the token `HEARTBEAT_TOKEN`.
+Each ping moves a Durable Object's alarm 5 minutes out. When the pings stop, the alarm fires
+and hark gets "Monitor silent", again each 12 hours while it lasts, and "Resolved" with the next
+ping. Because the ping goes through the relay, it stops when anything on the way to your phone
+stops: the machine, vmalert, Alertmanager or the relay.
+
+The Worker's secrets are `HEARTBEAT_TOKEN` and `HARK_WEBHOOK_URL`; its other settings are in
+`monitor/heartbeat/wrangler.jsonc`. The relay gets the Worker's address as `HEARTBEAT_URL` and
+the token as the Fly secret `HEARTBEAT_TOKEN`; without an address, it drops the pings.
+
+Set it up once, on the Mac, from the repo:
+
+```sh
+# a token for the pings, kept in 1Password
+op item create --vault dotfiles --category password --title "Homelab monitor heartbeat" \
+  --generate-password='letters,digits,64'
+cd monitor/heartbeat
+npx wrangler@4.151.0 login
+npx wrangler@4.151.0 deploy   # prints the Worker's address
+op read 'op://dotfiles/Homelab monitor heartbeat/password' | npx wrangler@4.151.0 secret put HEARTBEAT_TOKEN
+op read 'op://dotfiles/Homelab monitor hark/webhook url' | npx wrangler@4.151.0 secret put HARK_WEBHOOK_URL
+printf 'HEARTBEAT_TOKEN=%s\n' "$(op read 'op://dotfiles/Homelab monitor heartbeat/password')" \
+  | fly secrets import --stage -a homelab-monitor-joshthomasdev
+```
+
+Then set `HEARTBEAT_URL` in `monitor/machine.json` to the address with `/ping`, add
+`HEARTBEAT_TOKEN` to the `hark` container's `secrets`, and run `monitor/deploy.sh`.
+
+To test it locally, `npx wrangler@4.151.0 dev --var SILENT_AFTER_SECONDS:5 ...` runs the Worker
+and its alarm on your machine.
 
 ## Change it
 
