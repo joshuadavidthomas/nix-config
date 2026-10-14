@@ -17,7 +17,7 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
 | `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
-| `alertmanager` | Groups alerts and posts them to Discord | `/data/alertmanager` |
+| `alertmanager` | Groups alerts; they will go to hark (not connected yet) | `/data/alertmanager` |
 | `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
@@ -50,31 +50,23 @@ lab is a trusted network ([Decisions](decisions.md#network)).
      | fly secrets import --stage -a homelab-monitor-joshthomasdev
    ```
 
-3. Make a Discord webhook (the channel's settings, Integrations > Webhooks), keep its URL in
-   1Password as "Homelab monitor Discord" with the field `webhook url`, and give it to the app:
-
-   ```sh
-   printf 'DISCORD_WEBHOOK_URL=%s\n' "$(op read 'op://dotfiles/Homelab monitor Discord/webhook url')" \
-     | fly secrets import --stage -a homelab-monitor-joshthomasdev
-   ```
-
-   The secrets stay "Staged". Ignore "Deploy secrets" in Fly's dashboard: it works only for apps
+   The secret stays "Staged". Ignore "Deploy secrets" in Fly's dashboard: it works only for apps
    deployed with `fly deploy`. A machine gets the app's secrets when `deploy.sh` runs.
 
-4. Create the volume and the machine:
+3. Create the volume and the machine:
 
    ```sh
    monitor/deploy.sh
    ```
 
-5. Check that `monitor` is on the tailnet, and that the app has no IPs:
+4. Check that `monitor` is on the tailnet, and that the app has no IPs:
 
    ```sh
    tailscale status | grep monitor
    monitor/deploy.sh status
    ```
 
-6. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
+5. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
    password. Grafana keeps it on the volume.
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
@@ -100,9 +92,10 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 
 ## Alerts
 
-vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager, which
-posts to Discord (`monitor/alertmanager/alertmanager.yml`). It sends a "RESOLVED" message when
-an alert ends, and repeats an alert that still fires each 12 hours.
+vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager
+(`monitor/alertmanager/alertmanager.yml`). Alerts will go to hark, through a relay that is not
+built yet; until then they go nowhere, and Grafana shows them. There is no Discord: a channel
+that nobody reads is not an alert ([Decisions](decisions.md#monitoring)).
 
 | Alert | When |
 | --- | --- |
@@ -113,7 +106,7 @@ an alert ends, and repeats an alert that still fires each 12 hours.
 | `UnitFailed` | A systemd unit failed for 5 minutes |
 | `LowMemory`, `Swapping` | Under 10 % of memory free, or over 25 % of swap in use |
 | `VectorDroppingEvents`, `VectorBacklog` | Vector lost events, or can't keep up sending them |
-| `Watchdog` | Always. It goes to the heartbeat Worker (not built yet), which will alert when it stops. |
+| `Watchdog` | Always. It will go to a heartbeat outside the monitor, which alerts when it stops. |
 
 Grafana shows the rules and the firing alerts under Alerting, and silences an alert there
 (data source Alertmanager). A silence is kept on the volume.
@@ -127,7 +120,7 @@ amtool check-config monitor/alertmanager/alertmanager.yml
 
 Both are in nixpkgs (`victoriametrics` and `prometheus-alertmanager`).
 
-To check that Discord works, send Alertmanager a test alert from inside the machine:
+To check Alertmanager, send it a test alert from inside the machine:
 
 ```sh
 fly machine exec <id> -a homelab-monitor-joshthomasdev --container grafana \

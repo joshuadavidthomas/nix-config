@@ -1,13 +1,14 @@
-# Alertmanager on the monitor (monitor/machine.json, docs/monitor.md). The Discord webhook is
-# the Fly secret DISCORD_WEBHOOK_URL, which the container writes to a file at start.
+# Alertmanager on the monitor (monitor/machine.json, docs/monitor.md). Alerts will go to hark,
+# through a relay that isn't built yet; until then they go nowhere, and Grafana shows them
+# under Alerting.
 route:
-  receiver: discord
+  receiver: nowhere
   group_by: [alertname, instance]
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 12h
   routes:
-    # For the heartbeat Worker, when it exists; until then, nowhere.
+    # For the heartbeat, when it exists.
     - matchers: [alertname="Watchdog"]
       receiver: heartbeat
 
@@ -18,10 +19,5 @@ inhibit_rules:
     equal: [instance]
 
 receivers:
-  - name: discord
-    discord_configs:
-      - webhook_url_file: /tmp/discord_webhook_url
-        send_resolved: true
-        title: '{{ if eq .Status "firing" }}FIRING{{ else }}RESOLVED{{ end }}: {{ .CommonLabels.alertname }}{{ with .CommonLabels.instance }} on {{ . }}{{ end }}'
-        message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
+  - name: nowhere
   - name: heartbeat

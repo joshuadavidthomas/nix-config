@@ -71,10 +71,11 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   Reason: neither VictoriaMetrics nor VictoriaLogs reads data from object storage, and at
   homelab volume a 10 GB volume holds years. History in R2 that is queried when needed is the
   Basin lake's job.
-- **Alerts that need you soon go to hark; every alert goes to Discord, as the record.**
-  Discord came first only because Alertmanager supports it natively. That order was not a
-  choice between them. hark needs a relay that rewrites Alertmanager's messages into hark's
-  JSON.
+- **Alerts go to hark, and only alerts that need you soon. No Discord.**
+  Reason: an alert that is not read, or that is so frequent it gets ignored, does nothing, and
+  a Discord channel would not be read. The record of past alerts is in Grafana. Discord was
+  set up first only because Alertmanager supports it natively; that was not a choice. hark
+  needs a relay that rewrites Alertmanager's messages into hark's JSON.
 - **No UPS.** The old one died, so nothing runs NUT.
 
 ## Secrets

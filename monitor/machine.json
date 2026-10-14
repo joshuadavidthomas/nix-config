@@ -175,17 +175,11 @@
     {
       "name": "alertmanager",
       "image": "prom/alertmanager:v0.34.1",
-      "entrypoint": [
-        "/bin/sh",
-        "-c"
-      ],
       "cmd": [
-        "printf %s \"$DISCORD_WEBHOOK_URL\" > /tmp/discord_webhook_url && exec /bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml --storage.path=/data/alertmanager --web.listen-address=127.0.0.1:9093 --cluster.listen-address="
-      ],
-      "secrets": [
-        {
-          "env_var": "DISCORD_WEBHOOK_URL"
-        }
+        "--config.file=/etc/alertmanager/alertmanager.yml",
+        "--storage.path=/data/alertmanager",
+        "--web.listen-address=127.0.0.1:9093",
+        "--cluster.listen-address="
       ],
       "files": [
         {

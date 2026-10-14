@@ -58,10 +58,11 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] Vector ships to the monitor
 - [x] Grafana: Node Exporter Full and the SMART dashboard, and the `instance` and `job` labels
       they need
-- [x] vmalert, Alertmanager and alert rules on the monitor, to Discord. See
+- [x] vmalert, Alertmanager and alert rules on the monitor. See
       [Alerts](monitor.md#alerts).
 - [ ] Backups of the monitor's volume to R2. Fly keeps a daily snapshot for 5 days already.
-- [ ] A heartbeat Worker on Cloudflare, which also relays alerts to hark
+- [ ] A relay from Alertmanager to hark, and only the alerts that need you soon
+- [ ] A heartbeat outside the monitor: a Cloudflare Worker or healthchecks.io (not decided)
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin
 

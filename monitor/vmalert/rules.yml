@@ -1,5 +1,5 @@
 # Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
-# vmalert sends firing alerts to Alertmanager, which posts them to Discord.
+# vmalert sends firing alerts to Alertmanager (monitor/alertmanager/alertmanager.yml).
 groups:
   - name: lab
     rules:

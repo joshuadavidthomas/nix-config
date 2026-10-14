@@ -7,7 +7,7 @@ backups are not built yet. The tasks are in the [roadmap](../roadmap.md#monitori
 
 - Vector on each lab box sends metrics and logs to one Fly machine, over Tailscale.
 - The Fly machine runs VictoriaMetrics, VictoriaLogs, vmalert, Alertmanager and Grafana.
-- Alerts go to Discord, and to [hark](https://hark.ryan.ceo) on the phone.
+- Alerts go to [hark](https://hark.ryan.ceo) on the phone. No Discord.
 - A heartbeat Worker on Cloudflare alerts when the Fly machine stops sending.
 - Later, Vector also sends the same data to a Cloudflare Basin lake. The Victoria stack is the
   reference to check the lake against.
@@ -51,17 +51,17 @@ service is a container from its publisher's image; see [The monitor](../monitor.
 - VictoriaLogs receives logs.
 - vmalert evaluates the alert rules (`monitor/vmalert/rules.yml`). `up == 0` and `absent()` rules catch a lab box, or the
   whole homelab, going silent.
-- vmalert cannot notify by itself. It sends alerts to Alertmanager, which posts to Discord.
+- vmalert cannot notify by itself. It sends alerts to Alertmanager, which will send them to hark.
 - Grafana shows the stock dashboards, over HTTPS on the tailnet, with a certificate from
   Tailscale.
 
 The monitor is itself monitored: vmalert has a Watchdog rule that always fires, and
-Alertmanager sends it to the heartbeat Worker. When the Watchdog stops, the Fly machine, vmalert
-or Alertmanager is down, and the Worker alerts.
+Alertmanager sends it to a heartbeat outside the monitor. When the Watchdog stops, the Fly
+machine, vmalert or Alertmanager is down, and the heartbeat alerts. The heartbeat is a
+Cloudflare Worker or healthchecks.io; not decided.
 
 hark takes its own JSON (`body`, `title`, `url`) at a secret webhook URL, not Alertmanager's
-webhook payload. So Alertmanager sends to a relay that translates. The heartbeat Worker can be
-that relay, since it already receives Alertmanager's webhooks.
+webhook payload. So Alertmanager sends to a small relay on the monitor that translates.
 
 Panels: CPU, memory, disk use and I/O, network, temperatures, systemd units, drive health, and
 journald logs. There is no UPS.
@@ -185,7 +185,6 @@ Lessons:
       Basin SQL, Workers can query without a token.
 - [ ] Which 100 or so series a box go to the Basin lake?
 - [ ] Does hark ignore unknown fields? If so, a template could replace the relay.
-- [ ] Discord through Alertmanager's `discord_configs`, or through the relay too?
 - [ ] Where does the agent run: a Discord bot, pi, or opencode?
 
 ## References
