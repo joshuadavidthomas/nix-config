@@ -49,7 +49,7 @@ service is a container from its publisher's image; see [The monitor](../monitor.
 
 - VictoriaMetrics receives `prometheus_remote_write`.
 - VictoriaLogs receives logs.
-- vmalert evaluates the alert rules. `up == 0` and `absent()` rules catch a lab box, or the
+- vmalert evaluates the alert rules (`monitor/vmalert/rules.yml`). `up == 0` and `absent()` rules catch a lab box, or the
   whole homelab, going silent.
 - vmalert cannot notify by itself. It sends alerts to Alertmanager, which posts to Discord.
 - Grafana shows the stock dashboards, over HTTPS on the tailnet, with a certificate from

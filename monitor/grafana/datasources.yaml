@@ -13,3 +13,9 @@ datasources:
     type: victoriametrics-logs-datasource
     uid: victorialogs
     url: http://localhost:9428
+  - name: Alertmanager
+    type: alertmanager
+    uid: alertmanager
+    url: http://127.0.0.1:9093
+    jsonData:
+      implementation: prometheus

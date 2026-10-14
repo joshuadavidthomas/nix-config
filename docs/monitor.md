@@ -16,6 +16,8 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `tailscale` | Joins the tailnet as `monitor`, with the tag `tag:monitor`, and serves Grafana over HTTPS | `/data/tailscale` |
 | `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
+| `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
+| `alertmanager` | Groups alerts and posts them to Discord | `/data/alertmanager` |
 | `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
@@ -48,20 +50,31 @@ lab is a trusted network ([Decisions](decisions.md#network)).
      | fly secrets import --stage -a homelab-monitor-joshthomasdev
    ```
 
-3. Create the volume and the machine:
+3. Make a Discord webhook (the channel's settings, Integrations > Webhooks), keep its URL in
+   1Password as "Homelab monitor Discord" with the field `webhook url`, and give it to the app:
+
+   ```sh
+   printf 'DISCORD_WEBHOOK_URL=%s\n' "$(op read 'op://dotfiles/Homelab monitor Discord/webhook url')" \
+     | fly secrets import --stage -a homelab-monitor-joshthomasdev
+   ```
+
+   The secrets stay "Staged". Ignore "Deploy secrets" in Fly's dashboard: it works only for apps
+   deployed with `fly deploy`. A machine gets the app's secrets when `deploy.sh` runs.
+
+4. Create the volume and the machine:
 
    ```sh
    monitor/deploy.sh
    ```
 
-4. Check that `monitor` is on the tailnet, and that the app has no IPs:
+5. Check that `monitor` is on the tailnet, and that the app has no IPs:
 
    ```sh
    tailscale status | grep monitor
    monitor/deploy.sh status
    ```
 
-5. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
+6. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
    password. Grafana keeps it on the volume.
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
@@ -85,15 +98,60 @@ Changes made in Grafana are not saved. To change a dashboard or add one, put its
 `monitor/machine.json`, and deploy. A dashboard downloaded from grafana.com may name its data
 source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `__inputs`.
 
+## Alerts
+
+vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager, which
+posts to Discord (`monitor/alertmanager/alertmanager.yml`). It sends a "RESOLVED" message when
+an alert ends, and repeats an alert that still fires each 12 hours.
+
+| Alert | When |
+| --- | --- |
+| `BoxSilent` | A lab box sent no metrics for 3 minutes. Its other alerts are held back. |
+| `DiskAlmostFull`, `DiskFillsWithin24h` | A filesystem is over 85 %, or more than half full and filling within a day |
+| `DriveFailing`, `DriveCriticalWarning`, `DriveWornOut`, `DriveHot` | SMART: failed, an NVMe critical warning, over 80 % of rated writes, over 70 °C |
+| `SensorHot` | A temperature sensor over 85 °C for 10 minutes |
+| `UnitFailed` | A systemd unit failed for 5 minutes |
+| `LowMemory`, `Swapping` | Under 10 % of memory free, or over 25 % of swap in use |
+| `VectorDroppingEvents`, `VectorBacklog` | Vector lost events, or can't keep up sending them |
+| `Watchdog` | Always. It goes to the heartbeat Worker (not built yet), which will alert when it stops. |
+
+Grafana shows the rules and the firing alerts under Alerting, and silences an alert there
+(data source Alertmanager). A silence is kept on the volume.
+
+To change a rule, edit `rules.yml`, check it, and deploy:
+
+```sh
+vmalert -rule=monitor/vmalert/rules.yml -dryRun
+amtool check-config monitor/alertmanager/alertmanager.yml
+```
+
+Both are in nixpkgs (`victoriametrics` and `prometheus-alertmanager`).
+
+To check that Discord works, send Alertmanager a test alert from inside the machine:
+
+```sh
+fly machine exec <id> -a homelab-monitor-joshthomasdev --container grafana \
+  'wget -qO- --header="Content-Type: application/json" --post-data="[{\"labels\":{\"alertname\":\"TestAlert\"}}]" 127.0.0.1:9093/api/v2/alerts'
+```
+
 ## Change it
 
-Edit `monitor/machine.json` or the files next to it, then run `monitor/deploy.sh` again. When
-the machine exists, it runs `fly machine update`, which keeps the volume. Each deploy restarts
-every container; Grafana's users and password are on the volume and stay.
+Edit `monitor/machine.json` or the files next to it, then run `monitor/deploy.sh` again. Each
+deploy restarts every container; Grafana's users and password, Alertmanager's silences and the
+data are on the volume and stay.
 
-`deploy.sh` puts the contents of each `local_path` file into the config before it calls
-flyctl. flyctl can read `local_path` itself, but on an update it keeps the contents it sent
-before for every file that the machine already has, so a changed file would not arrive.
+When the machine exists, `deploy.sh` updates it through the Machines API, not with
+`fly machine update`, and waits until every container is healthy. flyctl decodes the file over
+the old config, which goes wrong in two ways:
+
+- A container inherits each setting it leaves out from the container that was in its place
+  before. When vmalert was added before Grafana, it got Grafana's entrypoint and variables.
+- A file that the machine already has keeps the contents flyctl sent before.
+
+`deploy.sh` also puts the contents of each `local_path` file into the config itself.
+
+Fly reverts an update that cannot start, for example one that names a secret the app doesn't
+have, and records the reason only in the machine's events. `deploy.sh` reports it and fails.
 
 To update a service, change its image tag. Use a tag, not a digest: Fly does not take
 `tag@digest`.
