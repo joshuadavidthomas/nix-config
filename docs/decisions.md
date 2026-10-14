@@ -74,8 +74,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - **Alerts go to hark, and only alerts that need you soon. No Discord.**
   Reason: an alert that is not read, or that is so frequent it gets ignored, does nothing, and
   a Discord channel would not be read. The record of past alerts is in Grafana. Discord was
-  set up first only because Alertmanager supports it natively; that was not a choice. hark
-  needs a relay that rewrites Alertmanager's messages into hark's JSON.
+  set up first only because Alertmanager supports it natively; that was not a choice. A relay
+  on the monitor rewrites Alertmanager's messages into hark's JSON.
 - **No UPS.** The old one died, so nothing runs NUT.
 
 ## Secrets

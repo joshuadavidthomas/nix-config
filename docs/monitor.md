@@ -17,7 +17,8 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
 | `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
-| `alertmanager` | Groups alerts; they will go to hark (not connected yet) | `/data/alertmanager` |
+| `alertmanager` | Groups alerts and sends them to the relay | `/data/alertmanager` |
+| `hark` | Rewrites each alert for hark and sends it to your phone (`monitor/hark/relay.py`) | |
 | `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
@@ -93,20 +94,28 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 ## Alerts
 
 vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager
-(`monitor/alertmanager/alertmanager.yml`). Alerts will go to hark, through a relay that is not
-built yet; until then they go nowhere, and Grafana shows them. There is no Discord: a channel
-that nobody reads is not an alert ([Decisions](decisions.md#monitoring)).
+(`monitor/alertmanager/alertmanager.yml`), which sends it to hark through a relay
+(`monitor/hark/relay.py`). The relay rewrites Alertmanager's JSON into hark's: the summary is
+the alert and the box, the body has a line for each alert, and a tap opens Grafana's alerts.
+hark gets a second message when an alert resolves, and a repeat each 12 hours while it fires.
+The hark webhook URL is the Fly secret `HARK_WEBHOOK_URL`; only the `hark` container gets it.
+
+Every alert goes to your phone, so there are few: each needs a person, soon, and fires rarely.
+Trends that can wait, such as drive wear, temperatures, swap and Vector's queues, are on the
+dashboards. There is no Discord: a channel that nobody reads is not an alert
+([Decisions](decisions.md#monitoring)).
 
 | Alert | When |
 | --- | --- |
 | `BoxSilent` | A lab box sent no metrics for 3 minutes. Its other alerts are held back. |
-| `DiskAlmostFull`, `DiskFillsWithin24h` | A filesystem is over 85 %, or more than half full and filling within a day |
-| `DriveFailing`, `DriveCriticalWarning`, `DriveWornOut`, `DriveHot` | SMART: failed, an NVMe critical warning, over 80 % of rated writes, over 70 °C |
-| `SensorHot` | A temperature sensor over 85 °C for 10 minutes |
-| `UnitFailed` | A systemd unit failed for 5 minutes |
-| `LowMemory`, `Swapping` | Under 10 % of memory free, or over 25 % of swap in use |
-| `VectorDroppingEvents`, `VectorBacklog` | Vector lost events, or can't keep up sending them |
+| `DriveFailing`, `DriveCriticalWarning` | A drive fails its SMART check, or reports an NVMe critical warning |
+| `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
+| `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
+| `LowMemory` | Under 10 % of memory free for 15 minutes |
 | `Watchdog` | Always. It will go to a heartbeat outside the monitor, which alerts when it stops. |
+
+In about a month, count how often each alert fired, and whether it needed you. Fix or delete
+one that didn't. vmalert keeps the history in VictoriaMetrics, as the series `ALERTS`.
 
 Grafana shows the rules and the firing alerts under Alerting, and silences an alert there
 (data source Alertmanager). A silence is kept on the volume.
@@ -120,11 +129,12 @@ amtool check-config monitor/alertmanager/alertmanager.yml
 
 Both are in nixpkgs (`victoriametrics` and `prometheus-alertmanager`).
 
-To check Alertmanager, send it a test alert from inside the machine:
+To check the path to your phone, send Alertmanager a test alert from inside the machine. hark
+gets it within a minute; the relay logs `sent firing … "delivered":1` (`fly logs`):
 
 ```sh
 fly machine exec <id> -a homelab-monitor-joshthomasdev --container grafana \
-  'wget -qO- --header="Content-Type: application/json" --post-data="[{\"labels\":{\"alertname\":\"TestAlert\"}}]" 127.0.0.1:9093/api/v2/alerts'
+  'wget -qO- --header="Content-Type: application/json" --post-data="[{\"labels\":{\"alertname\":\"TestAlert\"},\"annotations\":{\"summary\":\"Test\"}}]" 127.0.0.1:9093/api/v2/alerts'
 ```
 
 ## Change it

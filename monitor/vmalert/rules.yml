@@ -1,104 +1,48 @@
 # Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
-# vmalert sends firing alerts to Alertmanager (monitor/alertmanager/alertmanager.yml).
+# Every alert here goes to hark, so each must need a person, soon, and fire rarely. A trend that
+# can wait (drive wear, temperatures, swap, Vector's queues) is a dashboard panel, not an alert.
 groups:
   - name: lab
     rules:
       - alert: BoxSilent
         # lag() is the time since the last sample; a box keeps the alert for a day after it stops
         expr: max by (instance) (lag(node_load1{job="node"}[24h])) > 180
-        labels: { severity: critical }
         annotations:
           summary: "{{ $labels.instance }} has sent no metrics for {{ $value | humanizeDuration }}"
 
-      - alert: DiskAlmostFull
-        expr: 100 * (1 - node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|ramfs"}) > 85
-        for: 10m
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.mountpoint }} is {{ $value | printf \"%.0f\" }}% full"
-
-      - alert: DiskFillsWithin24h
-        # only once half full, so a big build on an empty disk doesn't count
-        expr: |
-          predict_linear(node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"}[6h], 86400) < 0
-          and node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|ramfs"} < 0.5
-        for: 1h
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.mountpoint }} fills within a day at this rate"
-
       - alert: DriveFailing
         expr: smartctl_device_smart_status{job="smartctl"} == 0
-        labels: { severity: critical }
         annotations:
           summary: "{{ $labels.instance }}: {{ $labels.device }} fails its SMART check"
 
       - alert: DriveCriticalWarning
         expr: smartctl_device_critical_warning{job="smartctl"} > 0
-        labels: { severity: critical }
         annotations:
           summary: "{{ $labels.instance }}: {{ $labels.device }} reports NVMe critical warning {{ $value }}"
 
-      - alert: DriveWornOut
-        expr: smartctl_device_percentage_used{job="smartctl"} > 80
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.device }} has used {{ $value }}% of its rated writes"
-
-      - alert: DriveHot
-        expr: smartctl_device_temperature{job="smartctl", temperature_type="current"} > 70
+      - alert: DiskAlmostFull
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|ramfs"}) > 90
         for: 10m
-        labels: { severity: warning }
         annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.device }} is at {{ $value }} °C"
+          summary: "{{ $labels.instance }}: {{ $labels.mountpoint }} is {{ $value | printf \"%.0f\" }}% full"
 
-      - alert: SensorHot
-        # the boxes' critical points are 87 to 90 °C
-        expr: node_hwmon_temp_celsius{job="node"} > 85
-        for: 10m
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.chip }} {{ $labels.sensor }} is at {{ $value | printf \"%.0f\" }} °C"
-
-      - alert: UnitFailed
-        expr: node_systemd_unit_state{job="node", state="failed"} == 1
+      - alert: CoreServiceFailed
+        # the services a box needs to work and to be reached; a yonder VM failing is yonder's business
+        expr: node_systemd_unit_state{job="node", state="failed", name=~"(yonderd|tailscaled|vector|sshd|nix-daemon|systemd-resolved|dhcpcd|opnix-secrets|prometheus-smartctl-exporter)\\.service"} == 1
         for: 5m
-        labels: { severity: warning }
         annotations:
           summary: "{{ $labels.instance }}: {{ $labels.name }} failed"
 
       - alert: LowMemory
         expr: 100 * node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 10
-        for: 10m
-        labels: { severity: warning }
+        for: 15m
         annotations:
           summary: "{{ $labels.instance }} has {{ $value | printf \"%.0f\" }}% of its memory free"
-
-      - alert: Swapping
-        expr: 100 * (1 - node_memory_SwapFree_bytes{job="node"} / node_memory_SwapTotal_bytes{job="node"}) > 25
-        for: 15m
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }} has {{ $value | printf \"%.0f\" }}% of its swap in use"
-
-      - alert: VectorDroppingEvents
-        expr: sum by (instance, component_id) (increase(vector_component_discarded_events_total{job="vector", intentional="false"}[10m])) > 0
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: Vector dropped {{ $value | printf \"%.0f\" }} events in {{ $labels.component_id }}"
-
-      - alert: VectorBacklog
-        expr: vector_buffer_size_events{job="vector", component_id=~"victoriametrics|victorialogs"} > 5000
-        for: 15m
-        labels: { severity: warning }
-        annotations:
-          summary: "{{ $labels.instance }}: {{ $value }} events waiting for {{ $labels.component_id }}"
 
   - name: watchdog
     rules:
       - alert: Watchdog
-        # always fires; Alertmanager sends it to the heartbeat Worker, which alerts when it stops
+        # always fires; Alertmanager sends it to the heartbeat, which alerts when it stops
         expr: vector(1)
-        labels: { severity: none }
         annotations:
           summary: "The monitor's alerting works"

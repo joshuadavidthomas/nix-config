@@ -61,7 +61,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] vmalert, Alertmanager and alert rules on the monitor. See
       [Alerts](monitor.md#alerts).
 - [ ] Backups of the monitor's volume to R2. Fly keeps a daily snapshot for 5 days already.
-- [ ] A relay from Alertmanager to hark, and only the alerts that need you soon
+- [x] A relay from Alertmanager to hark, and only the alerts that need you soon
+- [ ] In about a month, review how often each alert fired and whether it needed you
 - [ ] A heartbeat outside the monitor: a Cloudflare Worker or healthchecks.io (not decided)
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin
