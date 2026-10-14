@@ -1,4 +1,5 @@
-# Grafana loads the dashboards in /etc/grafana/dashboards at start (monitor/machine.json):
+# Grafana loads the dashboards in /etc/grafana/dashboards at start (monitor/machine.json): the
+# overview (its home page, written here),
 # Node Exporter Full (grafana.com 1860, revision 45) and the SMARTctl Exporter Dashboard
 # (22604, revision 4, with its data source set to VictoriaMetrics). Changes made in Grafana
 # are not saved; change the JSON here.
