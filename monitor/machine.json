@@ -62,7 +62,8 @@
         "-retentionPeriod=1y",
         "-httpListenAddr=:8428",
         "-enableTCP6",
-        "-vmalert.proxyURL=http://127.0.0.1:8880"
+        "-vmalert.proxyURL=http://127.0.0.1:8880",
+        "-search.latencyOffset=5s"
       ],
       "depends_on": [
         {

@@ -14,7 +14,7 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | --- | --- | --- |
 | `prepare` | Makes the data directories, then exits | |
 | `tailscale` | Joins the tailnet as `monitor`, with the tag `tag:monitor`, and serves Grafana over HTTPS | `/data/tailscale` |
-| `victoriametrics` | Metrics, kept 1 year, on port 8428 | `/data/vm` |
+| `victoriametrics` | Metrics, kept 1 year, on port 8428; the volume is 20 GB | `/data/vm` |
 | `victorialogs` | Logs, kept 30 days, on port 9428 | `/data/vl` |
 | `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
 | `alertmanager` | Groups alerts and sends them to the relay | `/data/alertmanager` |
@@ -72,6 +72,21 @@ lab is a trusted network ([Decisions](decisions.md#network)).
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
 there; see [Check what a lab box sends](research/homelab-monitoring.md#check-what-a-lab-box-sends).
+
+## How fresh
+
+| Step | Delay |
+| --- | --- |
+| Vector reads CPU, memory, load, network, disk I/O | Every 10 s |
+| Vector reads everything else, and SMART | Every 60 s |
+| A reading reaches VictoriaMetrics | Seconds |
+| Queries see it | After 5 s (`-search.latencyOffset=5s`; the default, 30 s, hid the newest half minute) |
+| Grafana draws rates (CPU %, throughput) | Over 40 s: 4 × the 10 s `timeInterval` of the data source |
+| Node Exporter Full refreshes | Every 15 s, over the last hour by default |
+
+A rate over 40 s needs a sample in each window, so every counter a dashboard draws as a rate is
+in the 10 s set (`liveCollectors` in `modules/nixos/server.nix`). A rate over a window shorter
+than the interval reads 0 in VictoriaMetrics, not empty.
 
 ## Dashboards
 

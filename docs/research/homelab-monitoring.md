@@ -32,7 +32,9 @@ On each lab box, in `modules/nixos/server.nix`:
 - node_exporter, with its `systemd` collector, and smartctl_exporter for drive health. Both
   listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
   the tailnet could read them.
-- Vector scrapes both exporters each 30 s, drops the exporters' own Go runtime and HTTP stats
+- Vector scrapes node_exporter at two speeds: the collectors Grafana shows live (CPU,
+  memory, load, network, disk I/O, pressure, and the counters drawn as rates) each 10 s, the
+  rest and the SMART exporter each 60 s. It drops the exporters' own Go runtime and HTTP stats
   (`go_*`, `process_*`, `promhttp_*`), and adds the tags `host`, `instance` and `job`. The stock
   dashboards select by `instance` and `job`. Not Vector's own
   `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
@@ -74,9 +76,11 @@ Measured on 2026-10-13, from the preview and the journal of all three boxes:
 - About 1,700 series a box, 5,100 in all: every `node_*` and `smartctl_*` series. 705 of each
   box's are `node_systemd_unit_state` (141 units × 5 states). Each yonder VM adds a unit and a
   network interface, so series come and go with the VMs.
-- About 15 million samples a day in all. At VictoriaMetrics' usual 1 byte or less for each
-  sample, that is about 15 MB a day, or 5 GB a year.
-- About 50,000 journal lines a day a box, nearly all info (priority 6), none debug. The most
+- About 15 million samples a day in all, at 30 s. VictoriaMetrics used 21 MB in its first
+  14 hours, about 13 GB a year, so the volume is 20 GB. (The first estimate, 1 byte a sample,
+  was too low.) The two speeds since then are about 19 million samples a day.
+- About 50,000 journal lines a day a box during yonder's tests, and about 5,000 on a quiet
+  day; nearly all info (priority 6), none debug. The most
   are from tailscaled, systemd, user sessions and each yonder VM (about 760 a day a VM). The
   warnings and errors are harmless systemd notices.
 

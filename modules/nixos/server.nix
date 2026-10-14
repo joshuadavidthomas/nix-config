@@ -1,6 +1,19 @@
 # Everything the homelab boxes have in common. Each hosts/lab-N adds its hostname, disk
 # and generated hardware config.
-{ config, pkgs, vars, ... }: {
+{ config, lib, pkgs, vars, ... }:
+let
+  # node_exporter's collectors that Grafana shows live, scraped faster than the rest. Every
+  # counter that a dashboard draws as a rate is here: a rate over Grafana's 40 s window needs a
+  # sample in each window, and the slow scrape is 60 s.
+  liveCollectors = [
+    "cpu" "meminfo" "loadavg" "netdev" "diskstats" "pressure" "stat" "vmstat"
+    "netstat" "softnet" "schedstat"
+  ];
+  # node_exporter with only (collect) or all but (exclude) the live collectors
+  nodeExporterUrl = param: "http://127.0.0.1:${toString config.services.prometheus.exporters.node.port}/metrics?"
+    + lib.concatMapStringsSep "&" (c: "${param}%5B%5D=${c}") liveCollectors;
+in
+{
   nix.settings.trusted-users = [ "root" vars.user ];
   nix.gc = { automatic = true; options = "--delete-older-than 30d"; };
 
@@ -76,11 +89,21 @@
     enable = true;
     journaldAccess = true;
     settings = {
-      sources.exporters = {
+      # Two speeds, so Grafana feels live: what is watched live every 10 s (about a quarter of
+      # the series), everything else every 60 s. node_exporter serves each
+      # set of collectors at its own URL; the SMART exporter reads the drives each 60 s anyway.
+      sources.fast = {
         type = "prometheus_scrape";
-        endpoints = map (e: "http://127.0.0.1:${toString e.port}/metrics")
-          (with config.services.prometheus.exporters; [ node smartctl ]);
-        scrape_interval_secs = 30;
+        endpoints = [ (nodeExporterUrl "collect") ];
+        scrape_interval_secs = 10;
+      };
+      sources.slow = {
+        type = "prometheus_scrape";
+        endpoints = [
+          (nodeExporterUrl "exclude")
+          "http://127.0.0.1:${toString config.services.prometheus.exporters.smartctl.port}/metrics"
+        ];
+        scrape_interval_secs = 60;
       };
       sources.journal.type = "journald";
       sources.vector.type = "internal_metrics";
@@ -88,7 +111,7 @@
       # stays, for the stock dashboards
       transforms.useful = {
         type = "filter";
-        inputs = [ "exporters" ];
+        inputs = [ "fast" "slow" ];
         condition = ''!match(string!(.name), r'^(go|process|promhttp)_')'';
       };
       # Of Vector's own metrics, only what shows a backlog or lost events
@@ -114,7 +137,7 @@
         inputs = [ "metrics" ];
         endpoint = "http://monitor:8428/api/v1/write";
         healthcheck.enabled = false; # VictoriaMetrics answers 204, which the check counts as failure
-        # about 1.5 GB a day of samples, so about 2.5 days of outage
+        # about 1.5 GB a day of samples at 30 s, so a day or two of outage at two speeds
         buffer = { type = "disk"; max_size = 4 * 1024 * 1024 * 1024; when_full = "block"; };
       };
       # VictoriaLogs takes Elasticsearch's bulk API. One log stream for each box and unit.

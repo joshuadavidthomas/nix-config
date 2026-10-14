@@ -9,7 +9,7 @@ set -euo pipefail
 app=homelab-monitor-joshthomasdev
 region=dfw
 volume=monitor_data
-volume_gb=10
+volume_gb=20
 
 cd "$(dirname "$0")" # machine.json's local_path files are relative to here
 fly=${FLYCTL:-flyctl}
