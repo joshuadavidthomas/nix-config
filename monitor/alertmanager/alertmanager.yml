@@ -1,0 +1,25 @@
+# Alertmanager on the monitor (monitor/machine.json, docs/monitor.md). Every alert goes to
+# hark, through the relay in monitor/hark/relay.py; resolving one sends a second message.
+route:
+  receiver: hark
+  group_by: [alertname, instance]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  routes:
+    # For the heartbeat, when it exists; until then, nowhere.
+    - matchers: [alertname="Watchdog"]
+      receiver: heartbeat
+
+# A box that is silent sends nothing else, so its other alerts are noise.
+inhibit_rules:
+  - source_matchers: [alertname="BoxSilent"]
+    target_matchers: [alertname!="BoxSilent"]
+    equal: [instance]
+
+receivers:
+  - name: hark
+    webhook_configs:
+      - url: http://127.0.0.1:9099/
+        send_resolved: true
+  - name: heartbeat

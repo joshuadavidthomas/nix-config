@@ -1,0 +1,48 @@
+# Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
+# Every alert here goes to hark, so each must need a person, soon, and fire rarely. A trend that
+# can wait (drive wear, temperatures, swap, Vector's queues) is a dashboard panel, not an alert.
+groups:
+  - name: lab
+    rules:
+      - alert: BoxSilent
+        # lag() is the time since the last sample; a box keeps the alert for a day after it stops
+        expr: max by (instance) (lag(node_load1{job="node"}[24h])) > 180
+        annotations:
+          summary: "{{ $labels.instance }} has sent no metrics for {{ $value | humanizeDuration }}"
+
+      - alert: DriveFailing
+        expr: smartctl_device_smart_status{job="smartctl"} == 0
+        annotations:
+          summary: "{{ $labels.instance }}: {{ $labels.device }} fails its SMART check"
+
+      - alert: DriveCriticalWarning
+        expr: smartctl_device_critical_warning{job="smartctl"} > 0
+        annotations:
+          summary: "{{ $labels.instance }}: {{ $labels.device }} reports NVMe critical warning {{ $value }}"
+
+      - alert: DiskAlmostFull
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|ramfs"}) > 90
+        for: 10m
+        annotations:
+          summary: "{{ $labels.instance }}: {{ $labels.mountpoint }} is {{ $value | printf \"%.0f\" }}% full"
+
+      - alert: CoreServiceFailed
+        # the services a box needs to work and to be reached; a yonder VM failing is yonder's business
+        expr: node_systemd_unit_state{job="node", state="failed", name=~"(yonderd|tailscaled|vector|sshd|nix-daemon|systemd-resolved|dhcpcd|opnix-secrets|prometheus-smartctl-exporter)\\.service"} == 1
+        for: 5m
+        annotations:
+          summary: "{{ $labels.instance }}: {{ $labels.name }} failed"
+
+      - alert: LowMemory
+        expr: 100 * node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 10
+        for: 15m
+        annotations:
+          summary: "{{ $labels.instance }} has {{ $value | printf \"%.0f\" }}% of its memory free"
+
+  - name: watchdog
+    rules:
+      - alert: Watchdog
+        # always fires; Alertmanager sends it to the heartbeat, which alerts when it stops
+        expr: vector(1)
+        annotations:
+          summary: "The monitor's alerting works"
