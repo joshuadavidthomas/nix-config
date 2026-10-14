@@ -28,8 +28,8 @@ export class Heartbeat extends DurableObject {
     if (silentSince !== undefined) {
       await this.ctx.storage.delete("silentSince");
       await notify(this.env, `back-${silentSince}`, {
-        summary: "Resolved: Monitor silent",
-        body: `The monitor is back, after ${minutes(now - silentSince)} without a heartbeat.`,
+        summary: `Heartbeat back after ${minutes(now - silentSince)}. Alerts work again.`,
+        body: "Anything that fired meanwhile arrives now.",
       });
     }
     await this.ctx.storage.setAlarm(now + seconds(this.env.SILENT_AFTER_SECONDS) * 1000);
@@ -42,10 +42,10 @@ export class Heartbeat extends DurableObject {
     const silentSince = (await this.ctx.storage.get("silentSince")) ?? lastPing;
     await this.ctx.storage.put("silentSince", silentSince);
     await notify(this.env, `silent-${silentSince}-${Math.floor(Date.now() / 3_600_000)}`, {
-      summary: "Monitor silent",
+      summary: `No heartbeat for ${minutes(Date.now() - silentSince)}. Alerts can't reach you until it's back.`,
       body:
-        `No heartbeat for ${minutes(Date.now() - silentSince)}. The Fly machine, vmalert, ` +
-        "Alertmanager or the hark relay is down, so no other alert can reach you.",
+        "The Fly machine, vmalert, Alertmanager or the hark relay is down. " +
+        "`monitor/deploy.sh status` shows the machine.",
     });
     await this.ctx.storage.setAlarm(Date.now() + seconds(this.env.REMIND_AFTER_SECONDS) * 1000);
   }
@@ -55,7 +55,8 @@ async function notify(env, key, message) {
   const response = await fetch(env.HARK_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Idempotency-Key": key },
-    body: JSON.stringify({ ...message, url: env.GRAFANA_URL, appId: env.HARK_APP_ID }),
+    // title is the sender the phone shows in bold, as the boxes' names are for their alerts
+    body: JSON.stringify({ title: "Monitor", ...message, url: env.GRAFANA_URL, appId: env.HARK_APP_ID }),
   });
   if (!response.ok) {
     throw new Error(`hark answered ${response.status}: ${await response.text()}`);

@@ -12,6 +12,7 @@ through here means a dead relay stops the heartbeat too.
 
 import hashlib
 import json
+from datetime import datetime
 import os
 import urllib.error
 import urllib.request
@@ -28,23 +29,47 @@ USER_AGENT = "homelab-monitor-relay"
 
 
 def to_hark(group):
+    """The phone shows title in bold (the box, or Homelab) and summary under it; body is for
+    the app. Each rule has a summary for when it fires and a resolved for when it ends."""
     labels = group.get("commonLabels", {})
-    title = labels.get("alertname", "Alert")
-    if "instance" in labels:
-        title += f" on {labels['instance']}"
-    lines = []
-    for alert in group["alerts"]:
-        line = alert.get("annotations", {}).get("summary") or alert["labels"].get("alertname", "")
-        lines.append(("Resolved: " if alert["status"] == "resolved" else "") + line)
-    resolved = group["status"] == "resolved"
-    message = {
-        "summary": (("Resolved: " if resolved else "") + title)[:500],
-        "body": "\n".join(lines)[:8000] or title,
+    firing = [a for a in group["alerts"] if a["status"] == "firing"]
+    resolved = [a for a in group["alerts"] if a["status"] == "resolved"]
+    lines = [describe(a) for a in firing + resolved]
+    shown = firing or resolved
+    summary = lines[0] if len(shown) == 1 else f"{len(shown)} alerts: " + "; ".join(lines[: len(shown)])
+    return {
+        "title": labels.get("instance", "Homelab")[:80],
+        "summary": summary[:500],
+        "body": "\n".join(f"{a['labels'].get('alertname', 'Alert')}: {line}" for a, line in zip(firing + resolved, lines))[:8000]
+        or summary,
         "url": ALERTS_PAGE,
+        **({"appId": HARK_APP_ID} if HARK_APP_ID else {}),
     }
-    if HARK_APP_ID:
-        message["appId"] = HARK_APP_ID
-    return message
+
+
+def describe(alert):
+    annotations = alert.get("annotations", {})
+    summary = annotations.get("summary") or alert["labels"].get("alertname", "Alert")
+    if alert["status"] == "firing":
+        return summary
+    lasted = duration(alert["startsAt"], alert.get("endsAt"))
+    return f"{annotations.get('resolved') or 'Resolved: ' + summary}, after {lasted}"
+
+
+def duration(starts_at, ends_at):
+    try:
+        seconds = (parse_time(ends_at) - parse_time(starts_at)).total_seconds()
+    except (TypeError, ValueError):
+        return "a while"
+    minutes = max(1, round(seconds / 60))
+    return f"{minutes} min" if minutes < 120 else f"{round(minutes / 60)} h"
+
+
+def parse_time(value):
+    # Alertmanager sends RFC 3339 with up to nanoseconds; fromisoformat takes microseconds
+    date, _, rest = value.rstrip("Z").partition(".")
+    fraction = "".join(c for c in rest if c.isdigit())[:6]
+    return datetime.fromisoformat(f"{date}.{fraction or '0'}+00:00")
 
 
 def idempotency_key(group):
