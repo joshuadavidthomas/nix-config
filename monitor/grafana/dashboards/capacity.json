@@ -174,6 +174,12 @@
           "instant": true,
           "range": false,
           "format": "table"
+        },
+        {
+          "refId": "I",
+          "expr": "count by (instance) (count by (instance, package, core) (node_cpu_info{job=\"node\", instance=~\"$instance\"}))",
+          "format": "table",
+          "instant": true
         }
       ],
       "fieldConfig": {
@@ -259,7 +265,23 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Cores free"
+              "options": "Threads"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Threads free"
             },
             "properties": [
               {
@@ -479,7 +501,7 @@
           }
         ]
       },
-      "description": "What each machine has, and what is unused now. The bars are the share free: red when little is left.",
+      "description": "What each machine has, and what is unused now. A core with hyper-threading runs two threads; threads free is how many threads' worth of CPU is idle. The bars are the share free: red when little is left.",
       "transformations": [
         {
           "id": "merge",
@@ -493,19 +515,21 @@
             },
             "indexByName": {
               "instance": 0,
-              "Value #A": 1,
-              "Value #B": 2,
-              "Value #G": 3,
-              "Value #C": 4,
-              "Value #D": 5,
-              "Value #H": 6,
-              "Value #E": 7,
-              "Value #F": 8
+              "Value #I": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #G": 4,
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #H": 7,
+              "Value #E": 8,
+              "Value #F": 9
             },
             "renameByName": {
               "instance": "Machine",
-              "Value #A": "Cores",
-              "Value #B": "Cores free",
+              "Value #I": "Cores",
+              "Value #A": "Threads",
+              "Value #B": "Threads free",
               "Value #G": "CPU free",
               "Value #C": "Memory",
               "Value #D": "Memory free",

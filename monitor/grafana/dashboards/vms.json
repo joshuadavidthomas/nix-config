@@ -404,6 +404,18 @@
           "instant": true,
           "range": false,
           "format": "table"
+        },
+        {
+          "refId": "E",
+          "expr": "max by (instance, device) (label_replace(rate(host_cgroup_cpu_usage_seconds_total{job=\"units\", instance=~\"$instance\", cgroup=~\"system.slice/yonder-vm-.*\"}[5m]), \"device\", \"yt-$1\", \"cgroup\", \"system.slice/yonder-vm-.*(.{12})\\\\.service\"))",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "refId": "F",
+          "expr": "max by (instance, device) (label_replace(host_cgroup_memory_anon_bytes{job=\"units\", instance=~\"$instance\", cgroup=~\"system.slice/yonder-vm-.*\"}, \"device\", \"yt-$1\", \"cgroup\", \"system.slice/yonder-vm-.*(.{12})\\\\.service\"))",
+          "format": "table",
+          "instant": true
         }
       ],
       "fieldConfig": {
@@ -534,6 +546,42 @@
                 "value": 240
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
           }
         ]
       },
@@ -550,7 +598,7 @@
           }
         ]
       },
-      "description": "Each VM, the machine it runs on, when it started and its traffic.",
+      "description": "Each VM, the machine it runs on, when it started, its CPU (threads' worth, over 5 minutes), the memory it holds, and its traffic.",
       "transformations": [
         {
           "id": "merge",
@@ -584,15 +632,19 @@
               "vm": 0,
               "instance": 1,
               "Value #B": 2,
-              "Value #C": 3,
-              "Value #D": 4
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #E": 3,
+              "Value #F": 4
             },
             "renameByName": {
               "vm": "VM",
               "instance": "Machine",
               "Value #B": "Started",
               "Value #C": "Sent",
-              "Value #D": "Received"
+              "Value #D": "Received",
+              "Value #E": "CPU",
+              "Value #F": "Memory"
             }
           }
         }
@@ -817,6 +869,136 @@
       },
       "description": "From each VM's TAP on its host: up is sent by the VMs, down is received. A VM is named by the end of its ID.",
       "id": 8
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU per VM",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance, vm) (label_replace(rate(host_cgroup_cpu_usage_seconds_total{job=\"units\", instance=~\"$instance\", cgroup=~\"system.slice/yonder-vm-.*\"}[$__rate_interval]), \"vm\", \"$1\", \"cgroup\", \"system.slice/yonder-vm-(.*)\\\\.service\"))",
+          "legendFormat": "{{vm}} on {{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "none",
+          "noValue": "No VMs"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Each VM's CPU, in threads' worth: 1 is one thread busy all the time. A VM gets at most its vCPUs.",
+      "id": 9
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory per VM",
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance, vm) (label_replace(host_cgroup_memory_anon_bytes{job=\"units\", instance=~\"$instance\", cgroup=~\"system.slice/yonder-vm-.*\"}, \"vm\", \"$1\", \"cgroup\", \"system.slice/yonder-vm-(.*)\\\\.service\"))",
+          "legendFormat": "{{vm}} on {{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "bytes",
+          "noValue": "No VMs"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "The memory each VM holds on its machine.",
+      "id": 10
     }
   ]
 }

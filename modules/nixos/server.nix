@@ -4,9 +4,10 @@
 let
   # node_exporter's collectors that Grafana shows live, scraped faster than the rest. Every
   # counter that a dashboard draws as a rate is here: a rate over Grafana's 40 s window needs a
-  # sample in each window, and the slow scrape is 60 s.
+  # sample in each window, and the slow scrape is 60 s. cpufreq is a gauge, here so the clock
+  # speed on the Machine dashboard moves with its CPU.
   liveCollectors = [
-    "cpu" "meminfo" "loadavg" "netdev" "diskstats" "pressure" "stat" "vmstat"
+    "cpu" "cpufreq" "meminfo" "loadavg" "netdev" "diskstats" "pressure" "stat" "vmstat"
     "netstat" "softnet" "schedstat"
   ];
   # node_exporter with only (collect) or all but (exclude) the live collectors
@@ -81,8 +82,13 @@ in
     enable = true;
     listenAddress = "127.0.0.1";
     enabledCollectors = [ "systemd" ]; # unit states, in place of container metrics
-    # when each unit started: how long each yonder VM has been up, on the dashboards
-    extraFlags = [ "--collector.systemd.enable-start-time-metrics" ];
+    extraFlags = [
+      # when each unit started: how long each yonder VM has been up, on the dashboards
+      "--collector.systemd.enable-start-time-metrics"
+      # node_cpu_info, a series per thread with its core and model: cores and threads, on the
+      # dashboards
+      "--collector.cpu.info"
+    ];
   };
   services.prometheus.exporters.smartctl = {
     enable = true; # drive health; scans every disk
@@ -111,6 +117,15 @@ in
         ];
         scrape_interval_secs = 60;
       };
+      # Each systemd unit's CPU and memory, from its cgroup, every 10 s: what is using the box,
+      # each yonder VM (its unit, yonder-vm-<ID>.service) among them. Only Vector's cgroups
+      # collector; node_exporter has the rest.
+      sources.units = {
+        type = "host_metrics";
+        collectors = [ "cgroups" ];
+        cgroups.levels = 3; # the root, the slices, and the units in them
+        scrape_interval_secs = 10;
+      };
       sources.journal.type = "journald";
       sources.vector.type = "internal_metrics";
       # The exporters' own Go runtime and HTTP handler stats; everything node_* and smartctl_*
@@ -127,15 +142,32 @@ in
         # inside Vector its own metrics are named without the vector_ prefix, in the namespace vector
         condition = ''.namespace == "vector" && match(string!(.name), r'^(buffer_|component_errors_total$|component_discarded_events_total$)')'';
       };
+      # A unit's CPU time and the memory it holds (anon: not the file cache it could give back),
+      # for each unit in a slice: system.slice/nix-daemon.service, user.slice/user-1000.slice.
+      # Not the slices themselves, which would count their units twice, and not mounts or
+      # sockets. Inside Vector these are named without the host_ prefix, in the namespace host.
+      transforms.unitsUseful = {
+        type = "filter";
+        inputs = [ "units" ];
+        condition = ''.namespace == "host" && includes(["cgroup_cpu_usage_seconds_total", "cgroup_memory_anon_bytes"], .name) && match(string!(.tags.cgroup), r'^[^/]+/[^/]+\.(service|scope|slice)$')'';
+      };
+      transforms.unitsNamed = {
+        type = "remap";
+        inputs = [ "unitsUseful" ];
+        source = ''
+          .tags.unit = replace(string!(.tags.cgroup), r'^.*/', "")
+          del(.tags.collector)
+        '';
+      };
       transforms.metrics = {
         type = "remap";
-        inputs = [ "useful" "vectorHealth" ];
+        inputs = [ "useful" "vectorHealth" "unitsNamed" ];
         # instance and job are what the stock dashboards select by
         source = ''
           .tags.host = "${config.networking.hostName}"
           .tags.instance = .tags.host
           name = string!(.name)
-          .tags.job = if .namespace == "vector" { "vector" } else if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "tailscaled_") { "tailscale" } else { "node" }
+          .tags.job = if .namespace == "vector" { "vector" } else if .namespace == "host" { "units" } else if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "tailscaled_") { "tailscale" } else { "node" }
         '';
       };
       sinks.victoriametrics = {

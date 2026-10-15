@@ -30,17 +30,20 @@ backups are not built yet. The tasks are in the [roadmap](../roadmap.md#monitori
 On each lab box, in `modules/nixos/server.nix`:
 
 - node_exporter, with its `systemd` collector and each unit's start time (how long a yonder VM
-  has been up), and smartctl_exporter for drive health. Both
+  has been up), and its CPU info (cores, threads and model), and smartctl_exporter for drive health. Both
   listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
   the tailnet could read them.
-- Vector scrapes node_exporter at two speeds: the collectors Grafana shows live (CPU,
-  memory, load, network, disk I/O, pressure, and the counters drawn as rates) each 10 s, the
+- Vector scrapes node_exporter at two speeds: the collectors Grafana shows live (CPU and
+  its clock speed, memory, load, network, disk I/O, pressure, and the counters drawn as rates) each 10 s, the
   rest, the SMART exporter, and tailscaled's client metrics (`100.100.100.100/metrics`: traffic
   direct or through a DERP relay, health warnings) each 60 s. It drops the exporters' own Go runtime and HTTP stats
   (`go_*`, `process_*`, `promhttp_*`), and adds the tags `host`, `instance` and `job`. The stock
   dashboards select by `instance` and `job`. Not Vector's own
   `host_metrics`: the stock dashboards need node_exporter's `node_*` names, and `host_metrics`
   has no temperatures or drive health.
+- Vector's `host_metrics`, with only its `cgroups` collector, reads each systemd unit's CPU and
+  memory every 10 s: what is using the box, and each yonder VM's share of it. node_exporter has
+  no per-unit or per-process numbers.
 - Vector reads the journal.
 - Vector sends metrics to VictoriaMetrics with `prometheus_remote_write`, and the journal to
   VictoriaLogs through its Elasticsearch bulk API, both to `monitor` over the tailnet. Of

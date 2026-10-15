@@ -72,7 +72,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
       monitor stopped for 7 minutes.
 - [x] Dashboards, one for each job (Homelab, Capacity, VMs, Machine, Logs, Monitor), for any
       number of machines; the monitor scrapes its own services
-- [ ] Per-VM CPU and memory, from yonderd's own metrics
+- [ ] Per-VM CPU and memory, from each VM's systemd unit (Vector's `cgroups` collector), on the
+      VMs and Machine dashboards. Built; check it on a box with VMs after `colmena apply`
 - [ ] Find out why data queued during an outage arrives thinned: 1–2 samples a minute, not 6
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin

@@ -85,7 +85,7 @@ there; see [Check what a lab box sends](research/homelab-monitoring.md#check-wha
 
 | Step | Delay |
 | --- | --- |
-| Vector reads CPU, memory, load, network, disk I/O | Every 10 s |
+| Vector reads CPU and clock speed, memory, load, network, disk I/O, each unit's CPU and memory | Every 10 s |
 | Vector reads everything else, and SMART | Every 60 s |
 | A reading reaches VictoriaMetrics | Seconds |
 | Queries see it | After 5 s (`-search.latencyOffset=5s`; the default, 30 s, hid the newest half minute) |
@@ -103,10 +103,10 @@ has one job and links to the others; each panel's ⓘ says what it shows.
 
 | Dashboard | For | What it has |
 | --- | --- | --- |
-| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, failed units, Tailscale's warnings, VMs, uptime); CPU, load (as a share of the cores), memory, network and disk I/O over time, with marks for alerts (red), deploys (blue), reboots (purple) and processes killed for memory (orange): a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
-| **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
-| **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
-| **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, failed units, Tailscale's warnings, load, the drive's health and I/O, network, Tailscale's traffic (direct or relayed), VMs, the journal's warnings and errors; the same marks as Homelab |
+| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, failed units, Tailscale's warnings, VMs, uptime); CPU, load (as a share of the threads), memory, network and disk I/O over time, with marks for alerts (red), deploys (blue), reboots (purple) and processes killed for memory (orange): a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
+| **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, threads, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
+| **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started, its CPU, memory and traffic; when each ran; CPU and memory per VM; VMs per machine; yonderd |
+| **Machine** (`box.json`) | One machine in detail | Hardware (model, CPU, cores and threads, memory, drive, system), live CPU, memory, disk, pressure and temperature, 7 days of reporting, failed units, Tailscale's warnings, CPU by kind and per thread (with its core), clock speed, load, the drive's health and I/O, network, Tailscale's traffic (direct or relayed), VMs, the journal's warnings and errors; the same marks as Homelab. Now, as in btop: each thread's CPU with its last hour, each core's temperature, the clock and load, memory, how full each filesystem is, the network now with its top and total. What is using it: CPU and memory by systemd unit, the 8 largest and the rest, and every unit in a table |
 | **Logs** (`logs.json`) | Searching the journals | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
 | **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, the last alert, failed sends, data arriving, the Fly machine's CPU (against its baseline), memory and disk, the volume, Vector's queues, memory per service, Tailscale's traffic, the relay's and the monitor's logs; restarts as marks |
 | Node Exporter Full (grafana.com 1860) | Everything node_exporter has | Linked from Machine |
@@ -130,12 +130,29 @@ Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
 A VM is known by its yonder ID, from its unit `yonder-vm-<ID>.service`. Its traffic is its
 TAP's on the host (`yt-` and the ID's last 12 characters), so what the TAP receives the VM sent.
 When it started comes from node_exporter's unit start times
-(`--collector.systemd.enable-start-time-metrics` in `modules/nixos/server.nix`). Per-VM CPU and
-memory are not collected; yonderd would be the place to export them.
+(`--collector.systemd.enable-start-time-metrics` in `modules/nixos/server.nix`). Its CPU and memory
+are its unit's, below: what the host gives the VM, not what runs in it.
+
+What is using a machine is measured by systemd unit, not by process: each unit's cgroup, read by
+Vector's `host_metrics` source with only its `cgroups` collector, every 10 s
+(`modules/nixos/server.nix`). It sends `host_cgroup_cpu_usage_seconds_total` and
+`host_cgroup_memory_anon_bytes` (the memory a unit holds, not the file cache the kernel can
+take back), with the job `units` and the tags `cgroup` (`system.slice/nix-daemon.service`) and
+`unit` (`nix-daemon.service`), for each unit in a slice: services, a user's sessions
+(`user-1000.slice`, on the dashboards `user 1000`), and each VM. Not the slices, which would count their units
+twice. A unit's CPU is in threads' worth: 1 is one thread busy all the time.
+
+Cores and threads: a thread is what the kernel counts as a CPU, and a core with
+hyper-threading runs two (a hybrid Intel CPU's efficiency cores run one each). CPU % and
+load are shares of the threads. The cores and the CPU's model come from node_exporter's
+`node_cpu_info` (`--collector.cpu.info` in `modules/nixos/server.nix`), a series per thread
+with its core; a machine without it shows threads only. CPU per thread names each thread
+with its core, so a core's two threads read as a pair. The clock speed is node_exporter's
+`cpufreq` collector, read each 10 s with the CPU.
 
 The dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
 (`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl`,
-`tailscale` or `vector`.
+`tailscale`, `units` (systemd units, from Vector) or `vector`.
 
 The marks on the graphs: deploys are the journal's "finished switching to system configuration"
 lines (each `colmena apply`), from VictoriaLogs; a reboot is a machine booted less than 5 minutes

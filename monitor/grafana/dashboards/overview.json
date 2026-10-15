@@ -887,7 +887,7 @@
           "sort": "desc"
         }
       },
-      "description": "CPU in use per machine, of its cores. Click a line to open the machine. Red marks are alerts firing.",
+      "description": "CPU in use per machine, of its threads. Click a line to open the machine. Red marks are alerts firing.",
       "id": 2
     },
     {
@@ -974,7 +974,7 @@
           "sort": "desc"
         }
       },
-      "description": "5-minute load per machine, as a share of its cores: over 100 % means work waits.",
+      "description": "5-minute load per machine, as a share of its threads: over 100 % means work waits.",
       "id": 3
     },
     {
