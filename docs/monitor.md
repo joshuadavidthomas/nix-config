@@ -127,10 +127,14 @@ hark gets a second message when an alert resolves, and a repeat each 12 hours wh
 The hark webhook URL is the Fly secret `HARK_WEBHOOK_URL`; only the `hark` container gets it.
 
 Three alerts, and the heartbeat's "Monitor silent", are hark **on-call pages** instead
-(`urgency: page` in `rules.yml`): time-sensitive, with a sound, and repeated after 5 and 15
-minutes until you acknowledge them on the lock screen. They break through a Focus mode if hark
-may send time-sensitive notifications (iOS Settings > Notifications > Hark, and each Focus).
-Ordinary hark notifications have no sound (hark issue #9), so the rest arrive silently. When a
+(`urgency: page` in `rules.yml`): with a sound, and repeated after 5 and 15 minutes until you
+acknowledge them on the lock screen. hark's server marks pages time-sensitive, but its iOS app
+lacks Apple's time-sensitive entitlement, so iOS shows no "Time Sensitive Notifications" switch
+for it and treats pages as ordinary: they don't get through a Focus on their own. To let them,
+allow Hark in each Focus (Settings > Focus > the Focus > Apps); every hark notification then
+gets through, not only pages. Nothing in hark gets past the mute switch (that takes Apple's
+Critical Alerts entitlement). Ordinary hark notifications have no sound (hark issue #9), so the
+rest arrive silently. When a
 paged alert resolves, the relay or the Worker resolves the page with the monitor's own hark
 token, `HARK_PAGES_TOKEN` (scopes `oncall:read` and `oncall:write`), and sends the resolved line
 as an ordinary notification. The relay keeps the open pages' IDs in `/data/hark/pages.json`.
