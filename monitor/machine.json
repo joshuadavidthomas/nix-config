@@ -63,7 +63,8 @@
         "-httpListenAddr=:8428",
         "-enableTCP6",
         "-vmalert.proxyURL=http://127.0.0.1:8880",
-        "-search.latencyOffset=5s"
+        "-search.latencyOffset=5s",
+        "-promscrape.config=/etc/victoriametrics/scrape.yml"
       ],
       "depends_on": [
         {
@@ -90,7 +91,18 @@
       ],
       "restart": {
         "policy": "always"
-      }
+      },
+      "files": [
+        {
+          "guest_path": "/etc/victoriametrics/scrape.yml",
+          "local_path": "victoriametrics/scrape.yml"
+        }
+      ],
+      "secrets": [
+        {
+          "env_var": "FLY_LOG_TOKEN"
+        }
+      ]
     },
     {
       "name": "victorialogs",
@@ -333,16 +345,32 @@
           "local_path": "grafana/dashboards.yaml"
         },
         {
-          "guest_path": "/etc/grafana/dashboards/node-exporter-full.json",
-          "local_path": "grafana/dashboards/node-exporter-full.json"
-        },
-        {
-          "guest_path": "/etc/grafana/dashboards/smartctl.json",
-          "local_path": "grafana/dashboards/smartctl.json"
-        },
-        {
           "guest_path": "/etc/grafana/dashboards/overview.json",
           "local_path": "grafana/dashboards/overview.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/capacity.json",
+          "local_path": "grafana/dashboards/capacity.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/vms.json",
+          "local_path": "grafana/dashboards/vms.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/box.json",
+          "local_path": "grafana/dashboards/box.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/logs.json",
+          "local_path": "grafana/dashboards/logs.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/monitor.json",
+          "local_path": "grafana/dashboards/monitor.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/node-exporter-full.json",
+          "local_path": "grafana/dashboards/node-exporter-full.json"
         }
       ],
       "depends_on": [

@@ -52,7 +52,8 @@ lab is a trusted network ([Decisions](decisions.md#network)).
      | fly secrets import --stage -a homelab-monitor-joshthomasdev
    ```
 
-   The `logs` container reads the monitor's own logs with a read-only token for the Fly org:
+   The `logs` container reads the monitor's own logs, and VictoriaMetrics the Fly machine's metrics,
+   with a read-only token for the Fly org:
 
    ```sh
    printf 'FLY_LOG_TOKEN=%s\n' "$(fly tokens create readonly personal)" | fly secrets import --stage -a homelab-monitor-joshthomasdev
@@ -97,22 +98,49 @@ than the interval reads 0 in VictoriaMetrics, not empty.
 
 ## Dashboards
 
-Grafana loads its data sources and dashboards from `monitor/grafana/` at start:
+Grafana loads its data sources and dashboards from `monitor/grafana/` at start. Each dashboard
+has one job and links to the others; each panel's ⓘ says what it shows.
 
-- **Homelab overview**, the home page (`overview.json`, written for this monitor): all boxes
-  at once, over the last 30 minutes, refreshing every 10 s. A row of current values (firing
-  alerts, last data, CPU, memory, root disk, hottest sensor, drive wear), graphs with a line
-  for each box (CPU, memory, network, disk I/O, load against cores, temperatures, yonder VMs,
-  swap, Vector's queue), the firing alerts, and the journal's warnings and errors. The trends
-  that are not alerts are here.
-- **Node Exporter Full** (grafana.com 1860): everything about one box. Choose it with
-  "Instance".
-- **SMARTctl Exporter Dashboard** (22604): drive health.
-- Logs: Explore, with the data source VictoriaLogs. For example `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
+| Dashboard | For | What it has |
+| --- | --- | --- |
+| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, failed units, Tailscale's warnings, VMs, uptime); CPU, load (as a share of the cores), memory, network and disk I/O over time, with marks for alerts (red), deploys (blue), reboots (purple) and processes killed for memory (orange): a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
+| **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
+| **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
+| **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, failed units, Tailscale's warnings, load, the drive's health and I/O, network, Tailscale's traffic (direct or relayed), VMs, the journal's warnings and errors; the same marks as Homelab |
+| **Logs** (`logs.json`) | Searching the journals | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
+| **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, the last alert, failed sends, data arriving, the Fly machine's CPU (against its baseline), memory and disk, the volume, Vector's queues, memory per service, Tailscale's traffic, the relay's and the monitor's logs; restarts as marks |
+| Node Exporter Full (grafana.com 1860) | Everything node_exporter has | Linked from Machine |
 
-Both dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
-(`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl` or
-`vector`.
+They work for any number of machines, of any kind. Whatever is per machine is a row in a
+table, a lane in a timeline or a line in a chart, never one panel for each known machine, so
+a new machine appears everywhere once its Vector sends. Each machine's color comes from its
+name (Grafana's "by series name" palette), so it is the same in every chart with no list to
+keep. A section a machine has no data for stays empty: a machine without SMART data has no
+drive health, and only yonder hosts have VMs. They were checked against a fake fleet of ten
+machines made from the lab boxes' data, one of them silent.
+
+VictoriaMetrics scrapes the monitor's own services each 30 s for the Monitor dashboard
+(`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`: the stores, vmalert,
+Alertmanager, Tailscale's client metrics (`100.100.100.100/metrics`), and the Fly machine's
+`fly_instance_*` metrics, federated from Fly's Prometheus with `FLY_LOG_TOKEN`
+(`api.fly.io/prometheus/personal/federate`). Logs:
+Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
+`host:lab-2 _SYSTEMD_UNIT:sshd.service`.
+
+A VM is known by its yonder ID, from its unit `yonder-vm-<ID>.service`. Its traffic is its
+TAP's on the host (`yt-` and the ID's last 12 characters), so what the TAP receives the VM sent.
+When it started comes from node_exporter's unit start times
+(`--collector.systemd.enable-start-time-metrics` in `modules/nixos/server.nix`). Per-VM CPU and
+memory are not collected; yonderd would be the place to export them.
+
+The dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
+(`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl`,
+`tailscale` or `vector`.
+
+The marks on the graphs: deploys are the journal's "finished switching to system configuration"
+lines (each `colmena apply`), from VictoriaLogs; a reboot is a machine booted less than 5 minutes
+before; out of memory is node_exporter's `oom_kill` count going up. Failed units are units in
+systemd's `failed` state now.
 
 Changes made in Grafana are not saved. To change a dashboard or add one, put its JSON in
 `monitor/grafana/dashboards/`, add it to the `grafana` container's `files` in
@@ -123,13 +151,13 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 
 | Logs | Where | Read them |
 | --- | --- | --- |
-| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: the overview's last panel, or Explore with VictoriaLogs (`host:lab-2`) |
-| The monitor's containers | VictoriaLogs, 30 days | Explore: `host:monitor container:hark` |
+| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: the Logs dashboard, errors on Homelab, warnings on Machine, or Explore (`host:lab-2`) |
+| The monitor's containers | VictoriaLogs, 30 days | The Logs dashboard (machine monitor, level Everything), or Explore: `host:monitor container:hark` |
 | The heartbeat Worker | Cloudflare's Workers Logs | Cloudflare dashboard > Workers > homelab-heartbeat > Logs |
 | Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
 
 The `logs` container asks Fly's logs API, the one `fly logs` uses, every 10 s for the monitor
-app's new lines, with a read-only token for the Fly org (the secret `FLY_LOG_TOKEN`), and sends
+app's new lines, with a read-only token for the Fly org (the secret `FLY_LOG_TOKEN`, which VictoriaMetrics also uses for the machine's metrics), and sends
 them to VictoriaLogs. Its place in the stream is in `/data/logs`, so a restart neither repeats
 nor skips lines. Not Fly's log stream (NATS, through Vector, as Fly's log shipper does): it
 refused the read-only token in every form ("authorization violation").
@@ -203,6 +231,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |
+| `MonitorVolumeFull` | The monitor's volume is over 85 % full for 30 minutes. At 100 % the stores stop taking data; extend it with `fly volumes extend` |
 | `Watchdog` | Always. It is the heartbeat, below. |
 
 In about a month, count how often each alert fired, and whether it needed you. Fix or delete

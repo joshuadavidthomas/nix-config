@@ -30,7 +30,7 @@ groups:
         expr: smartctl_device_critical_warning{job="smartctl"} > 0
         labels: { urgency: page }
         annotations:
-          summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the SMART dashboard"
+          summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the Machine dashboard"
           resolved: "{{ $labels.device }} has no critical warning now"
 
       - alert: DiskAlmostFull
@@ -54,6 +54,16 @@ groups:
         annotations:
           summary: "Only {{ $value | printf \"%.0f\" }} % of memory free"
           resolved: "Memory is back above 10 % free"
+
+  - name: monitor
+    rules:
+      - alert: MonitorVolumeFull
+        # the volume both stores share; at 100 % they stop taking data (docs/monitor.md)
+        expr: 100 * (1 - vm_free_disk_space_bytes{job="victoriametrics"} / vm_total_disk_space_bytes{job="victoriametrics"}) > 85
+        for: 30m
+        annotations:
+          summary: "The volume is {{ $value | printf \"%.0f\" }} % full: extend it"
+          resolved: "The volume is under 85 % again"
 
   - name: watchdog
     rules:

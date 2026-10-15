@@ -1,0 +1,29 @@
+# VictoriaMetrics scrapes the monitor's own services with this (monitor/machine.json), for the
+# Monitor dashboard and the MonitorVolumeFull alert. The containers share one network, so all are
+# on localhost. host and instance are "monitor", as the lab boxes' are their names.
+global:
+  scrape_interval: 30s
+scrape_configs:
+  - job_name: victoriametrics
+    static_configs: [{ targets: ["127.0.0.1:8428"], labels: { host: monitor, instance: monitor } }]
+  - job_name: victorialogs
+    static_configs: [{ targets: ["127.0.0.1:9428"], labels: { host: monitor, instance: monitor } }]
+  - job_name: vmalert
+    static_configs: [{ targets: ["127.0.0.1:8880"], labels: { host: monitor, instance: monitor } }]
+  - job_name: alertmanager
+    static_configs: [{ targets: ["127.0.0.1:9093"], labels: { host: monitor, instance: monitor } }]
+  # Tailscale's client metrics: traffic direct or through a DERP relay, and health warnings
+  - job_name: tailscale
+    static_configs: [{ targets: ["100.100.100.100"], labels: { host: monitor, instance: monitor } }]
+  # The Fly machine itself (CPU against its baseline, memory, disk, network), from Fly's Prometheus,
+  # with the org's read-only token (docs/monitor.md). Fly's own instance and host labels become
+  # exported_*, and are dropped with app and region: this machine is "monitor".
+  - job_name: fly
+    scheme: https
+    metrics_path: /prometheus/personal/federate
+    params: { "match[]": ['{app="homelab-monitor-joshthomasdev"}'] }
+    headers: ["Authorization: %{FLY_LOG_TOKEN}"]
+    static_configs: [{ targets: ["api.fly.io"], labels: { host: monitor, instance: monitor } }]
+    metric_relabel_configs:
+      - action: labeldrop
+        regex: "exported_.*|app|region"

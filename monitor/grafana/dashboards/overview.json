@@ -1,820 +1,870 @@
 {
   "uid": "overview",
-  "title": "Homelab overview",
-  "tags": [
-    "homelab"
-  ],
-  "timezone": "browser",
-  "editable": true,
+  "title": "Homelab",
+  "description": "",
+  "editable": false,
+  "graphTooltip": 1,
   "time": {
-    "from": "now-30m",
+    "from": "now-6h",
     "to": "now"
   },
   "refresh": "10s",
-  "schemaVersion": 39,
-  "graphTooltip": 1,
-  "description": "All lab boxes at a glance. Node Exporter Full has the details of one box.",
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "homelab"
+  ],
   "links": [
     {
-      "title": "Node Exporter Full",
-      "type": "link",
-      "url": "/d/node-exporter-full",
-      "icon": "dashboard"
-    },
-    {
-      "title": "Drive health",
-      "type": "link",
-      "url": "/d/smartctl",
-      "icon": "dashboard"
+      "title": "Dashboards",
+      "type": "dashboards",
+      "tags": [
+        "homelab"
+      ],
+      "asDropdown": false,
+      "includeVars": false,
+      "keepTime": true
     }
   ],
+  "liveNow": false,
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "label": "Machine",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "query": {
+          "query": "label_values(node_boot_time_seconds{job=\"node\"}, instance)",
+          "refId": "v"
+        },
+        "definition": "label_values(node_boot_time_seconds{job=\"node\"}, instance)",
+        "refresh": 2,
+        "sort": 1,
+        "regex": "",
+        "options": [],
+        "includeAll": true,
+        "multi": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "allValue": ".+"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "name": "Alerts",
+        "iconColor": "#F2495C",
+        "expr": "max by (instance, alertname) (max_over_time(ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\", instance=~\"$instance\"}[2m]))",
+        "step": "60s",
+        "titleFormat": "{{alertname}}",
+        "textFormat": "{{instance}}",
+        "tagKeys": "instance",
+        "useValueForTime": false
+      },
+      {
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "enable": true,
+        "name": "Deploys",
+        "iconColor": "#5794F2",
+        "target": {
+          "refId": "Anno",
+          "queryType": "instant",
+          "maxLines": 1000,
+          "expr": "\"finished switching to system configuration\" host:~\"^${instance:regex}$\" | format \"Deployed: <host>\" as _msg | fields _time, _msg"
+        },
+        "mappings": {
+          "text": {
+            "source": "field",
+            "value": "Line"
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "name": "Reboots",
+        "iconColor": "#B877D9",
+        "expr": "min by (instance) (time() - node_boot_time_seconds{job=\"node\", instance=~\"$instance\"}) < 300",
+        "step": "60s",
+        "titleFormat": "Rebooted",
+        "textFormat": "{{instance}}",
+        "tagKeys": "instance",
+        "useValueForTime": false
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "name": "Out of memory",
+        "iconColor": "#FF9830",
+        "expr": "sum by (instance) (increase(node_vmstat_oom_kill{job=\"node\", instance=~\"$instance\"}[2m])) > 0",
+        "step": "60s",
+        "titleFormat": "Out of memory: a process was killed",
+        "textFormat": "{{instance}}",
+        "tagKeys": "instance",
+        "useValueForTime": false
+      }
+    ]
+  },
   "panels": [
     {
-      "id": 1,
-      "type": "stat",
-      "title": "Firing alerts",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
+      "type": "table",
+      "title": "Machines",
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 3,
-        "h": 5
+        "w": 24,
+        "h": 6
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "count(ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\"}) or vector(0)",
-          "legendFormat": "firing"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "none",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "description": "Alerts firing now, except the always-on Watchdog. The table below lists them."
-    },
-    {
-      "id": 2,
-      "type": "stat",
-      "title": "Last data",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
       },
-      "gridPos": {
-        "x": 3,
-        "y": 0,
-        "w": 4,
-        "h": 5
-      },
       "targets": [
         {
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance) (lag(node_load1{job=\"node\"}[10m]))",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 30
-              },
-              {
-                "color": "red",
-                "value": 180
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "area",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "description": "Seconds since each box's last sample. Over 180 s fires BoxSilent."
-    },
-    {
-      "id": 3,
-      "type": "stat",
-      "title": "CPU",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 7,
-        "y": 0,
-        "w": 4,
-        "h": 5
-      },
-      "targets": [
-        {
+          "expr": "max by (instance) (100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval]))))",
+          "legendFormat": "",
           "refId": "A",
+          "format": "time_series"
+        },
+        {
           "datasource": {
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\"}[$__rate_interval])))",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "area",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      }
-    },
-    {
-      "id": 4,
-      "type": "stat",
-      "title": "Memory used",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 11,
-        "y": 0,
-        "w": 4,
-        "h": 5
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\"} / node_memory_MemTotal_bytes{job=\"node\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "area",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      }
-    },
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "Root disk",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 15,
-        "y": 0,
-        "w": 3,
-        "h": 5
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - node_filesystem_avail_bytes{job=\"node\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=\"node\", mountpoint=\"/\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "none",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      }
-    },
-    {
-      "id": 6,
-      "type": "stat",
-      "title": "Hottest sensor",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 0,
-        "w": 3,
-        "h": 5
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "max by (instance) (node_hwmon_temp_celsius{job=\"node\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "celsius",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 75
-              },
-              {
-                "color": "red",
-                "value": 85
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "area",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "description": "The hottest hwmon sensor on each box. Their critical points are 87 to 90 \u00b0C."
-    },
-    {
-      "id": 7,
-      "type": "stat",
-      "title": "Drive wear",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 21,
-        "y": 0,
-        "w": 3,
-        "h": 5
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "max by (instance) (smartctl_device_percentage_used{job=\"smartctl\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "graphMode": "none",
-        "colorMode": "value",
-        "textMode": "value_and_name",
-        "orientation": "horizontal",
-        "justifyMode": "auto",
-        "wideLayout": true
-      },
-      "description": "NVMe percentage used: how much of its rated writes the drive has used."
-    },
-    {
-      "id": 8,
-      "type": "timeseries",
-      "title": "CPU",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 5,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", mode=\"idle\"}[$__rate_interval])))",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "id": 9,
-      "type": "timeseries",
-      "title": "Memory used",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 5,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - node_memory_MemAvailable_bytes{job=\"node\"} / node_memory_MemTotal_bytes{job=\"node\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "id": 10,
-      "type": "timeseries",
-      "title": "Network (physical interfaces)",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 13,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8",
-          "legendFormat": "{{instance}} in"
-        },
-        {
+          "expr": "ceil(max by (instance) (lag(node_load1{job=\"node\", instance=~\"$instance\"}[24h])))",
+          "legendFormat": "",
           "refId": "B",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
           "datasource": {
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * -8",
-          "legendFormat": "{{instance}} out"
+          "expr": "max by (instance) (100 * (1 - node_memory_MemAvailable_bytes{job=\"node\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node\", instance=~\"$instance\"}))",
+          "legendFormat": "",
+          "refId": "C",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (100 * (1 - node_filesystem_avail_bytes{job=\"node\", instance=~\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=\"node\", instance=~\"$instance\", mountpoint=\"/\"}))",
+          "legendFormat": "",
+          "refId": "D",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (node_hwmon_temp_celsius{job=\"node\", instance=~\"$instance\", chip=~\"platform_coretemp.*\"})",
+          "legendFormat": "",
+          "refId": "E",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "count by (instance) (node_systemd_unit_state{job=\"node\", instance=~\"$instance\", state=\"active\", name=~\"yonder-vm-.*\"} == 1)",
+          "legendFormat": "",
+          "refId": "F",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (time() - node_boot_time_seconds{job=\"node\", instance=~\"$instance\"})",
+          "legendFormat": "",
+          "refId": "G",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance, model) (label_replace(label_replace(node_dmi_info{job=\"node\", instance=~\"$instance\"}, \"model\", \"$1\", \"product_name\", \"(.+)\"), \"model\", \"$1\", \"product_version\", \"(.*[a-z].*)\"))",
+          "legendFormat": "",
+          "refId": "H",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum by (instance) (node_systemd_unit_state{job=\"node\", instance=~\"$instance\", state=\"failed\"})",
+          "legendFormat": "",
+          "refId": "I",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (tailscaled_health_messages{job=\"tailscale\", instance=~\"$instance\", type=\"warning\"}) or (max by (instance) (node_boot_time_seconds{job=\"node\", instance=~\"$instance\"}) * 0 - 1)",
+          "legendFormat": "",
+          "refId": "J",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "bps",
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "minWidth": 70
           },
           "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "description": "Receive above the line, send below, on the boxes' own NICs (not Tailscale, not yonder's VMs)."
-    },
-    {
-      "id": 11,
-      "type": "timeseries",
-      "title": "Disk I/O",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 13,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
+            "mode": "thresholds"
           },
-          "expr": "sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\"}[$__rate_interval]))",
-          "legendFormat": "{{instance}} read"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\"}[$__rate_interval])) * -1",
-          "legendFormat": "{{instance}} write"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "Bps",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "description": "Read above the line, write below."
-    },
-    {
-      "id": 12,
-      "type": "timeseries",
-      "title": "Load (1 min)",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 21,
-        "w": 8,
-        "h": 7
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "node_load1{job=\"node\"}",
-          "legendFormat": "{{instance}}"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "count by (instance) (node_cpu_seconds_total{job=\"node\", mode=\"idle\"})",
-          "legendFormat": "{{instance}} cores"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".* cores"
+              "id": "byName",
+              "options": "Machine"
             },
             "properties": [
               {
-                "id": "custom.lineStyle",
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__value.text}",
+                    "url": "/d/box/machine?var-instance=${__value.text}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Machine"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.cellOptions",
                 "value": {
-                  "fill": "dash",
-                  "dash": [
-                    10,
-                    10
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic-by-name"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reporting"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 95
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 180
+                    }
                   ]
                 }
               },
               {
-                "id": "custom.fillOpacity",
+                "id": "mappings",
+                "value": []
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "sparkline",
+                  "hideValue": false,
+                  "spanNulls": true,
+                  "lineWidth": 1.5,
+                  "fillOpacity": 20,
+                  "gradientMode": "opacity",
+                  "lineInterpolation": "smooth"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
                 "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#73BF69",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 80
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disk"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#73BF69",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 80
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU temp"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 80
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "–"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "description",
+                "value": "systemd units that failed and stayed failed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tailscale"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "unit",
+                "value": "suffix: warnings"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OK"
+                      },
+                      "-1": {
+                        "text": "no data"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "VMs"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 55
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Up"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dtdurations"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "custom.minWidth",
+                "value": 150
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Machine",
+            "desc": false
+          }
+        ]
+      },
+      "description": "One row per machine. Reporting is how long ago it last sent data; CPU is the last hours.",
+      "transformations": [
+        {
+          "id": "timeSeriesTable",
+          "options": {
+            "A": {
+              "timeField": "Time",
+              "stat": "lastNotNull"
+            }
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value #H": true,
+              "Trend #A": false,
+              "model": true
+            },
+            "indexByName": {
+              "instance": 0,
+              "Value #B": 1,
+              "Trend #A": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5,
+              "Value #I": 6,
+              "Value #J": 7,
+              "Value #F": 8,
+              "Value #G": 9,
+              "model": 10
+            },
+            "renameByName": {
+              "instance": "Machine",
+              "Value #B": "Reporting",
+              "Trend #A": "CPU",
+              "Value #C": "Memory",
+              "Value #D": "Disk",
+              "Value #E": "CPU temp",
+              "Value #F": "VMs",
+              "Value #G": "Up",
+              "model": "Model",
+              "Value #I": "Failed",
+              "Value #J": "Tailscale"
+            }
+          }
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval]))))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
               }
             ]
           }
@@ -822,325 +872,737 @@
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "Load average against the box's core count (dashed)."
+      "description": "CPU in use per machine, of its cores. Click a line to open the machine. Red marks are alerts firing.",
+      "id": 2
     },
     {
-      "id": 13,
       "type": "timeseries",
-      "title": "Temperatures",
+      "title": "Load",
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 10
+      },
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
       },
-      "gridPos": {
-        "x": 8,
-        "y": 21,
-        "w": 8,
-        "h": 7
-      },
       "targets": [
         {
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance) (node_hwmon_temp_celsius{job=\"node\"})",
-          "legendFormat": "{{instance}} hottest sensor"
-        },
-        {
-          "refId": "B",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "max by (instance) (smartctl_device_temperature{job=\"smartctl\", temperature_type=\"current\"})",
-          "legendFormat": "{{instance}} NVMe"
+          "expr": "100 * max by (instance) (node_load5{job=\"node\", instance=~\"$instance\"}) / count by (instance) (node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "celsius",
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
           },
           "color": {
-            "mode": "palette-classic"
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
           }
-        },
-        "overrides": []
+        ]
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "description": "5-minute load per machine, as a share of its cores: over 100 % means work waits.",
+      "id": 3
     },
     {
-      "id": 14,
       "type": "timeseries",
-      "title": "yonder VMs running",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 21,
-        "w": 8,
-        "h": 7
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "count by (instance) (node_systemd_unit_state{job=\"node\", state=\"active\", name=~\"yonder-vm-.*\"} == 1) or max by (instance) (0 * node_load1{job=\"node\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "id": 15,
-      "type": "timeseries",
-      "title": "Swap used",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
+      "title": "Memory",
       "gridPos": {
         "x": 0,
-        "y": 28,
-        "w": 8,
-        "h": 7
+        "y": 16,
+        "w": 12,
+        "h": 10
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - node_memory_SwapFree_bytes{job=\"node\"} / node_memory_SwapTotal_bytes{job=\"node\"})",
-          "legendFormat": "{{instance}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "id": 16,
-      "type": "timeseries",
-      "title": "Vector queue",
       "datasource": {
         "type": "prometheus",
         "uid": "victoriametrics"
       },
-      "gridPos": {
-        "x": 8,
-        "y": 28,
-        "w": 8,
-        "h": 7
-      },
       "targets": [
         {
-          "refId": "A",
           "datasource": {
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (vector_buffer_size_events{job=\"vector\", component_id=~\"victoriametrics|victorialogs\"})",
-          "legendFormat": "{{instance}}"
+          "expr": "max by (instance) (100 * (1 - node_memory_MemAvailable_bytes{job=\"node\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node\", instance=~\"$instance\"}))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
-            "spanNulls": false,
-            "gradientMode": "opacity"
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "description": "Events waiting on each box to be sent to the monitor. Near 0 is normal; it grows while the monitor can't be reached."
-    },
-    {
-      "id": 17,
-      "type": "table",
-      "title": "Firing alerts",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 28,
-        "w": 8,
-        "h": 7
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\"}",
-          "legendFormat": "",
-          "format": "table",
-          "instant": true,
-          "range": false
-        }
-      ],
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "Value": true,
-              "__name__": true,
-              "alertstate": true,
-              "job": true
-            },
-            "indexByName": {
-              "alertname": 0,
-              "instance": 1
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
             }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
           }
-        }
-      ],
+        ]
+      },
       "options": {
-        "showHeader": true,
-        "footer": {
-          "show": false
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
         }
       },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
+      "description": "Memory in use per machine (all but MemAvailable).",
+      "id": 4
     },
     {
-      "id": 18,
+      "type": "timeseries",
+      "title": "Network",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "topk_max(5, sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8, \"instance=other\")",
+          "legendFormat": "{{instance}} in",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "topk_max(5, sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8, \"instance=other\")",
+          "legendFormat": "{{instance}} out",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8)",
+          "legendFormat": "All in",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8)",
+          "legendFormat": "All out",
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": null,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "bps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Physical interfaces of the 5 busiest machines, and all of them; up is in, down is out.",
+      "id": 5
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk I/O",
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "topk_max(5, sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])), \"instance=other\")",
+          "legendFormat": "{{instance}} read",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "topk_max(5, sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])), \"instance=other\")",
+          "legendFormat": "{{instance}} write",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])))",
+          "legendFormat": "All read",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])))",
+          "legendFormat": "All write",
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": null,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "Bps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "The 5 busiest machines, and all of them; up is read, down is written.",
+      "id": 6
+    },
+    {
+      "type": "status-history",
+      "title": "Reporting, last 7 days",
+      "gridPos": {
+        "x": 12,
+        "y": 26,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (count_over_time(node_load1{job=\"node\", instance=~\"$instance\"}[$__interval]) > bool 0)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 85
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "reporting",
+                  "color": "#73BF69"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "colWidth": 0.92
+      },
+      "description": "Each hour a machine sent data is green; a gap is an hour it sent nothing (off, rebooting or cut off).",
+      "timeFrom": "7d",
+      "interval": "1h",
+      "id": 7
+    },
+    {
       "type": "logs",
-      "title": "Warnings and errors (journal, all boxes)",
+      "title": "Errors",
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 8
+      },
       "datasource": {
         "type": "victoriametrics-logs-datasource",
         "uid": "victorialogs"
       },
-      "gridPos": {
-        "x": 0,
-        "y": 35,
-        "w": 24,
-        "h": 10
-      },
       "targets": [
         {
-          "refId": "A",
           "datasource": {
             "type": "victoriametrics-logs-datasource",
             "uid": "victorialogs"
           },
-          "expr": "PRIORITY:in(\"0\",\"1\",\"2\",\"3\",\"4\")",
-          "queryType": "instant"
+          "expr": "host:~\"^${instance:regex}$\" PRIORITY:in(\"0\",\"1\",\"2\",\"3\")",
+          "queryType": "instant",
+          "legendFormat": "",
+          "refId": "A"
         }
       ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "options": {
         "showTime": true,
         "wrapLogMessage": true,
@@ -1148,13 +1610,9 @@
         "enableLogDetails": true,
         "dedupStrategy": "none",
         "prettifyLogMessage": false
-      }
+      },
+      "description": "Journal lines at error or worse, newest first. More in the Logs dashboard.",
+      "id": 8
     }
-  ],
-  "templating": {
-    "list": []
-  },
-  "annotations": {
-    "list": []
-  }
+  ]
 }
