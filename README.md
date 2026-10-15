@@ -59,8 +59,8 @@ Research:
 way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/` for
 the user. So every machine has the same shells, tools, languages and coding agents.
 `hosts/<name>/` adds what only that machine or platform can have, such as Mac apps or WSL
-interop. The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring
-exporters and Vector ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
+interop. The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
+the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
 the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine
 uses, such as the username and the public keys, are in `vars.nix`.
 

@@ -95,6 +95,8 @@ in
       # Two speeds, so Grafana feels live: what is watched live every 10 s (about a quarter of
       # the series), everything else every 60 s. node_exporter serves each
       # set of collectors at its own URL; the SMART exporter reads the drives each 60 s anyway.
+      # tailscaled serves its client metrics (traffic direct or through a DERP relay, health
+      # warnings) to the box itself at 100.100.100.100.
       sources.fast = {
         type = "prometheus_scrape";
         endpoints = [ (nodeExporterUrl "collect") ];
@@ -105,6 +107,7 @@ in
         endpoints = [
           (nodeExporterUrl "exclude")
           "http://127.0.0.1:${toString config.services.prometheus.exporters.smartctl.port}/metrics"
+          "http://100.100.100.100/metrics"
         ];
         scrape_interval_secs = 60;
       };
@@ -132,7 +135,7 @@ in
           .tags.host = "${config.networking.hostName}"
           .tags.instance = .tags.host
           name = string!(.name)
-          .tags.job = if .namespace == "vector" { "vector" } else if starts_with(name, "smartctl_") { "smartctl" } else { "node" }
+          .tags.job = if .namespace == "vector" { "vector" } else if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "tailscaled_") { "tailscale" } else { "node" }
         '';
       };
       sinks.victoriametrics = {

@@ -97,6 +97,11 @@
           "guest_path": "/etc/victoriametrics/scrape.yml",
           "local_path": "victoriametrics/scrape.yml"
         }
+      ],
+      "secrets": [
+        {
+          "env_var": "FLY_LOG_TOKEN"
+        }
       ]
     },
     {

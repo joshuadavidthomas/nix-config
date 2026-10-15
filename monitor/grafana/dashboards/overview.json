@@ -71,9 +71,60 @@
         "enable": true,
         "name": "Alerts",
         "iconColor": "#F2495C",
-        "expr": "max by (instance, alertname) (max_over_time(ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\"}[2m]))",
+        "expr": "max by (instance, alertname) (max_over_time(ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\", instance=~\"$instance\"}[2m]))",
         "step": "60s",
         "titleFormat": "{{alertname}}",
+        "textFormat": "{{instance}}",
+        "tagKeys": "instance",
+        "useValueForTime": false
+      },
+      {
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "enable": true,
+        "name": "Deploys",
+        "iconColor": "#5794F2",
+        "target": {
+          "refId": "Anno",
+          "queryType": "instant",
+          "maxLines": 1000,
+          "expr": "\"finished switching to system configuration\" host:~\"^${instance:regex}$\" | format \"Deployed: <host>\" as _msg | fields _time, _msg"
+        },
+        "mappings": {
+          "text": {
+            "source": "field",
+            "value": "Line"
+          }
+        }
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "name": "Reboots",
+        "iconColor": "#B877D9",
+        "expr": "min by (instance) (time() - node_boot_time_seconds{job=\"node\", instance=~\"$instance\"}) < 300",
+        "step": "60s",
+        "titleFormat": "Rebooted",
+        "textFormat": "{{instance}}",
+        "tagKeys": "instance",
+        "useValueForTime": false
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "name": "Out of memory",
+        "iconColor": "#FF9830",
+        "expr": "sum by (instance) (increase(node_vmstat_oom_kill{job=\"node\", instance=~\"$instance\"}[2m])) > 0",
+        "step": "60s",
+        "titleFormat": "Out of memory: a process was killed",
         "textFormat": "{{instance}}",
         "tagKeys": "instance",
         "useValueForTime": false
@@ -188,6 +239,30 @@
           "instant": true,
           "range": false,
           "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum by (instance) (node_systemd_unit_state{job=\"node\", instance=~\"$instance\", state=\"failed\"})",
+          "legendFormat": "",
+          "refId": "I",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (tailscaled_health_messages{job=\"tailscale\", instance=~\"$instance\", type=\"warning\"}) or (max by (instance) (node_boot_time_seconds{job=\"node\", instance=~\"$instance\"}) * 0 - 1)",
+          "legendFormat": "",
+          "refId": "J",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "fieldConfig": {
@@ -238,7 +313,7 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 130
+                "value": 110
               },
               {
                 "id": "custom.cellOptions",
@@ -270,7 +345,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 110
+                "value": 95
               },
               {
                 "id": "thresholds",
@@ -339,7 +414,7 @@
               },
               {
                 "id": "custom.minWidth",
-                "value": 200
+                "value": 140
               }
             ]
           },
@@ -395,7 +470,7 @@
               },
               {
                 "id": "custom.minWidth",
-                "value": 160
+                "value": 120
               }
             ]
           },
@@ -451,7 +526,7 @@
               },
               {
                 "id": "custom.minWidth",
-                "value": 160
+                "value": 120
               }
             ]
           },
@@ -497,7 +572,120 @@
               },
               {
                 "id": "custom.width",
-                "value": 100
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#F2495C",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "–"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "description",
+                "value": "systemd units that failed and stayed failed"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tailscale"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "unit",
+                "value": "suffix: warnings"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    },
+                    {
+                      "color": "#FF9830",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "OK"
+                      },
+                      "-1": {
+                        "text": "no data"
+                      }
+                    }
+                  }
+                ]
               }
             ]
           },
@@ -513,7 +701,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 70
+                "value": 55
               }
             ]
           },
@@ -529,7 +717,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 150
+                "value": 110
               }
             ]
           },
@@ -581,7 +769,8 @@
             "excludeByName": {
               "Time": true,
               "Value #H": true,
-              "Trend #A": false
+              "Trend #A": false,
+              "model": true
             },
             "indexByName": {
               "instance": 0,
@@ -590,9 +779,11 @@
               "Value #C": 3,
               "Value #D": 4,
               "Value #E": 5,
-              "Value #F": 6,
-              "Value #G": 7,
-              "model": 8
+              "Value #I": 6,
+              "Value #J": 7,
+              "Value #F": 8,
+              "Value #G": 9,
+              "model": 10
             },
             "renameByName": {
               "instance": "Machine",
@@ -603,7 +794,9 @@
               "Value #E": "CPU temp",
               "Value #F": "VMs",
               "Value #G": "Up",
-              "model": "Model"
+              "model": "Model",
+              "Value #I": "Failed",
+              "Value #J": "Tailscale"
             }
           }
         }

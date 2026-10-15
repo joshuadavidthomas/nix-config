@@ -52,7 +52,8 @@ lab is a trusted network ([Decisions](decisions.md#network)).
      | fly secrets import --stage -a homelab-monitor-joshthomasdev
    ```
 
-   The `logs` container reads the monitor's own logs with a read-only token for the Fly org:
+   The `logs` container reads the monitor's own logs, and VictoriaMetrics the Fly machine's metrics,
+   with a read-only token for the Fly org:
 
    ```sh
    printf 'FLY_LOG_TOKEN=%s\n' "$(fly tokens create readonly personal)" | fly secrets import --stage -a homelab-monitor-joshthomasdev
@@ -102,12 +103,12 @@ has one job and links to the others; each panel's ⓘ says what it shows.
 
 | Dashboard | For | What it has |
 | --- | --- | --- |
-| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); CPU, load (as a share of the cores), memory, network and disk I/O over time, with alerts as red marks: a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
+| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, failed units, Tailscale's warnings, VMs, uptime); CPU, load (as a share of the cores), memory, network and disk I/O over time, with marks for alerts (red), deploys (blue), reboots (purple) and processes killed for memory (orange): a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
 | **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
 | **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
-| **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, load, the drive's health and I/O, network, VMs, the journal's warnings and errors |
+| **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, failed units, Tailscale's warnings, load, the drive's health and I/O, network, Tailscale's traffic (direct or relayed), VMs, the journal's warnings and errors; the same marks as Homelab |
 | **Logs** (`logs.json`) | Searching the journals | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
-| **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, the last alert, failed sends, data arriving, memory, the volume, Vector's queues, the relay's and the monitor's logs |
+| **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, the last alert, failed sends, data arriving, the Fly machine's CPU (against its baseline), memory and disk, the volume, Vector's queues, memory per service, Tailscale's traffic, the relay's and the monitor's logs; restarts as marks |
 | Node Exporter Full (grafana.com 1860) | Everything node_exporter has | Linked from Machine |
 
 They work for any number of machines, of any kind. Whatever is per machine is a row in a
@@ -119,7 +120,10 @@ drive health, and only yonder hosts have VMs. They were checked against a fake f
 machines made from the lab boxes' data, one of them silent.
 
 VictoriaMetrics scrapes the monitor's own services each 30 s for the Monitor dashboard
-(`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`. Logs:
+(`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`: the stores, vmalert,
+Alertmanager, Tailscale's client metrics (`100.100.100.100/metrics`), and the Fly machine's
+`fly_instance_*` metrics, federated from Fly's Prometheus with `FLY_LOG_TOKEN`
+(`api.fly.io/prometheus/personal/federate`). Logs:
 Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
 `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
 
@@ -130,8 +134,13 @@ When it started comes from node_exporter's unit start times
 memory are not collected; yonderd would be the place to export them.
 
 The dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
-(`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl` or
-`vector`.
+(`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl`,
+`tailscale` or `vector`.
+
+The marks on the graphs: deploys are the journal's "finished switching to system configuration"
+lines (each `colmena apply`), from VictoriaLogs; a reboot is a machine booted less than 5 minutes
+before; out of memory is node_exporter's `oom_kill` count going up. Failed units are units in
+systemd's `failed` state now.
 
 Changes made in Grafana are not saved. To change a dashboard or add one, put its JSON in
 `monitor/grafana/dashboards/`, add it to the `grafana` container's `files` in
@@ -148,7 +157,7 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 | Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
 
 The `logs` container asks Fly's logs API, the one `fly logs` uses, every 10 s for the monitor
-app's new lines, with a read-only token for the Fly org (the secret `FLY_LOG_TOKEN`), and sends
+app's new lines, with a read-only token for the Fly org (the secret `FLY_LOG_TOKEN`, which VictoriaMetrics also uses for the machine's metrics), and sends
 them to VictoriaLogs. Its place in the stream is in `/data/logs`, so a restart neither repeats
 nor skips lines. Not Fly's log stream (NATS, through Vector, as Fly's log shipper does): it
 refused the read-only token in every form ("authorization violation").
