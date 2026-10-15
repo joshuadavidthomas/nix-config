@@ -617,7 +617,7 @@
         "x": 0,
         "y": 6,
         "w": 12,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -639,7 +639,7 @@
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
-            "fillOpacity": 18,
+            "fillOpacity": 0,
             "gradientMode": "opacity",
             "lineInterpolation": "smooth",
             "showPoints": "never",
@@ -657,31 +657,141 @@
           },
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
-          "calcs": []
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "CPU in use per machine, of its cores. Red marks are alerts firing.",
+      "description": "CPU in use per machine, of its cores. Click a line to open the machine. Red marks are alerts firing.",
       "id": 2
+    },
+    {
+      "type": "timeseries",
+      "title": "Load",
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "100 * max by (instance) (node_load5{job=\"node\", instance=~\"$instance\"}) / count by (instance) (node_cpu_seconds_total{job=\"node\", instance=~\"$instance\", mode=\"idle\"})",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "5-minute load per machine, as a share of its cores: over 100 % means work waits.",
+      "id": 3
     },
     {
       "type": "timeseries",
       "title": "Memory",
       "gridPos": {
-        "x": 12,
-        "y": 6,
+        "x": 0,
+        "y": 16,
         "w": 12,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -703,7 +813,7 @@
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
-            "fillOpacity": 18,
+            "fillOpacity": 0,
             "gradientMode": "opacity",
             "lineInterpolation": "smooth",
             "showPoints": "never",
@@ -721,14 +831,37 @@
           },
           "unit": "percent"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
-          "calcs": []
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
@@ -736,16 +869,16 @@
         }
       },
       "description": "Memory in use per machine (all but MemAvailable).",
-      "id": 3
+      "id": 4
     },
     {
       "type": "timeseries",
       "title": "Network",
       "gridPos": {
-        "x": 0,
-        "y": 14,
+        "x": 12,
+        "y": 16,
         "w": 12,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -757,7 +890,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8",
+          "expr": "topk_max(5, sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8, \"instance=other\")",
           "legendFormat": "{{instance}} in",
           "refId": "A"
         },
@@ -766,9 +899,27 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * -8",
+          "expr": "topk_max(5, sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8, \"instance=other\")",
           "legendFormat": "{{instance}} out",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_network_receive_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8)",
+          "legendFormat": "All in",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_network_transmit_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"en.*|eth.*|wl.*\"}[$__rate_interval])) * 8)",
+          "legendFormat": "All out",
+          "refId": "D"
         }
       ],
       "fieldConfig": {
@@ -776,7 +927,7 @@
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
-            "fillOpacity": 18,
+            "fillOpacity": 0,
             "gradientMode": "opacity",
             "lineInterpolation": "smooth",
             "showPoints": "never",
@@ -794,31 +945,157 @@
           },
           "unit": "bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
-          "calcs": []
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "Physical interfaces per machine; up is in, down is out.",
-      "id": 4
+      "description": "Physical interfaces of the 5 busiest machines, and all of them; up is in, down is out.",
+      "id": 5
     },
     {
       "type": "timeseries",
       "title": "Disk I/O",
       "gridPos": {
-        "x": 12,
-        "y": 14,
+        "x": 0,
+        "y": 26,
         "w": 12,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -830,7 +1107,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval]))",
+          "expr": "topk_max(5, sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])), \"instance=other\")",
           "legendFormat": "{{instance}} read",
           "refId": "A"
         },
@@ -839,9 +1116,27 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])) * -1",
+          "expr": "topk_max(5, sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])), \"instance=other\")",
           "legendFormat": "{{instance}} write",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_disk_read_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])))",
+          "legendFormat": "All read",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum(sum by (instance) (rate(node_disk_written_bytes_total{job=\"node\", instance=~\"$instance\", device=~\"nvme\\\\d+n\\\\d+|sd[a-z]|vd[a-z]\"}[$__rate_interval])))",
+          "legendFormat": "All write",
+          "refId": "D"
         }
       ],
       "fieldConfig": {
@@ -849,7 +1144,7 @@
           "custom": {
             "drawStyle": "line",
             "lineWidth": 2,
-            "fillOpacity": 18,
+            "fillOpacity": 0,
             "gradientMode": "opacity",
             "lineInterpolation": "smooth",
             "showPoints": "never",
@@ -867,31 +1162,157 @@
           },
           "unit": "Bps"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__field.labels.instance}",
+                    "url": "/d/box/machine?var-instance=${__field.labels.instance}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "D"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": true,
+                  "tooltip": false,
+                  "viz": false
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
-          "displayMode": "list",
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
-          "calcs": []
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "Up is read, down is written.",
-      "id": 5
+      "description": "The 5 busiest machines, and all of them; up is read, down is written.",
+      "id": 6
     },
     {
       "type": "status-history",
       "title": "Reporting, last 7 days",
       "gridPos": {
-        "x": 0,
-        "y": 22,
+        "x": 12,
+        "y": 26,
         "w": 12,
-        "h": 8
+        "h": 10
       },
       "datasource": {
         "type": "prometheus",
@@ -958,15 +1379,15 @@
       "description": "Each hour a machine sent data is green; a gap is an hour it sent nothing (off, rebooting or cut off).",
       "timeFrom": "7d",
       "interval": "1h",
-      "id": 6
+      "id": 7
     },
     {
       "type": "logs",
       "title": "Errors",
       "gridPos": {
-        "x": 12,
-        "y": 22,
-        "w": 12,
+        "x": 0,
+        "y": 36,
+        "w": 24,
         "h": 8
       },
       "datasource": {
@@ -998,7 +1419,7 @@
         "prettifyLogMessage": false
       },
       "description": "Journal lines at error or worse, newest first. More in the Logs dashboard.",
-      "id": 7
+      "id": 8
     }
   ]
 }

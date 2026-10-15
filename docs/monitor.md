@@ -102,7 +102,7 @@ has one job and links to the others; each panel's ⓘ says what it shows.
 
 | Dashboard | For | What it has |
 | --- | --- | --- |
-| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); CPU, memory, network and disk I/O over time, a line per machine, with alerts as red marks; 7 days of reporting; errors |
+| **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); CPU, load (as a share of the cores), memory, network and disk I/O over time, with alerts as red marks: a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
 | **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
 | **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
 | **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, load, the drive's health and I/O, network, VMs, the journal's warnings and errors |
