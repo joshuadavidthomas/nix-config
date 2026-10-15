@@ -455,7 +455,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance) (lag(node_load1{instance=\"$instance\"}[24h]))",
+          "expr": "ceil(max by (instance) (lag(node_load1{instance=\"$instance\"}[24h])))",
           "legendFormat": "",
           "refId": "A"
         }
