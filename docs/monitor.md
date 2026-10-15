@@ -19,7 +19,8 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
 | `alertmanager` | Groups alerts and sends them to the relay | `/data/alertmanager` |
 | `hark` | Rewrites each alert for hark and sends it to your phone (`monitor/hark/relay.py`) | |
-| `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only | `/data/grafana` |
+| `logs` | Vector: the monitor's own logs into VictoriaLogs (`monitor/logs/vector.yaml`) | |
+| `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only; logs warnings and up | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
 it. Vector on each lab box sends to it (`modules/nixos/server.nix`) over the tailnet. The tailnet
@@ -49,6 +50,12 @@ lab is a trusted network ([Decisions](decisions.md#network)).
    ```sh
    printf 'TS_AUTHKEY=%s\n' "$(op read 'op://dotfiles/Homelab monitor Tailscale OAuth/client secret')" \
      | fly secrets import --stage -a homelab-monitor-joshthomasdev
+   ```
+
+   The `logs` container reads the monitor's own logs with a read-only token for the Fly org:
+
+   ```sh
+   printf 'FLY_LOG_TOKEN=%s\n' "$(fly tokens create readonly personal)" | fly secrets import --stage -a homelab-monitor-joshthomasdev
    ```
 
    The secret stays "Staged". Ignore "Deploy secrets" in Fly's dashboard: it works only for apps
@@ -111,6 +118,26 @@ Changes made in Grafana are not saved. To change a dashboard or add one, put its
 `monitor/grafana/dashboards/`, add it to the `grafana` container's `files` in
 `monitor/machine.json`, and deploy. A dashboard downloaded from grafana.com may name its data
 source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `__inputs`.
+
+## Logs
+
+| Logs | Where | Read them |
+| --- | --- | --- |
+| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: the overview's last panel, or Explore with VictoriaLogs (`host:lab-2`) |
+| The monitor's containers | VictoriaLogs, 30 days | Explore: `host:monitor container:hark` |
+| The heartbeat Worker | Cloudflare's Workers Logs | Cloudflare dashboard > Workers > homelab-heartbeat > Logs |
+| Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
+
+The `logs` container reads the monitor app's output from Fly's log stream (NATS at
+`[fdaa::3]:4223`, on the org's private network), with a read-only token for the Fly org, the
+secret `FLY_LOG_TOKEN`. Fly's records don't say which container wrote a line, so the
+container's name comes from each program's line format: Grafana's `logger=`, vmalert's
+`app/vmalert`, Alertmanager's `time=… level=… source=`, Tailscale's dated Go lines, the relay's
+`relay: `. VictoriaLogs is built on VictoriaMetrics' libraries, so some of its generic lines are
+labelled `victoriametrics`; what can't be told apart is `other`.
+
+The Worker can't send to VictoriaLogs, which listens only on the tailnet. It logs state changes
+(silence, page, back) and errors to Cloudflare instead (`observability` in `wrangler.jsonc`).
 
 ## Alerts
 

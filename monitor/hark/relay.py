@@ -140,11 +140,11 @@ class Relay(BaseHTTPRequestHandler):
                 if is_page:
                     self.resolve_page(group, message)
                 answer = post(HARK_URL, message, {"Idempotency-Key": idempotency_key(group)})
-                print(f"sent {group['status']} {group.get('groupKey')}: {json.dumps(answer)}", flush=True)
+                print(f"relay: sent {group['status']} {group.get('groupKey')}: {json.dumps(answer)}", flush=True)
             status = 200
         except OSError as error:  # URLError, HTTPError and timeouts are all OSErrors
             detail = error.read().decode() if isinstance(error, urllib.error.HTTPError) else ""
-            print(f"hark refused {group.get('groupKey')}: {error} {detail}", flush=True)
+            print(f"relay: hark refused {group.get('groupKey')}: {error} {detail}", flush=True)
             status = 502
         self.reply(status)
 
@@ -161,7 +161,7 @@ class Relay(BaseHTTPRequestHandler):
         pages = load_pages()
         pages[group.get("groupKey", "")] = answer["pageId"]
         save_pages(pages)
-        print(f"paged {group.get('groupKey')}: {json.dumps(answer)}", flush=True)
+        print(f"relay: paged {group.get('groupKey')}: {json.dumps(answer)}", flush=True)
 
     def resolve_page(self, group, message):
         pages = load_pages()
@@ -176,7 +176,7 @@ class Relay(BaseHTTPRequestHandler):
                 raise
         del pages[group.get("groupKey", "")]
         save_pages(pages)
-        print(f"resolved page {page_id} for {group.get('groupKey')}", flush=True)
+        print(f"relay: resolved page {page_id} for {group.get('groupKey')}", flush=True)
 
     def forward_heartbeat(self):
         if not HEARTBEAT_URL:
@@ -190,7 +190,7 @@ class Relay(BaseHTTPRequestHandler):
             with urllib.request.urlopen(request, timeout=15):
                 return 200
         except OSError as error:
-            print(f"heartbeat failed: {error}", flush=True)
+            print(f"relay: heartbeat failed: {error}", flush=True)
             return 502
 
     def reply(self, status):

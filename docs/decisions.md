@@ -81,6 +81,13 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   repeat until acknowledged. They are not time-sensitive on the phone: hark's iOS app lacks
   Apple's time-sensitive entitlement, so iOS treats them as ordinary. To get them through a
   Focus, allow Hark in that Focus.
+- **No logs from inside yonder's VMs.** The monitor collects what the host sees of a VM (its
+  unit, CPU, network), not what runs in it.
+  Reason: the VMs are guests, sandboxes for agents and other workloads. What happens inside them
+  is theirs, and the monitor would become a place their data ends up, kept for 30 days.
+- **The heartbeat Worker's logs stay in Cloudflare (Workers Logs).**
+  Reason: VictoriaLogs listens only on the tailnet, and Cloudflare isn't on it. When the Basin
+  lake comes, the Worker's logs can go there with the rest.
 - **Alerts go to hark, and only alerts that need you soon. No Discord.**
   Reason: an alert that is not read, or that is so frequent it gets ignored, does nothing, and
   a Discord channel would not be read. The record of past alerts is in Grafana. Discord was

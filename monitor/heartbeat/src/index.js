@@ -32,6 +32,7 @@ export class Heartbeat extends DurableObject {
         await resolvePage(this.env, pageId, summary);
       }
       await this.ctx.storage.delete(["silentSince", "pageIds"]);
+      console.log(`heartbeat back after ${minutes(now - silentSince)}; resolved its pages`);
       await notify(this.env, `back-${silentSince}`, {
         summary,
         body: "Anything that fired meanwhile arrives now.",
@@ -56,6 +57,7 @@ export class Heartbeat extends DurableObject {
     if (answer.pageId && !pageIds.includes(answer.pageId)) {
       await this.ctx.storage.put("pageIds", [...pageIds, answer.pageId]);
     }
+    console.log(`no heartbeat since ${new Date(silentSince).toISOString()}; paged`, answer.pageId);
     await this.ctx.storage.setAlarm(Date.now() + seconds(this.env.REMIND_AFTER_SECONDS) * 1000);
   }
 }
