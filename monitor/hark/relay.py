@@ -16,10 +16,12 @@ through here means a dead relay stops the heartbeat too.
 
 import hashlib
 import json
-from datetime import datetime
 import os
+import signal
+import sys
 import urllib.error
 import urllib.request
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HARK_URL = os.environ["HARK_WEBHOOK_URL"]
@@ -201,4 +203,7 @@ class Relay(BaseHTTPRequestHandler):
         pass
 
 
+# Fly stops a container with a signal; exit quietly instead of printing a traceback into the logs
+for stop in (signal.SIGINT, signal.SIGTERM):
+    signal.signal(stop, lambda *_: sys.exit(0))
 ThreadingHTTPServer(("127.0.0.1", 9099), Relay).serve_forever()

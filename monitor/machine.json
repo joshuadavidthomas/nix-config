@@ -9,7 +9,7 @@
       "cmd": [
         "sh",
         "-c",
-        "mkdir -p /data/tailscale /data/vm /data/vl /data/grafana /data/alertmanager /data/hark && chown 472:0 /data/grafana && chown 65534:65534 /data/alertmanager"
+        "mkdir -p /data/tailscale /data/vm /data/vl /data/grafana /data/alertmanager /data/hark /data/logs && chown 472:0 /data/grafana && chown 65534:65534 /data/alertmanager"
       ],
       "restart": {
         "policy": "no"
@@ -277,10 +277,11 @@
     },
     {
       "name": "logs",
-      "image": "timberio/vector:0.58.0-alpine",
+      "image": "python:3.13-alpine",
       "cmd": [
-        "--config",
-        "/etc/vector/vector.yaml"
+        "python3",
+        "-u",
+        "/app/poll.py"
       ],
       "secrets": [
         {
@@ -289,31 +290,14 @@
       ],
       "files": [
         {
-          "guest_path": "/etc/vector/vector.yaml",
-          "local_path": "logs/vector.yaml"
+          "guest_path": "/app/poll.py",
+          "local_path": "logs/poll.py"
         }
       ],
       "depends_on": [
         {
           "name": "victorialogs",
           "condition": "healthy"
-        }
-      ],
-      "healthchecks": [
-        {
-          "name": "http",
-          "kind": "liveness",
-          "http": {
-            "port": 8686,
-            "path": "/health",
-            "scheme": "http",
-            "method": "GET"
-          },
-          "interval": 15,
-          "timeout": 5,
-          "grace_period": 10,
-          "failure_threshold": 3,
-          "success_threshold": 1
         }
       ],
       "restart": {
