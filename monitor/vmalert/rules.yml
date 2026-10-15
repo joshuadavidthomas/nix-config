@@ -30,7 +30,7 @@ groups:
         expr: smartctl_device_critical_warning{job="smartctl"} > 0
         labels: { urgency: page }
         annotations:
-          summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the box's dashboard"
+          summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the Machine dashboard"
           resolved: "{{ $labels.device }} has no critical warning now"
 
       - alert: DiskAlmostFull

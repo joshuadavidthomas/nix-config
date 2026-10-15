@@ -340,20 +340,32 @@
           "local_path": "grafana/dashboards.yaml"
         },
         {
-          "guest_path": "/etc/grafana/dashboards/node-exporter-full.json",
-          "local_path": "grafana/dashboards/node-exporter-full.json"
-        },
-        {
           "guest_path": "/etc/grafana/dashboards/overview.json",
           "local_path": "grafana/dashboards/overview.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/capacity.json",
+          "local_path": "grafana/dashboards/capacity.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/vms.json",
+          "local_path": "grafana/dashboards/vms.json"
         },
         {
           "guest_path": "/etc/grafana/dashboards/box.json",
           "local_path": "grafana/dashboards/box.json"
         },
         {
+          "guest_path": "/etc/grafana/dashboards/logs.json",
+          "local_path": "grafana/dashboards/logs.json"
+        },
+        {
           "guest_path": "/etc/grafana/dashboards/monitor.json",
           "local_path": "grafana/dashboards/monitor.json"
+        },
+        {
+          "guest_path": "/etc/grafana/dashboards/node-exporter-full.json",
+          "local_path": "grafana/dashboards/node-exporter-full.json"
         }
       ],
       "depends_on": [

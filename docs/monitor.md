@@ -97,26 +97,32 @@ than the interval reads 0 in VictoriaMetrics, not empty.
 
 ## Dashboards
 
-Grafana loads its data sources and dashboards from `monitor/grafana/` at start. The three
-written for this monitor refresh every 10 s, and each panel's ⓘ says what it shows:
+Grafana loads its data sources and dashboards from `monitor/grafana/` at start. Each dashboard
+answers one question, written at its top, and links to the others; each panel's ⓘ says what
+it shows.
 
-- **Homelab**, the home page (`overview.json`): is everything fine, where is there room, and
-  what are the VMs doing. The lab as a whole (alerts, boxes reporting, VMs, free cores,
-  memory and disk), a card for each box (reporting, CPU, memory, disk, CPU temperature, VMs,
-  uptime), room for VMs on each box, the VMs, trends for the last hour, and the journal's
-  errors. On a phone the panels stack, the lab and the cards first. Click a box's card, or a
-  box in a table, for its dashboard.
-- **Box** (`box.json`): one box. Its hardware, CPU by kind, pressure (how long tasks waited for
-  CPU, memory or the disk: the sign that VMs contend for the box), memory, load, the drive's
-  health and I/O, the network, its VMs and their traffic, temperatures, and the journal's
-  warnings and errors.
-- **Monitor** (`monitor.json`): the monitor itself. The volume, what the stores hold, the data
-  arriving, Vector's queue on each box, the memory of each service against the machine's 1 GB,
-  Alertmanager's sends to the relay (mostly the Watchdog's pings, about 1 a minute), and the
-  relay's and the monitor's logs. VictoriaMetrics scrapes the monitor's services each 30 s for
-  it (`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`.
-- **Node Exporter Full** (grafana.com 1860): everything about one box; linked from Box.
-- Logs: Explore, with the data source VictoriaLogs. For example `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
+| Dashboard | Question | What it has |
+| --- | --- | --- |
+| **Homelab**, the home page (`overview.json`) | Is anything wrong, and where? | Alerts, machines reporting or silent, VMs, CPU and memory in use, the heartbeat and the last alert; a row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); a 7-day reporting timeline, a 24-hour CPU strip, the last week's alerts, and errors |
+| **Capacity** (`capacity.json`) | Where does the next workload go, and when do I run out? | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
+| **VMs** (`vms.json`) | What are the VMs doing? | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
+| **Machine** (`box.json`) | What is going on with this machine? | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, load, the drive's health and I/O, network, VMs, the journal's warnings and errors |
+| **Logs** (`logs.json`) | What happened? | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
+| **Monitor** (`monitor.json`) | Is monitoring itself working? | The heartbeat, failed sends, data arriving, memory, the volume, Vector's queues, the relay's and the monitor's logs |
+| Node Exporter Full (grafana.com 1860) | Everything node_exporter has | Linked from Machine |
+
+They work for any number of machines, of any kind. Whatever is per machine is a row in a
+table, a lane in a timeline or a line in a chart, never one panel for each known machine, so
+a new machine appears everywhere once its Vector sends. Each machine's color comes from its
+name (Grafana's "by series name" palette), so it is the same in every chart with no list to
+keep. A section a machine has no data for stays empty: a machine without SMART data has no
+drive health, and only yonder hosts have VMs. They were checked against a fake fleet of ten
+machines made from the lab boxes' data, one of them silent.
+
+VictoriaMetrics scrapes the monitor's own services each 30 s for the Monitor dashboard
+(`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`. Logs:
+Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
+`host:lab-2 _SYSTEMD_UNIT:sshd.service`.
 
 A VM is known by its yonder ID, from its unit `yonder-vm-<ID>.service`. Its traffic is its
 TAP's on the host (`yt-` and the ID's last 12 characters), so what the TAP receives the VM sent.
@@ -137,8 +143,8 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 
 | Logs | Where | Read them |
 | --- | --- | --- |
-| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: errors on Homelab, warnings on Box, or Explore with VictoriaLogs (`host:lab-2`) |
-| The monitor's containers | VictoriaLogs, 30 days | Explore: `host:monitor container:hark` |
+| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: the Logs dashboard, errors on Homelab, warnings on Machine, or Explore (`host:lab-2`) |
+| The monitor's containers | VictoriaLogs, 30 days | The Logs dashboard (machine monitor, level Everything), or Explore: `host:monitor container:hark` |
 | The heartbeat Worker | Cloudflare's Workers Logs | Cloudflare dashboard > Workers > homelab-heartbeat > Logs |
 | Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
 

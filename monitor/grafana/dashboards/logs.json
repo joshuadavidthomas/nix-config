@@ -1,0 +1,329 @@
+{
+  "uid": "logs",
+  "title": "Logs",
+  "description": "What happened?",
+  "editable": false,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "homelab"
+  ],
+  "links": [
+    {
+      "title": "Dashboards",
+      "type": "dashboards",
+      "tags": [
+        "homelab"
+      ],
+      "asDropdown": false,
+      "includeVars": false,
+      "keepTime": true
+    }
+  ],
+  "liveNow": false,
+  "templating": {
+    "list": [
+      {
+        "name": "host",
+        "label": "Machine",
+        "type": "query",
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "query": {
+          "refId": "host",
+          "type": "fieldValue",
+          "field": "host",
+          "query": "*",
+          "limit": 1000
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".+",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": []
+      },
+      {
+        "name": "level",
+        "label": "Level",
+        "type": "custom",
+        "multi": false,
+        "includeAll": false,
+        "query": "Errors : 0|1|2|3, Warnings and errors : 0|1|2|3|4, Everything : .*",
+        "current": {
+          "text": "Warnings and errors",
+          "value": "0|1|2|3|4"
+        },
+        "options": []
+      },
+      {
+        "name": "search",
+        "label": "Words",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 2
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "### What happened?\nThe machines' journals, filtered by machine, level and words. The monitor's own logs are under machine monitor, with the level Everything: they have no level. Logs from inside VMs are not collected."
+      },
+      "id": 1
+    },
+    {
+      "type": "timeseries",
+      "title": "Lines",
+      "gridPos": {
+        "x": 0,
+        "y": 2,
+        "w": 16,
+        "h": 8
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "expr": "host:~\"^${host:regex}$\" PRIORITY:~\"^(${level})$\" ${search} | stats by (host) count() lines",
+          "queryType": "statsRange",
+          "legendFormat": "{{host}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 2,
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "spanNulls": 60000,
+            "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic-by-name"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "description": "Lines per machine over time, with the filters above.",
+      "id": 2
+    },
+    {
+      "type": "table",
+      "title": "Loudest sources",
+      "gridPos": {
+        "x": 16,
+        "y": 2,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "expr": "host:~\"^${host:regex}$\" PRIORITY:~\"^(${level})$\" ${search} | format \"<_SYSTEMD_UNIT><container>\" as source | stats by (host, source) count() lines | sort by (lines desc) | limit 12",
+          "queryType": "stats",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "minWidth": 70
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Machine"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic-by-name"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Lines",
+            "desc": true
+          }
+        ]
+      },
+      "description": "Which units logged the most lines matching the filters.",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "host": 0,
+              "source": 1
+            },
+            "renameByName": {
+              "host": "Machine",
+              "source": "Source",
+              "Value": "Lines",
+              "lines": "Lines"
+            }
+          }
+        }
+      ],
+      "id": 3
+    },
+    {
+      "type": "logs",
+      "title": "Lines",
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 18
+      },
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "expr": "host:~\"^${host:regex}$\" PRIORITY:~\"^(${level})$\" ${search}",
+          "queryType": "instant",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "prettifyLogMessage": false
+      },
+      "id": 4
+    }
+  ]
+}

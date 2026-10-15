@@ -1,7 +1,7 @@
 {
   "uid": "box",
-  "title": "Box",
-  "description": "One box: its hardware, load, drive, network, VMs and journal.",
+  "title": "Machine",
+  "description": "What is going on with this machine?",
   "editable": false,
   "graphTooltip": 1,
   "time": {
@@ -17,10 +17,14 @@
   ],
   "links": [
     {
-      "title": "Homelab",
-      "type": "link",
-      "url": "/d/overview/homelab",
-      "icon": "dashboard"
+      "title": "Dashboards",
+      "type": "dashboards",
+      "tags": [
+        "homelab"
+      ],
+      "asDropdown": false,
+      "includeVars": false,
+      "keepTime": true
     },
     {
       "title": "Everything (Node Exporter Full)",
@@ -29,11 +33,12 @@
       "url": "/d/node-exporter-full/node-exporter-full?var-job=node&var-node=$instance"
     }
   ],
+  "liveNow": false,
   "templating": {
     "list": [
       {
         "name": "instance",
-        "label": "Box",
+        "label": "Machine",
         "type": "query",
         "datasource": {
           "type": "prometheus",
@@ -50,7 +55,6 @@
         "options": [],
         "includeAll": false,
         "multi": false,
-        "hide": 0,
         "current": {}
       }
     ]
@@ -60,12 +64,28 @@
   },
   "panels": [
     {
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 2
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "### What is going on with this machine?\nPick it above. Sections a machine has no data for stay empty: a Mac has no SMART data, and only yonder hosts have VMs."
+      },
+      "id": 1
+    },
+    {
       "type": "stat",
       "title": "Model",
       "gridPos": {
         "x": 0,
-        "y": 0,
-        "w": 4,
+        "y": 2,
+        "w": 5,
         "h": 3
       },
       "datasource": {
@@ -97,7 +117,8 @@
               }
             ]
           },
-          "mappings": []
+          "mappings": [],
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -117,14 +138,15 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 1
+      "transparent": true,
+      "id": 2
     },
     {
       "type": "stat",
       "title": "CPU",
       "gridPos": {
-        "x": 4,
-        "y": 0,
+        "x": 5,
+        "y": 2,
         "w": 3,
         "h": 3
       },
@@ -178,14 +200,15 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 2
+      "transparent": true,
+      "id": 3
     },
     {
       "type": "stat",
       "title": "Memory",
       "gridPos": {
-        "x": 7,
-        "y": 0,
+        "x": 8,
+        "y": 2,
         "w": 3,
         "h": 3
       },
@@ -240,77 +263,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 3
+      "transparent": true,
+      "id": 4
     },
     {
       "type": "stat",
       "title": "Drive",
       "gridPos": {
-        "x": 10,
-        "y": 0,
-        "w": 3,
-        "h": 3
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "smartctl_device_capacity_bytes{instance=\"$instance\"}",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              }
-            ]
-          },
-          "mappings": [],
-          "unit": "decbytes",
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "id": 4
-    },
-    {
-      "type": "stat",
-      "title": "Drive model",
-      "gridPos": {
-        "x": 13,
-        "y": 0,
-        "w": 4,
+        "x": 11,
+        "y": 2,
+        "w": 5,
         "h": 3
       },
       "datasource": {
@@ -342,7 +304,8 @@
               }
             ]
           },
-          "mappings": []
+          "mappings": [],
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -362,15 +325,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
+      "transparent": true,
       "id": 5
     },
     {
       "type": "stat",
       "title": "System",
       "gridPos": {
-        "x": 17,
-        "y": 0,
-        "w": 4,
+        "x": 16,
+        "y": 2,
+        "w": 5,
         "h": 3
       },
       "datasource": {
@@ -402,7 +366,8 @@
               }
             ]
           },
-          "mappings": []
+          "mappings": [],
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -422,6 +387,7 @@
         "wideLayout": true,
         "showPercentChange": false
       },
+      "transparent": true,
       "id": 6
     },
     {
@@ -429,7 +395,7 @@
       "title": "Up",
       "gridPos": {
         "x": 21,
-        "y": 0,
+        "y": 2,
         "w": 3,
         "h": 3
       },
@@ -483,7 +449,526 @@
         "wideLayout": true,
         "showPercentChange": false
       },
+      "transparent": true,
       "id": 7
+    },
+    {
+      "type": "stat",
+      "title": "Reporting",
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (lag(node_load1{instance=\"$instance\"}[24h]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              },
+              {
+                "color": "#F2495C",
+                "value": 180
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "range",
+              "options": {
+                "from": 0,
+                "to": 60,
+                "result": {
+                  "text": "Live",
+                  "color": "#73BF69"
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 60,
+                "to": 180,
+                "result": {
+                  "color": "#FF9830"
+                }
+              }
+            }
+          ],
+          "unit": "s",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "description": "How long ago it last sent data.",
+      "id": 8
+    },
+    {
+      "type": "stat",
+      "title": "CPU",
+      "gridPos": {
+        "x": 4,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "(100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{instance=\"$instance\", mode=\"idle\"}[$__rate_interval]))))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 70
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "id": 9
+    },
+    {
+      "type": "stat",
+      "title": "Memory",
+      "gridPos": {
+        "x": 8,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "(100 * (1 - node_memory_MemAvailable_bytes{instance=\"$instance\"} / node_memory_MemTotal_bytes{instance=\"$instance\"}))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 80
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "id": 10
+    },
+    {
+      "type": "stat",
+      "title": "Disk",
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "(100 * (1 - node_filesystem_avail_bytes{instance=\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{instance=\"$instance\", mountpoint=\"/\"}))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 80
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "id": 11
+    },
+    {
+      "type": "stat",
+      "title": "Waiting",
+      "gridPos": {
+        "x": 16,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "100 * max(rate({__name__=~\"node_pressure_(cpu|memory|io)_waiting_seconds_total\", instance=\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 10
+              },
+              {
+                "color": "#F2495C",
+                "value": 40
+              }
+            ]
+          },
+          "mappings": [],
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "description": "The most time tasks spent waiting for CPU, memory or the disk (pressure). Sustained tens of percent means work is contending for the machine.",
+      "id": 12
+    },
+    {
+      "type": "stat",
+      "title": "CPU temp",
+      "gridPos": {
+        "x": 20,
+        "y": 5,
+        "w": 4,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max(node_hwmon_temp_celsius{instance=\"$instance\", chip=~\"platform_coretemp.*\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 80
+              },
+              {
+                "color": "#F2495C",
+                "value": 90
+              }
+            ]
+          },
+          "mappings": [],
+          "unit": "celsius",
+          "decimals": 0,
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "id": 13
+    },
+    {
+      "type": "status-history",
+      "title": "Reporting, last 7 days",
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 3
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max by (instance) (count_over_time(node_load1{instance=\"$instance\"}[$__interval]) > bool 0)",
+          "legendFormat": "{{instance}}",
+          "refId": "A",
+          "interval": "1h"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 0,
+            "fillOpacity": 85
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#73BF69",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "reporting",
+                  "color": "#73BF69"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "rowHeight": 0.8,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "colWidth": 0.92
+      },
+      "description": "Each hour a machine sent data is green; a gap is an hour it sent nothing (off, rebooting or cut off).",
+      "timeFrom": "7d",
+      "interval": "1h",
+      "id": 14
     },
     {
       "type": "row",
@@ -491,19 +976,19 @@
       "collapsed": false,
       "panels": [],
       "gridPos": {
-        "h": 1,
-        "w": 24,
         "x": 0,
-        "y": 3
+        "y": 13,
+        "w": 24,
+        "h": 1
       },
-      "id": 8
+      "id": 15
     },
     {
       "type": "timeseries",
       "title": "CPU",
       "gridPos": {
         "x": 0,
-        "y": 4,
+        "y": 14,
         "w": 12,
         "h": 8
       },
@@ -525,16 +1010,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 45,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "normal",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -547,22 +1036,23 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "CPU in use, by kind, as a share of all cores.",
-      "id": 9
+      "description": "CPU in use by kind, as a share of all cores.",
+      "id": 16
     },
     {
       "type": "timeseries",
       "title": "Waiting (pressure)",
       "gridPos": {
         "x": 12,
-        "y": 4,
+        "y": 14,
         "w": 12,
         "h": 8
       },
@@ -602,21 +1092,26 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "percent"
+          "unit": "percent",
+          "noValue": "No pressure data"
         },
         "overrides": []
       },
@@ -624,22 +1119,23 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "The share of time some task waited for CPU, memory or the disk. Near 0 is idle; sustained tens of percent means VMs and services are contending for the box.",
-      "id": 10
+      "description": "The share of time some task waited for CPU, memory or the disk.",
+      "id": 17
     },
     {
       "type": "timeseries",
       "title": "Memory",
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 22,
         "w": 12,
         "h": 8
       },
@@ -681,23 +1177,27 @@
             "uid": "victoriametrics"
           },
           "expr": "node_memory_SwapTotal_bytes{instance=\"$instance\"} - node_memory_SwapFree_bytes{instance=\"$instance\"}",
-          "legendFormat": "Swap used (zram)",
+          "legendFormat": "Swap used",
           "refId": "D"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 45,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "normal",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -705,6 +1205,51 @@
           "unit": "bytes"
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8AB8FF"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "C"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5A5F69"
+                }
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byFrameRefID",
@@ -726,7 +1271,7 @@
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "red"
+                  "fixedColor": "#F2495C"
                 }
               }
             ]
@@ -737,7 +1282,8 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -745,14 +1291,14 @@
         }
       },
       "description": "Used is what programs and VMs hold; the kernel gives cache back when it is needed.",
-      "id": 11
+      "id": 18
     },
     {
       "type": "timeseries",
       "title": "Load",
       "gridPos": {
         "x": 12,
-        "y": 12,
+        "y": 22,
         "w": 12,
         "h": 8
       },
@@ -792,16 +1338,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -832,7 +1382,7 @@
                 "id": "color",
                 "value": {
                   "mode": "fixed",
-                  "fixedColor": "text"
+                  "fixedColor": "#5A5F69"
                 }
               }
             ]
@@ -843,7 +1393,8 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -851,7 +1402,7 @@
         }
       },
       "description": "Tasks running or waiting; above the cores line, work queues.",
-      "id": 12
+      "id": 19
     },
     {
       "type": "row",
@@ -859,90 +1410,20 @@
       "collapsed": false,
       "panels": [],
       "gridPos": {
-        "h": 1,
+        "x": 0,
+        "y": 30,
         "w": 24,
-        "x": 0,
-        "y": 20
+        "h": 1
       },
-      "id": 13
-    },
-    {
-      "type": "stat",
-      "title": "Space used",
-      "gridPos": {
-        "x": 0,
-        "y": 21,
-        "w": 4,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "victoriametrics"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "victoriametrics"
-          },
-          "expr": "100 * (1 - node_filesystem_avail_bytes{instance=\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{instance=\"$instance\", mountpoint=\"/\"})",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "text",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "mappings": [],
-          "unit": "percent",
-          "decimals": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "id": 14
+      "id": 20
     },
     {
       "type": "stat",
       "title": "Wear",
       "gridPos": {
-        "x": 4,
-        "y": 21,
-        "w": 3,
+        "x": 0,
+        "y": 31,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -969,21 +1450,22 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "text",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 80
+                "color": "#FF9830",
+                "value": 70
               },
               {
-                "color": "red",
-                "value": 100
+                "color": "#F2495C",
+                "value": 90
               }
             ]
           },
           "mappings": [],
-          "unit": "percent"
+          "unit": "percent",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1004,15 +1486,15 @@
         "showPercentChange": false
       },
       "description": "The share of its rated writes the drive has used.",
-      "id": 15
+      "id": 21
     },
     {
       "type": "stat",
       "title": "Spare",
       "gridPos": {
-        "x": 7,
-        "y": 21,
-        "w": 3,
+        "x": 4,
+        "y": 31,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -1039,21 +1521,22 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "#F2495C",
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "#FF9830",
                 "value": 10
               },
               {
-                "color": "text",
+                "color": "#73BF69",
                 "value": 50
               }
             ]
           },
           "mappings": [],
-          "unit": "percent"
+          "unit": "percent",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1074,15 +1557,15 @@
         "showPercentChange": false
       },
       "description": "Spare blocks left for worn ones.",
-      "id": 16
+      "id": 22
     },
     {
       "type": "stat",
       "title": "Media errors",
       "gridPos": {
-        "x": 10,
-        "y": 21,
-        "w": 3,
+        "x": 8,
+        "y": 31,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -1109,16 +1592,17 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#73BF69",
                 "value": null
               },
               {
-                "color": "red",
+                "color": "#F2495C",
                 "value": 1
               }
             ]
           },
-          "mappings": []
+          "mappings": [],
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1138,14 +1622,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 17
+      "id": 23
     },
     {
       "type": "stat",
       "title": "Written",
       "gridPos": {
-        "x": 13,
-        "y": 21,
+        "x": 12,
+        "y": 31,
         "w": 4,
         "h": 4
       },
@@ -1180,7 +1664,8 @@
           },
           "mappings": [],
           "unit": "decbytes",
-          "decimals": 1
+          "decimals": 1,
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1200,14 +1685,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 18
+      "id": 24
     },
     {
       "type": "stat",
       "title": "Powered on",
       "gridPos": {
-        "x": 17,
-        "y": 21,
+        "x": 16,
+        "y": 31,
         "w": 4,
         "h": 4
       },
@@ -1241,7 +1726,8 @@
             ]
           },
           "mappings": [],
-          "unit": "dtdurations"
+          "unit": "dtdurations",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1261,15 +1747,15 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 19
+      "id": 25
     },
     {
       "type": "stat",
-      "title": "Temperature",
+      "title": "Drive temp",
       "gridPos": {
-        "x": 21,
-        "y": 21,
-        "w": 3,
+        "x": 20,
+        "y": 31,
+        "w": 4,
         "h": 4
       },
       "datasource": {
@@ -1300,17 +1786,18 @@
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "#FF9830",
                 "value": 60
               },
               {
-                "color": "red",
+                "color": "#F2495C",
                 "value": 70
               }
             ]
           },
           "mappings": [],
-          "unit": "celsius"
+          "unit": "celsius",
+          "noValue": "—"
         },
         "overrides": []
       },
@@ -1330,14 +1817,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 20
+      "id": 26
     },
     {
       "type": "timeseries",
       "title": "Throughput",
       "gridPos": {
         "x": 0,
-        "y": 25,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -1368,16 +1855,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
-            "axisSoftMin": 0,
+            "axisSoftMin": null,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -1390,7 +1881,8 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -1398,14 +1890,14 @@
         }
       },
       "description": "Up is read, down is written.",
-      "id": 21
+      "id": 27
     },
     {
       "type": "timeseries",
       "title": "Latency",
       "gridPos": {
         "x": 8,
-        "y": 25,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -1436,16 +1928,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -1458,7 +1954,8 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -1466,14 +1963,14 @@
         }
       },
       "description": "The average time one read or write took. Empty while the disk is idle.",
-      "id": 22
+      "id": 28
     },
     {
       "type": "timeseries",
       "title": "Busy",
       "gridPos": {
         "x": 16,
-        "y": 25,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -1495,16 +1992,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 0,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -1517,7 +2018,8 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -1525,27 +2027,27 @@
         }
       },
       "description": "The share of time the disk had requests in flight.",
-      "id": 23
+      "id": 29
     },
     {
       "type": "row",
-      "title": "Network, VMs and temperatures",
+      "title": "Network and VMs",
       "collapsed": false,
       "panels": [],
       "gridPos": {
-        "h": 1,
-        "w": 24,
         "x": 0,
-        "y": 32
+        "y": 42,
+        "w": 24,
+        "h": 1
       },
-      "id": 24
+      "id": 30
     },
     {
       "type": "timeseries",
       "title": "Network",
       "gridPos": {
         "x": 0,
-        "y": 33,
+        "y": 43,
         "w": 12,
         "h": 8
       },
@@ -1576,16 +2078,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
-            "axisSoftMin": 0,
+            "axisSoftMin": null,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
@@ -1598,22 +2104,23 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "The physical interface; up is in, down is out.",
-      "id": 25
+      "description": "Physical interfaces; up is in, down is out.",
+      "id": 31
     },
     {
       "type": "timeseries",
       "title": "VM traffic",
       "gridPos": {
         "x": 12,
-        "y": 33,
+        "y": 43,
         "w": 12,
         "h": 8
       },
@@ -1627,7 +2134,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "label_replace(rate(node_network_receive_bytes_total{job=\"node\", device=~\"yt-.*\", instance=\"$instance\"}[$__rate_interval]), \"vm\", \"$1\", \"device\", \"yt-(.*)\") * 8",
+          "expr": "label_replace(rate(node_network_receive_bytes_total{instance=\"$instance\", device=~\"yt-.*\"}[$__rate_interval]), \"vm\", \"$1\", \"device\", \"yt-(.*)\") * 8",
           "legendFormat": "…{{vm}} sent",
           "refId": "A"
         },
@@ -1636,7 +2143,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "label_replace(rate(node_network_transmit_bytes_total{job=\"node\", device=~\"yt-.*\", instance=\"$instance\"}[$__rate_interval]), \"vm\", \"$1\", \"device\", \"yt-(.*)\") * -8",
+          "expr": "label_replace(rate(node_network_transmit_bytes_total{instance=\"$instance\", device=~\"yt-.*\"}[$__rate_interval]), \"vm\", \"$1\", \"device\", \"yt-(.*)\") * -8",
           "legendFormat": "…{{vm}} received",
           "refId": "B"
         }
@@ -1644,21 +2151,26 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
-            "axisSoftMin": 0,
+            "axisSoftMin": null,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
-            "mode": "palette-classic"
+            "mode": "palette-classic-by-name"
           },
-          "unit": "bps"
+          "unit": "bps",
+          "noValue": "No VMs"
         },
         "overrides": []
       },
@@ -1666,22 +2178,23 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "description": "Each yonder VM's traffic, from its TAP; up is sent by the VM, down is received. A VM is named by the end of its ID.",
-      "id": 26
+      "description": "From each VM's TAP on its host: up is sent by the VMs, down is received. A VM is named by the end of its ID.",
+      "id": 32
     },
     {
       "type": "table",
       "title": "VMs",
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 51,
         "w": 12,
         "h": 7
       },
@@ -1695,7 +2208,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance, device, vm) (label_replace(label_replace(node_systemd_unit_state{job=\"node\", state=\"active\", name=~\"yonder-vm-.*\", instance=\"$instance\"} == 1, \"vm\", \"$1\", \"name\", \"yonder-vm-(.*)\\\\.service\"), \"device\", \"yt-$1\", \"name\", \"yonder-vm-.*(.{12})\\\\.service\"))",
+          "expr": "max by (instance, device, vm) (label_replace(label_replace(node_systemd_unit_state{instance=\"$instance\", state=\"active\", name=~\"yonder-vm-.*\"} == 1, \"vm\", \"$1\", \"name\", \"yonder-vm-(.*)\\\\.service\"), \"device\", \"yt-$1\", \"name\", \"yonder-vm-.*(.{12})\\\\.service\"))",
           "legendFormat": "",
           "refId": "A",
           "instant": true,
@@ -1707,7 +2220,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance, device) (label_replace(node_systemd_unit_start_time_seconds{job=\"node\", name=~\"yonder-vm-.*\", instance=\"$instance\"} * 1000, \"device\", \"yt-$1\", \"name\", \"yonder-vm-.*(.{12})\\\\.service\"))",
+          "expr": "max by (instance, device) (label_replace(node_systemd_unit_start_time_seconds{instance=\"$instance\", name=~\"yonder-vm-.*\"} * 1000, \"device\", \"yt-$1\", \"name\", \"yonder-vm-.*(.{12})\\\\.service\"))",
           "legendFormat": "",
           "refId": "B",
           "instant": true,
@@ -1719,7 +2232,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance, device) (rate(node_network_receive_bytes_total{job=\"node\", device=~\"yt-.*\", instance=\"$instance\"}[5m])) * 8",
+          "expr": "max by (instance, device) (rate(node_network_receive_bytes_total{instance=\"$instance\", device=~\"yt-.*\"}[5m])) * 8",
           "legendFormat": "",
           "refId": "C",
           "instant": true,
@@ -1731,7 +2244,7 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max by (instance, device) (rate(node_network_transmit_bytes_total{job=\"node\", device=~\"yt-.*\", instance=\"$instance\"}[5m])) * 8",
+          "expr": "max by (instance, device) (rate(node_network_transmit_bytes_total{instance=\"$instance\", device=~\"yt-.*\"}[5m])) * 8",
           "legendFormat": "",
           "refId": "D",
           "instant": true,
@@ -1739,6 +2252,151 @@
           "format": "table"
         }
       ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "minWidth": 70
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "No VMs"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Machine"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__value.text}",
+                    "url": "/d/box/machine?var-instance=${__value.text}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Machine"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic-by-name"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Started"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              },
+              {
+                "id": "noValue",
+                "value": "—"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bps"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Received"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bps"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "VM"
+            },
+            "properties": [
+              {
+                "id": "custom.minWidth",
+                "value": 240
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Machine",
+            "desc": false
+          }
+        ]
+      },
+      "description": "yonder's VMs on this machine.",
       "transformations": [
         {
           "id": "merge",
@@ -1765,12 +2423,6 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "__name__": true,
-              "job": true,
-              "host": true,
-              "name": true,
-              "state": true,
-              "type": true,
               "Value #A": true,
               "device": true
             },
@@ -1783,7 +2435,7 @@
             },
             "renameByName": {
               "vm": "VM",
-              "instance": "Box",
+              "instance": "Machine",
               "Value #B": "Started",
               "Value #C": "Sent",
               "Value #D": "Received"
@@ -1791,106 +2443,14 @@
           }
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "minWidth": 60
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Started"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "dateTimeFromNow"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Sent"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bps"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Received"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bps"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "VM"
-            },
-            "properties": [
-              {
-                "id": "custom.minWidth",
-                "value": 220
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Box"
-            },
-            "properties": [
-              {
-                "id": "links",
-                "value": [
-                  {
-                    "title": "Open ${__value.text}",
-                    "url": "/d/box/box?var-instance=${__value.text}&${__url_time_range}"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "footer": {
-          "show": false
-        },
-        "sortBy": [
-          {
-            "displayName": "Box",
-            "desc": false
-          }
-        ]
-      },
-      "description": "yonder's VMs on this box.",
-      "id": 27
+      "id": 33
     },
     {
       "type": "timeseries",
       "title": "Temperatures",
       "gridPos": {
         "x": 12,
-        "y": 41,
+        "y": 51,
         "w": 12,
         "h": 7
       },
@@ -1930,21 +2490,26 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "lineWidth": 1,
-            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
             "showPoints": "never",
             "spanNulls": 60000,
             "axisSoftMin": 20,
+            "axisBorderShow": false,
+            "barAlignment": 0,
             "stacking": {
               "mode": "none",
               "group": "A"
-            },
-            "gradientMode": "none"
+            }
           },
           "color": {
             "mode": "palette-classic"
           },
-          "unit": "celsius"
+          "unit": "celsius",
+          "noValue": "No sensors"
         },
         "overrides": []
       },
@@ -1952,21 +2517,22 @@
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": true,
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
         }
       },
-      "id": 28
+      "id": 34
     },
     {
       "type": "logs",
       "title": "Journal: warnings and errors",
       "gridPos": {
         "x": 0,
-        "y": 48,
+        "y": 58,
         "w": 24,
         "h": 10
       },
@@ -1982,9 +2548,14 @@
           },
           "expr": "host:\"$instance\" PRIORITY:in(\"0\",\"1\",\"2\",\"3\",\"4\")",
           "queryType": "instant",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "options": {
         "showTime": true,
         "wrapLogMessage": true,
@@ -1993,7 +2564,7 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 29
+      "id": 35
     }
   ]
 }
