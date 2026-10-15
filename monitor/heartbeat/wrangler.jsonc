@@ -6,6 +6,9 @@
   "main": "src/index.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": true,
+  // Workers Logs: what the Worker logs, and its errors, kept by Cloudflare (its dashboard >
+  // Workers > homelab-heartbeat > Logs). The Worker logs state changes, not each ping.
+  "observability": { "enabled": true },
   "durable_objects": {
     "bindings": [{ "name": "HEARTBEAT", "class_name": "Heartbeat" }]
   },

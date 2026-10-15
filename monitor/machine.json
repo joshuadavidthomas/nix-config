@@ -276,6 +276,51 @@
       }
     },
     {
+      "name": "logs",
+      "image": "timberio/vector:0.58.0-alpine",
+      "cmd": [
+        "--config",
+        "/etc/vector/vector.yaml"
+      ],
+      "secrets": [
+        {
+          "env_var": "FLY_LOG_TOKEN"
+        }
+      ],
+      "files": [
+        {
+          "guest_path": "/etc/vector/vector.yaml",
+          "local_path": "logs/vector.yaml"
+        }
+      ],
+      "depends_on": [
+        {
+          "name": "victorialogs",
+          "condition": "healthy"
+        }
+      ],
+      "healthchecks": [
+        {
+          "name": "http",
+          "kind": "liveness",
+          "http": {
+            "port": 8686,
+            "path": "/health",
+            "scheme": "http",
+            "method": "GET"
+          },
+          "interval": 15,
+          "timeout": 5,
+          "grace_period": 10,
+          "failure_threshold": 3,
+          "success_threshold": 1
+        }
+      ],
+      "restart": {
+        "policy": "always"
+      }
+    },
+    {
       "name": "grafana",
       "image": "grafana/grafana-oss:13.0.2",
       "entrypoint": [
@@ -291,7 +336,8 @@
         "GF_SERVER_ROOT_URL": "https://monitor.tail014d2.ts.net/",
         "GF_SERVER_HTTP_ADDR": "127.0.0.1",
         "GF_SECURITY_COOKIE_SECURE": "true",
-        "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": "/etc/grafana/dashboards/overview.json"
+        "GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH": "/etc/grafana/dashboards/overview.json",
+        "GF_LOG_LEVEL": "warn"
       },
       "files": [
         {
