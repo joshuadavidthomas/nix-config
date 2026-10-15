@@ -77,8 +77,10 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   A Durable Object's alarm needs no polling, and Cloudflare retries it when hark fails.
 - **What needs you even at night is a hark on-call page; the rest are silent notifications.**
   Pages: a box silent, a drive failing or warning, the monitor silent.
-  Reason: hark's ordinary notifications have no sound. Its on-call pages are time-sensitive,
-  have a sound, and repeat until acknowledged.
+  Reason: hark's ordinary notifications have no sound. Its on-call pages have a sound and
+  repeat until acknowledged. They are not time-sensitive on the phone: hark's iOS app lacks
+  Apple's time-sensitive entitlement, so iOS treats them as ordinary. To get them through a
+  Focus, allow Hark in that Focus.
 - **Alerts go to hark, and only alerts that need you soon. No Discord.**
   Reason: an alert that is not read, or that is so frequent it gets ignored, does nothing, and
   a Discord channel would not be read. The record of past alerts is in Grafana. Discord was

@@ -5,8 +5,8 @@ its own JSON (https://hark.ryan.ceo/docs), so this rewrites one into the other. 
 127.0.0.1:9099. When hark refuses, it answers 502, so Alertmanager tries again; the
 Idempotency-Key keeps a retry from reaching the phone twice.
 
-An alert labelled urgency=page is an on-call page instead (HARK_ONCALL_GROUP): time-sensitive,
-with a sound, repeated until acknowledged. When it resolves, the relay resolves the page with
+An alert labelled urgency=page is an on-call page instead (HARK_ONCALL_GROUP): with a sound,
+and repeated until acknowledged. When it resolves, the relay resolves the page with
 the monitor's page token (HARK_PAGES_TOKEN) and sends the resolved line as a notification.
 
 POST /heartbeat is the always-firing Watchdog, about every minute. It goes on to the heartbeat

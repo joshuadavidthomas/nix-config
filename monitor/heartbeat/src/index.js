@@ -1,7 +1,7 @@
 // The monitor's heartbeat, on Cloudflare (docs/monitor.md). The monitor's always-firing Watchdog
 // alert goes from Alertmanager through the hark relay to POST /ping about every minute. Each
 // ping moves a Durable Object's alarm 5 minutes out. When no ping comes, the alarm fires and
-// pages the on-call group (time-sensitive, with a sound, repeated until acknowledged); the next
+// pages the on-call group (with a sound, repeated until acknowledged); the next
 // ping resolves the page and sends a notification that it's back. It can't run on the monitor:
 // a dead monitor can't say it's dead.
 

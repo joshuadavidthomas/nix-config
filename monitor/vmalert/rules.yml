@@ -1,8 +1,8 @@
 # Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
 # summary is what the phone shows when an alert fires, under the box's name; resolved is what
 # it shows when the alert ends, followed by how long it lasted. Keep both one short sentence.
-# urgency: page makes the alert a hark on-call page: time-sensitive, with a sound, repeated
-# until acknowledged. Only for what needs you even at night; the rest arrive silently.
+# urgency: page makes the alert a hark on-call page: with a sound, and repeated until
+# acknowledged (docs/monitor.md). Only for what needs you even at night; the rest arrive silently.
 # Every alert here goes to hark, so each must need a person, soon, and fire rarely. A trend that
 # can wait (drive wear, temperatures, swap, Vector's queues) is a dashboard panel, not an alert.
 groups:
