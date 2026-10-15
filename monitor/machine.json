@@ -9,7 +9,7 @@
       "cmd": [
         "sh",
         "-c",
-        "mkdir -p /data/tailscale /data/vm /data/vl /data/grafana /data/alertmanager && chown 472:0 /data/grafana && chown 65534:65534 /data/alertmanager"
+        "mkdir -p /data/tailscale /data/vm /data/vl /data/grafana /data/alertmanager /data/hark && chown 472:0 /data/grafana && chown 65534:65534 /data/alertmanager"
       ],
       "restart": {
         "policy": "no"
@@ -228,7 +228,8 @@
       ],
       "env": {
         "HARK_APP_ID": "app_jtxjHf9n2_zQS3ag",
-        "HEARTBEAT_URL": "https://homelab-heartbeat.joshthomasdev.workers.dev/ping"
+        "HEARTBEAT_URL": "https://homelab-heartbeat.joshthomasdev.workers.dev/ping",
+        "HARK_ONCALL_GROUP": "ocg_r281ZmraVfmAQQVW"
       },
       "secrets": [
         {
@@ -236,6 +237,9 @@
         },
         {
           "env_var": "HEARTBEAT_TOKEN"
+        },
+        {
+          "env_var": "HARK_PAGES_TOKEN"
         }
       ],
       "files": [

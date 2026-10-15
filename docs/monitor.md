@@ -126,6 +126,19 @@ inside hark: Grafana is registered as a hark app (`HARK_APP_ID` in `monitor/mach
 hark gets a second message when an alert resolves, and a repeat each 12 hours while it fires.
 The hark webhook URL is the Fly secret `HARK_WEBHOOK_URL`; only the `hark` container gets it.
 
+Three alerts, and the heartbeat's "Monitor silent", are hark **on-call pages** instead
+(`urgency: page` in `rules.yml`): time-sensitive, with a sound, and repeated after 5 and 15
+minutes until you acknowledge them on the lock screen. They break through a Focus mode if hark
+may send time-sensitive notifications (iOS Settings > Notifications > Hark, and each Focus).
+Ordinary hark notifications have no sound (hark issue #9), so the rest arrive silently. When a
+paged alert resolves, the relay or the Worker resolves the page with the monitor's own hark
+token, `HARK_PAGES_TOKEN` (scopes `oncall:read` and `oncall:write`), and sends the resolved line
+as an ordinary notification. The relay keeps the open pages' IDs in `/data/hark/pages.json`.
+
+The on-call group is "Homelab" (`ocg_r281ZmraVfmAQQVW`, `HARK_ONCALL_GROUP`), in the hark team
+"Homelab" (`team_ldHosVdZTYzn_E5P`), with you always on call. The service that sends the pages
+must belong to someone in that team.
+
 Grafana became a hark app with hark's API. The published `harkctl` (0.4.3) has no `apps`
 command, although hark's docs and app show one, so log in with the app scopes and call the
 API. The login keeps harkctl's other scopes; the token stays in the config file:
@@ -148,8 +161,8 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 
 | Alert | When |
 | --- | --- |
-| `BoxSilent` | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
-| `DriveFailing`, `DriveCriticalWarning` | A drive fails its SMART check, or reports an NVMe critical warning |
+| `BoxSilent` (page) | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
+| `DriveFailing`, `DriveCriticalWarning` (pages) | A drive fails its SMART check, or reports an NVMe critical warning |
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |

@@ -1,6 +1,8 @@
 # Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
 # summary is what the phone shows when an alert fires, under the box's name; resolved is what
 # it shows when the alert ends, followed by how long it lasted. Keep both one short sentence.
+# urgency: page makes the alert a hark on-call page: time-sensitive, with a sound, repeated
+# until acknowledged. Only for what needs you even at night; the rest arrive silently.
 # Every alert here goes to hark, so each must need a person, soon, and fire rarely. A trend that
 # can wait (drive wear, temperatures, swap, Vector's queues) is a dashboard panel, not an alert.
 groups:
@@ -12,18 +14,21 @@ groups:
         # was down, the boxes send the queued samples oldest first, and lab-3 looked silent.
         expr: max by (instance) (lag(node_load1{job="node"}[24h])) > 180
         for: 2m
+        labels: { urgency: page }
         annotations:
           summary: "Stopped reporting {{ $value | humanizeDuration }} ago"
           resolved: "Reporting again"
 
       - alert: DriveFailing
         expr: smartctl_device_smart_status{job="smartctl"} == 0
+        labels: { urgency: page }
         annotations:
           summary: "{{ $labels.device }} failed its SMART check: back it up and replace it"
           resolved: "{{ $labels.device }} passes its SMART check again"
 
       - alert: DriveCriticalWarning
         expr: smartctl_device_critical_warning{job="smartctl"} > 0
+        labels: { urgency: page }
         annotations:
           summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the SMART dashboard"
           resolved: "{{ $labels.device }} has no critical warning now"
