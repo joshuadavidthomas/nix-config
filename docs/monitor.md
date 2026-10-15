@@ -19,7 +19,7 @@ in a Docker Compose file. The containers share one network, so they reach each o
 | `vmalert` | Evaluates the alert rules in `monitor/vmalert/rules.yml` each 30 s | in VictoriaMetrics |
 | `alertmanager` | Groups alerts and sends them to the relay | `/data/alertmanager` |
 | `hark` | Rewrites each alert for hark and sends it to your phone (`monitor/hark/relay.py`) | |
-| `logs` | Vector: the monitor's own logs into VictoriaLogs (`monitor/logs/vector.yaml`) | |
+| `logs` | The monitor's own logs into VictoriaLogs (`monitor/logs/poll.py`) | `/data/logs` |
 | `grafana` | Dashboards, from `monitor/grafana/`, on 127.0.0.1:3000 only; logs warnings and up | `/data/grafana` |
 
 The machine has no public IP and no Fly services, so nothing on the internet can connect to
@@ -128,13 +128,19 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 | The heartbeat Worker | Cloudflare's Workers Logs | Cloudflare dashboard > Workers > homelab-heartbeat > Logs |
 | Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
 
-The `logs` container reads the monitor app's output from Fly's log stream (NATS at
-`[fdaa::3]:4223`, on the org's private network), with a read-only token for the Fly org, the
-secret `FLY_LOG_TOKEN`. Fly's records don't say which container wrote a line, so the
-container's name comes from each program's line format: Grafana's `logger=`, vmalert's
-`app/vmalert`, Alertmanager's `time=… level=… source=`, Tailscale's dated Go lines, the relay's
-`relay: `. VictoriaLogs is built on VictoriaMetrics' libraries, so some of its generic lines are
-labelled `victoriametrics`; what can't be told apart is `other`.
+The `logs` container asks Fly's logs API, the one `fly logs` uses, every 10 s for the monitor
+app's new lines, with a read-only token for the Fly org (the secret `FLY_LOG_TOKEN`), and sends
+them to VictoriaLogs. Its place in the stream is in `/data/logs`, so a restart neither repeats
+nor skips lines. Not Fly's log stream (NATS, through Vector, as Fly's log shipper does): it
+refused the read-only token in every form ("authorization violation").
+
+Fly's records don't say which container wrote a line, so `poll.py` takes the container's name
+from each program's line format (`CONTAINERS`): Grafana's `logger=`, vmalert's `app/vmalert`,
+VictoriaLogs' `VictoriaMetrics@v…` library paths, Alertmanager's `time=… level=… source=`,
+Tailscale's dated Go lines, the relay's `relay: `, and `fly` for Fly's own machine (its agent,
+Firecracker, the kernel, image pulls). The relay and the poller exit quietly on Fly's stop
+signal, so no tracebacks. What matches nothing is `other`; in a full stop and start, 3 of
+about 360 lines were, before the last patterns.
 
 The Worker can't send to VictoriaLogs, which listens only on the tailnet. It logs state changes
 (silence, page, back) and errors to Cloudflare instead (`observability` in `wrangler.jsonc`).
