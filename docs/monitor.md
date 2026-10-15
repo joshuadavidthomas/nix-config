@@ -97,20 +97,34 @@ than the interval reads 0 in VictoriaMetrics, not empty.
 
 ## Dashboards
 
-Grafana loads its data sources and dashboards from `monitor/grafana/` at start:
+Grafana loads its data sources and dashboards from `monitor/grafana/` at start. The three
+written for this monitor refresh every 10 s, and each panel's ⓘ says what it shows:
 
-- **Homelab overview**, the home page (`overview.json`, written for this monitor): all boxes
-  at once, over the last 30 minutes, refreshing every 10 s. A row of current values (firing
-  alerts, last data, CPU, memory, root disk, hottest sensor, drive wear), graphs with a line
-  for each box (CPU, memory, network, disk I/O, load against cores, temperatures, yonder VMs,
-  swap, Vector's queue), the firing alerts, and the journal's warnings and errors. The trends
-  that are not alerts are here.
-- **Node Exporter Full** (grafana.com 1860): everything about one box. Choose it with
-  "Instance".
-- **SMARTctl Exporter Dashboard** (22604): drive health.
+- **Homelab**, the home page (`overview.json`): is everything fine, where is there room, and
+  what are the VMs doing. The lab as a whole (alerts, boxes reporting, VMs, free cores,
+  memory and disk), a card for each box (reporting, CPU, memory, disk, CPU temperature, VMs,
+  uptime), room for VMs on each box, the VMs, trends for the last hour, and the journal's
+  errors. On a phone the panels stack, the lab and the cards first. Click a box's card, or a
+  box in a table, for its dashboard.
+- **Box** (`box.json`): one box. Its hardware, CPU by kind, pressure (how long tasks waited for
+  CPU, memory or the disk: the sign that VMs contend for the box), memory, load, the drive's
+  health and I/O, the network, its VMs and their traffic, temperatures, and the journal's
+  warnings and errors.
+- **Monitor** (`monitor.json`): the monitor itself. The volume, what the stores hold, the data
+  arriving, Vector's queue on each box, the memory of each service against the machine's 1 GB,
+  Alertmanager's sends to the relay (mostly the Watchdog's pings, about 1 a minute), and the
+  relay's and the monitor's logs. VictoriaMetrics scrapes the monitor's services each 30 s for
+  it (`monitor/victoriametrics/scrape.yml`), with `host` and `instance` `monitor`.
+- **Node Exporter Full** (grafana.com 1860): everything about one box; linked from Box.
 - Logs: Explore, with the data source VictoriaLogs. For example `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
 
-Both dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
+A VM is known by its yonder ID, from its unit `yonder-vm-<ID>.service`. Its traffic is its
+TAP's on the host (`yt-` and the ID's last 12 characters), so what the TAP receives the VM sent.
+When it started comes from node_exporter's unit start times
+(`--collector.systemd.enable-start-time-metrics` in `modules/nixos/server.nix`). Per-VM CPU and
+memory are not collected; yonderd would be the place to export them.
+
+The dashboards select by the labels `job` and `instance`, which Vector adds on the lab boxes
 (`modules/nixos/server.nix`): `instance` is the box's name, and `job` is `node`, `smartctl` or
 `vector`.
 
@@ -123,7 +137,7 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 
 | Logs | Where | Read them |
 | --- | --- | --- |
-| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: the overview's last panel, or Explore with VictoriaLogs (`host:lab-2`) |
+| The lab boxes' journals | VictoriaLogs, 30 days | Grafana: errors on Homelab, warnings on Box, or Explore with VictoriaLogs (`host:lab-2`) |
 | The monitor's containers | VictoriaLogs, 30 days | Explore: `host:monitor container:hark` |
 | The heartbeat Worker | Cloudflare's Workers Logs | Cloudflare dashboard > Workers > homelab-heartbeat > Logs |
 | Inside yonder's VMs | Not collected | ([Decisions](decisions.md#monitoring)) |
@@ -203,6 +217,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |
+| `MonitorVolumeFull` | The monitor's volume is over 85 % full for 30 minutes. At 100 % the stores stop taking data; extend it with `fly volumes extend` |
 | `Watchdog` | Always. It is the heartbeat, below. |
 
 In about a month, count how often each alert fired, and whether it needed you. Fix or delete

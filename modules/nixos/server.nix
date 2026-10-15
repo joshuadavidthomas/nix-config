@@ -81,6 +81,8 @@ in
     enable = true;
     listenAddress = "127.0.0.1";
     enabledCollectors = [ "systemd" ]; # unit states, in place of container metrics
+    # when each unit started: how long each yonder VM has been up, on the dashboards
+    extraFlags = [ "--collector.systemd.enable-start-time-metrics" ];
   };
   services.prometheus.exporters.smartctl = {
     enable = true; # drive health; scans every disk

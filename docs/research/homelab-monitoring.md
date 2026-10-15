@@ -29,7 +29,8 @@ backups are not built yet. The tasks are in the [roadmap](../roadmap.md#monitori
 
 On each lab box, in `modules/nixos/server.nix`:
 
-- node_exporter, with its `systemd` collector, and smartctl_exporter for drive health. Both
+- node_exporter, with its `systemd` collector and each unit's start time (how long a yonder VM
+  has been up), and smartctl_exporter for drive health. Both
   listen on localhost only: `tailscale0` is a trusted interface, so on `0.0.0.0` every node on
   the tailnet could read them.
 - Vector scrapes node_exporter at two speeds: the collectors Grafana shows live (CPU,
