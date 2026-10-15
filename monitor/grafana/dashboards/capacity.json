@@ -1,7 +1,7 @@
 {
   "uid": "capacity",
   "title": "Capacity",
-  "description": "Where does the next workload go, and when do I run out?",
+  "description": "",
   "editable": false,
   "graphTooltip": 1,
   "time": {
@@ -66,27 +66,11 @@
   },
   "panels": [
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 2
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### Where does the next workload go, and when do I run out?\nFree room per machine now, and how fast it is shrinking."
-      },
-      "id": 1
-    },
-    {
       "type": "table",
       "title": "Room",
       "gridPos": {
         "x": 0,
-        "y": 2,
+        "y": 0,
         "w": 24,
         "h": 10
       },
@@ -532,14 +516,14 @@
           }
         }
       ],
-      "id": 2
+      "id": 1
     },
     {
       "type": "bargauge",
       "title": "Disk full in",
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 10,
         "w": 8,
         "h": 9
       },
@@ -609,14 +593,14 @@
       },
       "description": "Days until / is full, at the rate it filled over the last week. 3650 means ten years or more: it is not filling.",
       "novalue": null,
-      "id": 3
+      "id": 2
     },
     {
       "type": "bargauge",
       "title": "Disk used",
       "gridPos": {
         "x": 8,
-        "y": 12,
+        "y": 10,
         "w": 8,
         "h": 9
       },
@@ -685,14 +669,14 @@
         }
       },
       "description": "Root filesystem, per machine.",
-      "id": 4
+      "id": 3
     },
     {
       "type": "bargauge",
       "title": "Drive wear",
       "gridPos": {
         "x": 16,
-        "y": 12,
+        "y": 10,
         "w": 8,
         "h": 9
       },
@@ -761,7 +745,7 @@
         }
       },
       "description": "The share of its rated writes each drive has used (NVMe). Machines without SMART data are not listed.",
-      "id": 5
+      "id": 4
     },
     {
       "type": "row",
@@ -770,18 +754,18 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 19,
         "w": 24,
         "h": 1
       },
-      "id": 6
+      "id": 5
     },
     {
       "type": "timeseries",
       "title": "Memory used",
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -841,14 +825,14 @@
         }
       },
       "description": "Per machine, over the last 30 days.",
-      "id": 7
+      "id": 6
     },
     {
       "type": "timeseries",
       "title": "Disk used",
       "gridPos": {
         "x": 12,
-        "y": 22,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -908,14 +892,14 @@
         }
       },
       "description": "Root filesystem, per machine.",
-      "id": 8
+      "id": 7
     },
     {
       "type": "timeseries",
       "title": "CPU in use (hourly average)",
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 28,
         "w": 12,
         "h": 8
       },
@@ -974,14 +958,14 @@
           "sort": "desc"
         }
       },
-      "id": 9
+      "id": 8
     },
     {
       "type": "timeseries",
       "title": "Written to each drive per day",
       "gridPos": {
         "x": 12,
-        "y": 30,
+        "y": 28,
         "w": 12,
         "h": 8
       },
@@ -1041,7 +1025,7 @@
         }
       },
       "description": "What wears an SSD. Divide what is left of its rating by this for its life.",
-      "id": 10
+      "id": 9
     }
   ]
 }

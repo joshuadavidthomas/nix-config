@@ -1,7 +1,7 @@
 {
   "uid": "vms",
   "title": "VMs",
-  "description": "What are the VMs doing?",
+  "description": "",
   "editable": false,
   "graphTooltip": 1,
   "time": {
@@ -66,27 +66,11 @@
   },
   "panels": [
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 2
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### What are the VMs doing?\nyonder's VMs on every machine that runs them, from their units and TAPs on the host. What runs inside a VM is not collected."
-      },
-      "id": 1
-    },
-    {
       "type": "stat",
       "title": "VMs running",
       "gridPos": {
         "x": 0,
-        "y": 2,
+        "y": 0,
         "w": 6,
         "h": 4
       },
@@ -140,14 +124,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 2
+      "id": 1
     },
     {
       "type": "stat",
       "title": "Machines with VMs",
       "gridPos": {
         "x": 6,
-        "y": 2,
+        "y": 0,
         "w": 6,
         "h": 4
       },
@@ -201,14 +185,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 3
+      "id": 2
     },
     {
       "type": "stat",
       "title": "yonderd",
       "gridPos": {
         "x": 12,
-        "y": 2,
+        "y": 0,
         "w": 6,
         "h": 4
       },
@@ -265,7 +249,7 @@
                   "mode": "absolute",
                   "steps": [
                     {
-                      "color": "#73BF69",
+                      "color": "text",
                       "value": null
                     },
                     {
@@ -295,14 +279,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 4
+      "id": 3
     },
     {
       "type": "stat",
       "title": "VM traffic",
       "gridPos": {
         "x": 18,
-        "y": 2,
+        "y": 0,
         "w": 6,
         "h": 4
       },
@@ -357,14 +341,14 @@
         "showPercentChange": false
       },
       "description": "In and out of all VMs.",
-      "id": 5
+      "id": 4
     },
     {
       "type": "table",
       "title": "VMs",
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 4,
         "w": 24,
         "h": 9
       },
@@ -613,14 +597,14 @@
           }
         }
       ],
-      "id": 6
+      "id": 5
     },
     {
       "type": "state-timeline",
       "title": "Running",
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 13,
         "w": 24,
         "h": 8
       },
@@ -695,14 +679,14 @@
         "alignValue": "left"
       },
       "description": "When each VM's unit was active. A VM that was deleted leaves its lane.",
-      "id": 7
+      "id": 6
     },
     {
       "type": "timeseries",
       "title": "VMs per machine",
       "gridPos": {
         "x": 0,
-        "y": 23,
+        "y": 21,
         "w": 12,
         "h": 8
       },
@@ -758,14 +742,14 @@
           "sort": "desc"
         }
       },
-      "id": 8
+      "id": 7
     },
     {
       "type": "timeseries",
       "title": "VM traffic",
       "gridPos": {
         "x": 12,
-        "y": 23,
+        "y": 21,
         "w": 12,
         "h": 8
       },
@@ -832,7 +816,7 @@
         }
       },
       "description": "From each VM's TAP on its host: up is sent by the VMs, down is received. A VM is named by the end of its ID.",
-      "id": 9
+      "id": 8
     }
   ]
 }

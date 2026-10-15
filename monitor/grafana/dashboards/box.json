@@ -1,7 +1,7 @@
 {
   "uid": "box",
   "title": "Machine",
-  "description": "What is going on with this machine?",
+  "description": "",
   "editable": false,
   "graphTooltip": 1,
   "time": {
@@ -64,27 +64,11 @@
   },
   "panels": [
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 2
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### What is going on with this machine?\nPick it above. Sections a machine has no data for stay empty: a Mac has no SMART data, and only yonder hosts have VMs."
-      },
-      "id": 1
-    },
-    {
       "type": "stat",
       "title": "Model",
       "gridPos": {
         "x": 0,
-        "y": 2,
+        "y": 0,
         "w": 5,
         "h": 3
       },
@@ -139,14 +123,14 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 2
+      "id": 1
     },
     {
       "type": "stat",
       "title": "CPU",
       "gridPos": {
         "x": 5,
-        "y": 2,
+        "y": 0,
         "w": 3,
         "h": 3
       },
@@ -201,14 +185,14 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 3
+      "id": 2
     },
     {
       "type": "stat",
       "title": "Memory",
       "gridPos": {
         "x": 8,
-        "y": 2,
+        "y": 0,
         "w": 3,
         "h": 3
       },
@@ -264,14 +248,14 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 4
+      "id": 3
     },
     {
       "type": "stat",
       "title": "Drive",
       "gridPos": {
         "x": 11,
-        "y": 2,
+        "y": 0,
         "w": 5,
         "h": 3
       },
@@ -326,14 +310,14 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 5
+      "id": 4
     },
     {
       "type": "stat",
       "title": "System",
       "gridPos": {
         "x": 16,
-        "y": 2,
+        "y": 0,
         "w": 5,
         "h": 3
       },
@@ -388,14 +372,14 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 6
+      "id": 5
     },
     {
       "type": "stat",
       "title": "Up",
       "gridPos": {
         "x": 21,
-        "y": 2,
+        "y": 0,
         "w": 3,
         "h": 3
       },
@@ -450,16 +434,16 @@
         "showPercentChange": false
       },
       "transparent": true,
-      "id": 7
+      "id": 6
     },
     {
       "type": "stat",
       "title": "Reporting",
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -485,7 +469,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#73BF69",
+                "color": "text",
                 "value": null
               },
               {
@@ -494,29 +478,7 @@
               }
             ]
           },
-          "mappings": [
-            {
-              "type": "range",
-              "options": {
-                "from": 0,
-                "to": 60,
-                "result": {
-                  "text": "Live",
-                  "color": "#73BF69"
-                }
-              }
-            },
-            {
-              "type": "range",
-              "options": {
-                "from": 60,
-                "to": 180,
-                "result": {
-                  "color": "#FF9830"
-                }
-              }
-            }
-          ],
+          "mappings": [],
           "unit": "s",
           "decimals": 0
         },
@@ -531,7 +493,7 @@
           "values": false
         },
         "textMode": "value",
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -539,16 +501,16 @@
         "showPercentChange": false
       },
       "description": "How long ago it last sent data.",
-      "id": 8
+      "id": 7
     },
     {
       "type": "stat",
       "title": "CPU",
       "gridPos": {
         "x": 4,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -609,16 +571,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 9
+      "id": 8
     },
     {
       "type": "stat",
       "title": "Memory",
       "gridPos": {
         "x": 8,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -679,16 +641,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 10
+      "id": 9
     },
     {
       "type": "stat",
       "title": "Disk",
       "gridPos": {
         "x": 12,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -749,16 +711,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 11
+      "id": 10
     },
     {
       "type": "stat",
       "title": "Waiting",
       "gridPos": {
         "x": 16,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -821,16 +783,16 @@
         "showPercentChange": false
       },
       "description": "The most time tasks spent waiting for CPU, memory or the disk (pressure). Sustained tens of percent means work is contending for the machine.",
-      "id": 12
+      "id": 11
     },
     {
       "type": "stat",
       "title": "CPU temp",
       "gridPos": {
         "x": 20,
-        "y": 5,
+        "y": 3,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -892,14 +854,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 13
+      "id": 12
     },
     {
       "type": "status-history",
       "title": "Reporting, last 7 days",
       "gridPos": {
         "x": 0,
-        "y": 10,
+        "y": 7,
         "w": 24,
         "h": 3
       },
@@ -968,7 +930,7 @@
       "description": "Each hour a machine sent data is green; a gap is an hour it sent nothing (off, rebooting or cut off).",
       "timeFrom": "7d",
       "interval": "1h",
-      "id": 14
+      "id": 13
     },
     {
       "type": "row",
@@ -977,18 +939,18 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 13,
+        "y": 10,
         "w": 24,
         "h": 1
       },
-      "id": 15
+      "id": 14
     },
     {
       "type": "timeseries",
       "title": "CPU",
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 11,
         "w": 12,
         "h": 8
       },
@@ -1045,14 +1007,14 @@
         }
       },
       "description": "CPU in use by kind, as a share of all cores.",
-      "id": 16
+      "id": 15
     },
     {
       "type": "timeseries",
       "title": "Waiting (pressure)",
       "gridPos": {
         "x": 12,
-        "y": 14,
+        "y": 11,
         "w": 12,
         "h": 8
       },
@@ -1128,14 +1090,14 @@
         }
       },
       "description": "The share of time some task waited for CPU, memory or the disk.",
-      "id": 17
+      "id": 16
     },
     {
       "type": "timeseries",
       "title": "Memory",
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 19,
         "w": 12,
         "h": 8
       },
@@ -1291,14 +1253,14 @@
         }
       },
       "description": "Used is what programs and VMs hold; the kernel gives cache back when it is needed.",
-      "id": 18
+      "id": 17
     },
     {
       "type": "timeseries",
       "title": "Load",
       "gridPos": {
         "x": 12,
-        "y": 22,
+        "y": 19,
         "w": 12,
         "h": 8
       },
@@ -1402,7 +1364,7 @@
         }
       },
       "description": "Tasks running or waiting; above the cores line, work queues.",
-      "id": 19
+      "id": 18
     },
     {
       "type": "row",
@@ -1411,18 +1373,18 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 27,
         "w": 24,
         "h": 1
       },
-      "id": 20
+      "id": 19
     },
     {
       "type": "stat",
       "title": "Wear",
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1486,14 +1448,14 @@
         "showPercentChange": false
       },
       "description": "The share of its rated writes the drive has used.",
-      "id": 21
+      "id": 20
     },
     {
       "type": "stat",
       "title": "Spare",
       "gridPos": {
         "x": 4,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1557,14 +1519,14 @@
         "showPercentChange": false
       },
       "description": "Spare blocks left for worn ones.",
-      "id": 22
+      "id": 21
     },
     {
       "type": "stat",
       "title": "Media errors",
       "gridPos": {
         "x": 8,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1592,7 +1554,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#73BF69",
+                "color": "text",
                 "value": null
               },
               {
@@ -1622,14 +1584,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 23
+      "id": 22
     },
     {
       "type": "stat",
       "title": "Written",
       "gridPos": {
         "x": 12,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1685,14 +1647,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 24
+      "id": 23
     },
     {
       "type": "stat",
       "title": "Powered on",
       "gridPos": {
         "x": 16,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1747,14 +1709,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 25
+      "id": 24
     },
     {
       "type": "stat",
       "title": "Drive temp",
       "gridPos": {
         "x": 20,
-        "y": 31,
+        "y": 28,
         "w": 4,
         "h": 4
       },
@@ -1817,14 +1779,14 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 26
+      "id": 25
     },
     {
       "type": "timeseries",
       "title": "Throughput",
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 32,
         "w": 8,
         "h": 7
       },
@@ -1890,14 +1852,14 @@
         }
       },
       "description": "Up is read, down is written.",
-      "id": 27
+      "id": 26
     },
     {
       "type": "timeseries",
       "title": "Latency",
       "gridPos": {
         "x": 8,
-        "y": 35,
+        "y": 32,
         "w": 8,
         "h": 7
       },
@@ -1963,14 +1925,14 @@
         }
       },
       "description": "The average time one read or write took. Empty while the disk is idle.",
-      "id": 28
+      "id": 27
     },
     {
       "type": "timeseries",
       "title": "Busy",
       "gridPos": {
         "x": 16,
-        "y": 35,
+        "y": 32,
         "w": 8,
         "h": 7
       },
@@ -2027,7 +1989,7 @@
         }
       },
       "description": "The share of time the disk had requests in flight.",
-      "id": 29
+      "id": 28
     },
     {
       "type": "row",
@@ -2036,18 +1998,18 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 39,
         "w": 24,
         "h": 1
       },
-      "id": 30
+      "id": 29
     },
     {
       "type": "timeseries",
       "title": "Network",
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 40,
         "w": 12,
         "h": 8
       },
@@ -2113,14 +2075,14 @@
         }
       },
       "description": "Physical interfaces; up is in, down is out.",
-      "id": 31
+      "id": 30
     },
     {
       "type": "timeseries",
       "title": "VM traffic",
       "gridPos": {
         "x": 12,
-        "y": 43,
+        "y": 40,
         "w": 12,
         "h": 8
       },
@@ -2187,14 +2149,14 @@
         }
       },
       "description": "From each VM's TAP on its host: up is sent by the VMs, down is received. A VM is named by the end of its ID.",
-      "id": 32
+      "id": 31
     },
     {
       "type": "table",
       "title": "VMs",
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 48,
         "w": 12,
         "h": 7
       },
@@ -2443,14 +2405,14 @@
           }
         }
       ],
-      "id": 33
+      "id": 32
     },
     {
       "type": "timeseries",
       "title": "Temperatures",
       "gridPos": {
         "x": 12,
-        "y": 51,
+        "y": 48,
         "w": 12,
         "h": 7
       },
@@ -2525,14 +2487,14 @@
           "sort": "desc"
         }
       },
-      "id": 34
+      "id": 33
     },
     {
       "type": "logs",
       "title": "Journal: warnings and errors",
       "gridPos": {
         "x": 0,
-        "y": 58,
+        "y": 55,
         "w": 24,
         "h": 10
       },
@@ -2564,7 +2526,7 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 35
+      "id": 34
     }
   ]
 }

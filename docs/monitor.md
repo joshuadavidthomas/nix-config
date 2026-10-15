@@ -98,17 +98,16 @@ than the interval reads 0 in VictoriaMetrics, not empty.
 ## Dashboards
 
 Grafana loads its data sources and dashboards from `monitor/grafana/` at start. Each dashboard
-answers one question, written at its top, and links to the others; each panel's ⓘ says what
-it shows.
+has one job and links to the others; each panel's ⓘ says what it shows.
 
-| Dashboard | Question | What it has |
+| Dashboard | For | What it has |
 | --- | --- | --- |
-| **Homelab**, the home page (`overview.json`) | Is anything wrong, and where? | Alerts, machines reporting or silent, VMs, CPU and memory in use, the heartbeat and the last alert; a row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); a 7-day reporting timeline, a 24-hour CPU strip, the last week's alerts, and errors |
-| **Capacity** (`capacity.json`) | Where does the next workload go, and when do I run out? | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
-| **VMs** (`vms.json`) | What are the VMs doing? | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
-| **Machine** (`box.json`) | What is going on with this machine? | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, load, the drive's health and I/O, network, VMs, the journal's warnings and errors |
-| **Logs** (`logs.json`) | What happened? | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
-| **Monitor** (`monitor.json`) | Is monitoring itself working? | The heartbeat, failed sends, data arriving, memory, the volume, Vector's queues, the relay's and the monitor's logs |
+| **Homelab**, the home page (`overview.json`) | Problems, and on which machine | Alerts firing, machines reporting or silent, VMs, CPU and memory in use, the heartbeat and the last alert; a row per machine (reporting, CPU over the last hours, memory, disk, temperature, VMs, uptime, model); a 7-day reporting timeline, a 24-hour CPU strip, the last week's alerts, and errors |
+| **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
+| **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started and its traffic; when each ran; VMs per machine; yonderd |
+| **Machine** (`box.json`) | One machine in detail | Hardware, live CPU, memory, disk, pressure and temperature, 7 days of reporting, load, the drive's health and I/O, network, VMs, the journal's warnings and errors |
+| **Logs** (`logs.json`) | Searching the journals | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
+| **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, failed sends, data arriving, memory, the volume, Vector's queues, the relay's and the monitor's logs |
 | Node Exporter Full (grafana.com 1860) | Everything node_exporter has | Linked from Machine |
 
 They work for any number of machines, of any kind. Whatever is per machine is a row in a

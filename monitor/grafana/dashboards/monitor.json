@@ -1,7 +1,7 @@
 {
   "uid": "monitor",
   "title": "Monitor",
-  "description": "Is monitoring itself working?",
+  "description": "",
   "editable": false,
   "graphTooltip": 1,
   "time": {
@@ -36,29 +36,13 @@
   },
   "panels": [
     {
-      "type": "text",
-      "title": "",
-      "gridPos": {
-        "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 2
-      },
-      "transparent": true,
-      "options": {
-        "mode": "markdown",
-        "content": "### Is monitoring itself working?\nThe monitor on Fly: what arrives, what it stores, and whether alerts reach your phone."
-      },
-      "id": 1
-    },
-    {
       "type": "stat",
       "title": "Heartbeat",
       "gridPos": {
         "x": 0,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -84,7 +68,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#73BF69",
+                "color": "text",
                 "value": null
               },
               {
@@ -112,7 +96,7 @@
           "values": false
         },
         "textMode": "value",
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -120,16 +104,16 @@
         "showPercentChange": false
       },
       "description": "How long ago Alertmanager last sent to the relay; mostly the Watchdog's pings toward the heartbeat Worker, about once a minute. At 5 minutes the Worker pages you.",
-      "id": 2
+      "id": 1
     },
     {
       "type": "stat",
       "title": "Failures",
       "gridPos": {
         "x": 4,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -155,7 +139,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#73BF69",
+                "color": "text",
                 "value": null
               },
               {
@@ -164,16 +148,7 @@
               }
             ]
           },
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": {
-                  "text": "None"
-                }
-              }
-            }
-          ],
+          "mappings": [],
           "decimals": 0
         },
         "overrides": []
@@ -187,7 +162,7 @@
           "values": false
         },
         "textMode": "value",
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
@@ -195,16 +170,16 @@
         "showPercentChange": false
       },
       "description": "In the last hour: sends Alertmanager failed, and rule evaluations vmalert failed.",
-      "id": 3
+      "id": 2
     },
     {
       "type": "stat",
       "title": "Samples in",
       "gridPos": {
         "x": 8,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -257,16 +232,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 4
+      "id": 3
     },
     {
       "type": "stat",
       "title": "Log lines in",
       "gridPos": {
         "x": 12,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -319,16 +294,16 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 5
+      "id": 4
     },
     {
       "type": "stat",
       "title": "Memory",
       "gridPos": {
         "x": 16,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -390,16 +365,16 @@
         "showPercentChange": false
       },
       "description": "The stores, vmalert and Alertmanager, of the machine's 1 GB (Grafana, Tailscale and the relays not counted).",
-      "id": 6
+      "id": 5
     },
     {
       "type": "stat",
       "title": "Volume",
       "gridPos": {
         "x": 20,
-        "y": 2,
+        "y": 0,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "datasource": {
         "type": "prometheus",
@@ -461,14 +436,14 @@
         "showPercentChange": false
       },
       "description": "The Fly volume both stores share (20 GB).",
-      "id": 7
+      "id": 6
     },
     {
       "type": "timeseries",
       "title": "Data in",
       "gridPos": {
         "x": 0,
-        "y": 7,
+        "y": 4,
         "w": 12,
         "h": 8
       },
@@ -546,14 +521,14 @@
         }
       },
       "description": "Log lines on the right axis. elasticsearch_bulk is the machines' journals; jsonline is the monitor's own logs.",
-      "id": 8
+      "id": 7
     },
     {
       "type": "timeseries",
       "title": "Vector queue on each machine",
       "gridPos": {
         "x": 12,
-        "y": 7,
+        "y": 4,
         "w": 12,
         "h": 8
       },
@@ -609,14 +584,14 @@
         }
       },
       "description": "Events each machine's Vector holds for the monitor. Tens between sends are normal; a queue that keeps growing means the monitor or the machine's internet is down.",
-      "id": 9
+      "id": 8
     },
     {
       "type": "timeseries",
       "title": "Memory per service",
       "gridPos": {
         "x": 0,
-        "y": 15,
+        "y": 12,
         "w": 12,
         "h": 8
       },
@@ -672,14 +647,14 @@
           "sort": "desc"
         }
       },
-      "id": 10
+      "id": 9
     },
     {
       "type": "timeseries",
       "title": "Stored",
       "gridPos": {
         "x": 12,
-        "y": 15,
+        "y": 12,
         "w": 12,
         "h": 8
       },
@@ -745,14 +720,14 @@
         }
       },
       "description": "What each store holds on the volume.",
-      "id": 11
+      "id": 10
     },
     {
       "type": "timeseries",
       "title": "Alerting",
       "gridPos": {
         "x": 0,
-        "y": 23,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -826,14 +801,14 @@
         }
       },
       "description": "Sends are mostly the Watchdog's pings, about 1 a minute; alerts to your phone add to them.",
-      "id": 12
+      "id": 11
     },
     {
       "type": "logs",
       "title": "The relay (hark and heartbeat)",
       "gridPos": {
         "x": 12,
-        "y": 23,
+        "y": 20,
         "w": 12,
         "h": 8
       },
@@ -865,14 +840,14 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 13
+      "id": 12
     },
     {
       "type": "logs",
       "title": "The monitor's logs",
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 28,
         "w": 24,
         "h": 10
       },
@@ -905,7 +880,7 @@
         "prettifyLogMessage": false
       },
       "description": "Every container's lines but Fly's own and Tailscale's routine peer contacts.",
-      "id": 14
+      "id": 13
     }
   ]
 }

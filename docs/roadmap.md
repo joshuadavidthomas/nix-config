@@ -70,7 +70,7 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] On-call pages (a sound, repeated until acknowledged) for a box silent, a
       failing drive and the monitor silent. Tested on 2026-10-15: a fake box's page, and the
       monitor stopped for 7 minutes.
-- [x] Dashboards, one for each question (Homelab, Capacity, VMs, Machine, Logs, Monitor), for any
+- [x] Dashboards, one for each job (Homelab, Capacity, VMs, Machine, Logs, Monitor), for any
       number of machines; the monitor scrapes its own services
 - [ ] Per-VM CPU and memory, from yonderd's own metrics
 - [ ] Find out why data queued during an outage arrives thinned: 1–2 samples a minute, not 6
