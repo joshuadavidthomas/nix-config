@@ -45,6 +45,8 @@ On each lab box, in `modules/nixos/server.nix`:
   Vector's own metrics it sends only buffer sizes, errors and dropped events.
 - Vector buffers to disk: 4 GB for metrics, about 2.5 days, and 1 GB for logs.
   VictoriaMetrics takes late samples, so an outage of the monitor or the ISP leaves no gap.
+  The queued samples arrive thinned, though: 1–2 a minute instead of 6, in the test on
+  2026-10-14.
 
 On Fly, one machine with one volume, on the tailnet as `monitor`, with no public IP. Each
 service is a container from its publisher's image; see [The monitor](../monitor.md):

@@ -148,8 +148,12 @@
       ],
       "depends_on": [
         {
-          "name": "prepare",
-          "condition": "exited_successfully"
+          "name": "victoriametrics",
+          "condition": "healthy"
+        },
+        {
+          "name": "alertmanager",
+          "condition": "healthy"
         }
       ],
       "healthchecks": [
@@ -223,11 +227,15 @@
         "/app/relay.py"
       ],
       "env": {
-        "HARK_APP_ID": "app_jtxjHf9n2_zQS3ag"
+        "HARK_APP_ID": "app_jtxjHf9n2_zQS3ag",
+        "HEARTBEAT_URL": "https://homelab-heartbeat.joshthomasdev.workers.dev/ping"
       },
       "secrets": [
         {
           "env_var": "HARK_WEBHOOK_URL"
+        },
+        {
+          "env_var": "HEARTBEAT_TOKEN"
         }
       ],
       "files": [

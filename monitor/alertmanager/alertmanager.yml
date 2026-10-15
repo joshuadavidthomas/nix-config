@@ -9,11 +9,13 @@ route:
   repeat_interval: 12h
   routes:
     # About every minute: the Worker says the monitor is silent after 5 minutes without it.
+    # Alertmanager checks a repeat only at a group_interval tick, so with both at 1m a repeat
+    # due a moment after a tick waits for the next one, and pings come every 2 minutes.
     - matchers: [alertname="Watchdog"]
       receiver: heartbeat
       group_wait: 0s
-      group_interval: 1m
-      repeat_interval: 1m
+      group_interval: 30s
+      repeat_interval: 30s
 
 # A box that is silent sends nothing else, so its other alerts are noise.
 inhibit_rules:

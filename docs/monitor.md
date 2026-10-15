@@ -144,7 +144,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 
 | Alert | When |
 | --- | --- |
-| `BoxSilent` | A lab box sent no metrics for 3 minutes. Its other alerts are held back. |
+| `BoxSilent` | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
 | `DriveFailing`, `DriveCriticalWarning` | A drive fails its SMART check, or reports an NVMe critical warning |
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
@@ -203,8 +203,10 @@ printf 'HEARTBEAT_TOKEN=%s\n' "$(op read 'op://dotfiles/Homelab monitor heartbea
   | fly secrets import --stage -a homelab-monitor-joshthomasdev
 ```
 
-Then set `HEARTBEAT_URL` in `monitor/machine.json` to the address with `/ping`, add
-`HEARTBEAT_TOKEN` to the `hark` container's `secrets`, and run `monitor/deploy.sh`.
+`HEARTBEAT_URL` in `monitor/machine.json` is the Worker's address with `/ping`
+(<https://homelab-heartbeat.joshthomasdev.workers.dev/ping>), and the `hark` container gets the
+Fly secret `HEARTBEAT_TOKEN`. The relay sends its own `User-Agent`: Cloudflare refuses Python's
+default one with error 1010 (403), before the Worker sees the request.
 
 To test it locally, `npx wrangler@4.151.0 dev --var SILENT_AFTER_SECONDS:5 ...` runs the Worker
 and its alarm on your machine.
@@ -261,6 +263,12 @@ short time.
   `GF_PATHS_DATA`, so the `grafana` container sets it in its `cmd` (`GF_PATHS_DATA=/data/grafana
   exec /run.sh`) instead. Check a running process's variables with
   `tr '\0' '\n' < /proc/<pid>/environ` in `fly machine exec`.
+- **The relay logs `heartbeat failed: HTTP Error 403`.** Cloudflare refused the request
+  itself (error 1010, a banned `User-Agent`); the Worker answers 401 for a wrong token.
+- **"Monitor silent" arrives although the monitor works.** Check how often Alertmanager sends
+  the Watchdog (`alertmanager_notifications_total{integration="webhook"}`): about once a
+  minute. Its route needs `group_interval` and `repeat_interval` below 1m, or a repeat waits
+  for the next tick and pings come every 2 minutes.
 - **A container gets "Connection refused" from VictoriaMetrics or VictoriaLogs on
   `localhost`.** They listen on IPv4 only unless they have `-enableTCP6`, and `localhost` can
   be `::1`.

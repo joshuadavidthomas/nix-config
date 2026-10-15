@@ -5,8 +5,11 @@ groups:
   - name: lab
     rules:
       - alert: BoxSilent
-        # lag() is the time since the last sample; a box keeps the alert for a day after it stops
+        # lag() is the time since the last sample; a box keeps the alert for a day after it stops.
+        # The for: lets a box that is still sending its queue catch up first: after the monitor
+        # was down, the boxes send the queued samples oldest first, and lab-3 looked silent.
         expr: max by (instance) (lag(node_load1{job="node"}[24h])) > 180
+        for: 2m
         annotations:
           summary: "{{ $labels.instance }} has sent no metrics for {{ $value | humanizeDuration }}"
 
