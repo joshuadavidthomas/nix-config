@@ -116,11 +116,28 @@ source `${DS_PROMETHEUS}`; replace that with `victoriametrics`, and delete its `
 
 vmalert evaluates `monitor/vmalert/rules.yml` and sends what fires to Alertmanager
 (`monitor/alertmanager/alertmanager.yml`), which sends it to hark through a relay
-(`monitor/hark/relay.py`). The relay rewrites Alertmanager's JSON into hark's: the summary is
-the alert and the box, and the body has a line for each alert. A tap opens Grafana's alerts
+(`monitor/hark/relay.py`). The relay rewrites Alertmanager's JSON into hark's. The phone shows
+the sender in bold, the box (`lab-2`, or `Monitor` from the heartbeat), and one line under
+it: the rule's `summary` annotation when it fires ("/ is 91 % full") and its `resolved`
+annotation when it ends, with how long it lasted ("/ is under 90 % again, after 40 min"). hark
+shows `summary` in place of `body`, so `body`, with the alert names, is only in the app. A new
+rule needs both annotations, each one short sentence. A tap opens Grafana's alerts
 inside hark: Grafana is registered as a hark app (`HARK_APP_ID` in `monitor/machine.json`).
 hark gets a second message when an alert resolves, and a repeat each 12 hours while it fires.
 The hark webhook URL is the Fly secret `HARK_WEBHOOK_URL`; only the `hark` container gets it.
+
+Three alerts, and the heartbeat's "Monitor silent", are hark **on-call pages** instead
+(`urgency: page` in `rules.yml`): time-sensitive, with a sound, and repeated after 5 and 15
+minutes until you acknowledge them on the lock screen. They break through a Focus mode if hark
+may send time-sensitive notifications (iOS Settings > Notifications > Hark, and each Focus).
+Ordinary hark notifications have no sound (hark issue #9), so the rest arrive silently. When a
+paged alert resolves, the relay or the Worker resolves the page with the monitor's own hark
+token, `HARK_PAGES_TOKEN` (scopes `oncall:read` and `oncall:write`), and sends the resolved line
+as an ordinary notification. The relay keeps the open pages' IDs in `/data/hark/pages.json`.
+
+The on-call group is "Homelab" (`ocg_r281ZmraVfmAQQVW`, `HARK_ONCALL_GROUP`), in the hark team
+"Homelab" (`team_ldHosVdZTYzn_E5P`), with you always on call. The service that sends the pages
+must belong to someone in that team.
 
 Grafana became a hark app with hark's API. The published `harkctl` (0.4.3) has no `apps`
 command, although hark's docs and app show one, so log in with the app scopes and call the
@@ -144,8 +161,8 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 
 | Alert | When |
 | --- | --- |
-| `BoxSilent` | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
-| `DriveFailing`, `DriveCriticalWarning` | A drive fails its SMART check, or reports an NVMe critical warning |
+| `BoxSilent` (page) | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
+| `DriveFailing`, `DriveCriticalWarning` (pages) | A drive fails its SMART check, or reports an NVMe critical warning |
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
 | `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |
@@ -207,6 +224,9 @@ printf 'HEARTBEAT_TOKEN=%s\n' "$(op read 'op://dotfiles/Homelab monitor heartbea
 (<https://homelab-heartbeat.joshthomasdev.workers.dev/ping>), and the `hark` container gets the
 Fly secret `HEARTBEAT_TOKEN`. The relay sends its own `User-Agent`: Cloudflare refuses Python's
 default one with error 1010 (403), before the Worker sees the request.
+
+After a change to the Worker, deploy it again from `monitor/heartbeat` with
+`npx wrangler@4.151.0 deploy`; its secrets stay.
 
 To test it locally, `npx wrangler@4.151.0 dev --var SILENT_AFTER_SECONDS:5 ...` runs the Worker
 and its alarm on your machine.

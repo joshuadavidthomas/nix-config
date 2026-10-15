@@ -1,4 +1,8 @@
 # Alert rules, evaluated by vmalert on the monitor (monitor/machine.json, docs/monitor.md).
+# summary is what the phone shows when an alert fires, under the box's name; resolved is what
+# it shows when the alert ends, followed by how long it lasted. Keep both one short sentence.
+# urgency: page makes the alert a hark on-call page: time-sensitive, with a sound, repeated
+# until acknowledged. Only for what needs you even at night; the rest arrive silently.
 # Every alert here goes to hark, so each must need a person, soon, and fire rarely. A trend that
 # can wait (drive wear, temperatures, swap, Vector's queues) is a dashboard panel, not an alert.
 groups:
@@ -10,37 +14,46 @@ groups:
         # was down, the boxes send the queued samples oldest first, and lab-3 looked silent.
         expr: max by (instance) (lag(node_load1{job="node"}[24h])) > 180
         for: 2m
+        labels: { urgency: page }
         annotations:
-          summary: "{{ $labels.instance }} has sent no metrics for {{ $value | humanizeDuration }}"
+          summary: "Stopped reporting {{ $value | humanizeDuration }} ago"
+          resolved: "Reporting again"
 
       - alert: DriveFailing
         expr: smartctl_device_smart_status{job="smartctl"} == 0
+        labels: { urgency: page }
         annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.device }} fails its SMART check"
+          summary: "{{ $labels.device }} failed its SMART check: back it up and replace it"
+          resolved: "{{ $labels.device }} passes its SMART check again"
 
       - alert: DriveCriticalWarning
         expr: smartctl_device_critical_warning{job="smartctl"} > 0
+        labels: { urgency: page }
         annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.device }} reports NVMe critical warning {{ $value }}"
+          summary: "{{ $labels.device }} reports an NVMe critical warning ({{ $value }}): check the SMART dashboard"
+          resolved: "{{ $labels.device }} has no critical warning now"
 
       - alert: DiskAlmostFull
         expr: 100 * (1 - node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|ramfs"} / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|ramfs"}) > 90
         for: 10m
         annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.mountpoint }} is {{ $value | printf \"%.0f\" }}% full"
+          summary: "{{ $labels.mountpoint }} is {{ $value | printf \"%.0f\" }} % full"
+          resolved: "{{ $labels.mountpoint }} is under 90 % again"
 
       - alert: CoreServiceFailed
         # the services a box needs to work and to be reached; a yonder VM failing is yonder's business
         expr: node_systemd_unit_state{job="node", state="failed", name=~"(yonderd|tailscaled|vector|sshd|nix-daemon|systemd-resolved|dhcpcd|opnix-secrets|prometheus-smartctl-exporter)\\.service"} == 1
         for: 5m
         annotations:
-          summary: "{{ $labels.instance }}: {{ $labels.name }} failed"
+          summary: "{{ $labels.name }} failed"
+          resolved: "{{ $labels.name }} is running again"
 
       - alert: LowMemory
         expr: 100 * node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 10
         for: 15m
         annotations:
-          summary: "{{ $labels.instance }} has {{ $value | printf \"%.0f\" }}% of its memory free"
+          summary: "Only {{ $value | printf \"%.0f\" }} % of memory free"
+          resolved: "Memory is back above 10 % free"
 
   - name: watchdog
     rules:

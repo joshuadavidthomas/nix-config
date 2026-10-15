@@ -67,6 +67,8 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] A heartbeat outside the monitor: a Cloudflare Worker (`monitor/heartbeat`)
 - [x] Test the heartbeat for real: stop the monitor for 6 minutes. "Monitor silent" and
       "Resolved" arrived; so did a false `BoxSilent` for lab-3, fixed with a `for: 2m`.
+- [x] On-call pages (sound, time-sensitive, repeated until acknowledged) for a box silent, a
+      failing drive and the monitor silent; the Worker's part needs `wrangler deploy`
 - [ ] Find out why data queued during an outage arrives thinned: 1–2 samples a minute, not 6
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin
