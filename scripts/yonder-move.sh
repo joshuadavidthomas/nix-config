@@ -20,9 +20,9 @@ boxes=("$@")
 dropin=/run/systemd/system/yonderd.service.d/yonder-move.conf
 start=/run/yonder-move-start
 
-# Runs a command on the box as root.
-# shellcheck disable=SC2029 # the command is quoted for the box here, on purpose
-on() { local b=$1; shift; ssh "$b" "sudo -n bash -c $(printf '%q' "$*")"; }
+# Runs a command on the box as root. The command goes to bash on stdin, not through the
+# login shell, which is fish.
+on() { local b=$1; shift; ssh "$b" sudo -n bash -s <<<"$*"; }
 
 # yonderd's log lines that say which fabric a box is in, newest last.
 membership() { on "$1" "journalctl -u yonderd -o cat --no-pager | grep -E 'msg=\"(fabric membership|joined the fabric)\"' | tail -n 1"; }
