@@ -32,8 +32,8 @@ ssh lab-2 'sudo install -d -m 0755 /etc/yonder && sudo install -m 0600 /dev/stdi
 
 Do this once. Before it, the lab boxes are members of the fabric that `yonder-coordinator`,
 a Fly Machine on the tailnet, coordinated, with `-join yonder-coordinator`. yonder has retired
-that coordinator. Until a box has moved, apply to it only with these steps: a plain
-`colmena apply` leaves its yonderd restarting with `start it once with -leave-fabric`.
+that coordinator. Move each box with `scripts/yonder-move.sh`, not a plain `colmena apply`,
+which leaves its yonderd restarting with `start it once with -leave-fabric`.
 
 Two things change in the same restart of yonderd:
 
@@ -44,66 +44,34 @@ Two things change in the same restart of yonderd:
 - **The membership.** Each box stored its membership of the old fabric, and the new yonderd
   does not start with it: "start it once with -leave-fabric". `-leave-fabric` forgets the
   membership when yonderd starts. Then the box joins the coordinator at `coordinatorUrl`, with
-  the names of its machines and volumes. Use the flag for one apply only: with the flag,
+  the names of its machines and volumes. Use the flag for one start only: with the flag,
   yonderd leaves the fabric and joins it again every time it starts.
 
 VMs keep running when yonderd restarts: each VM is its own systemd unit.
 
-1. Check that `coordinator.env` is on each box. Each line prints `ok`:
+`scripts/yonder-move.sh` does the move, one box at a time. Run it on the Mac, in
+`~/.nix-config`, on main:
 
-   ```sh
-   for b in lab-1 lab-2 lab-3; do ssh $b sudo test -s /etc/yonder/coordinator.env && echo "$b ok"; done
-   ```
+```sh
+git pull
+scripts/yonder-move.sh            # lab-1, lab-2 and lab-3
+scripts/yonder-move.sh lab-2      # one box
+```
 
-2. Pull this repo. `flake.lock` pins the yonder that has the coordinator:
+For each box, it:
 
-   ```sh
-   git pull
-   nix flake check
-   ```
+1. Stops if the box has no `/etc/yonder/coordinator.env`, and skips the box if it is a
+   member of the new coordinator already.
+2. Removes the binaries in `/var/lib/yonder/bin`.
+3. Adds `-leave-fabric` to yonderd's command with a drop-in in `/run`, which a reboot also
+   removes. Nothing changes in this repo.
+4. Runs `colmena apply --on <box>`. yonderd restarts with the new binary, leaves the old
+   fabric and joins the new one. The script waits up to 2 minutes for `joined the fabric`.
+5. Removes the drop-in and restarts yonderd without the flag. It checks that yonderd starts
+   as a member and prints `yonder status`.
 
-3. In `hosts/lab-1/default.nix`, `hosts/lab-2/default.nix` and `hosts/lab-3/default.nix`,
-   add this line. Do not commit it. Nix sees the change because the files are tracked.
-
-   ```nix
-   services.yonder.extraFlags = [ "-leave-fabric" ];
-   ```
-
-4. Remove the deployed binaries from `lab-1`. yonderd keeps running until the apply:
-
-   ```sh
-   ssh lab-1 sudo rm -f /var/lib/yonder/bin/yonderd /var/lib/yonder/bin/yonder
-   ```
-
-5. Apply:
-
-   ```sh
-   colmena apply --on lab-1
-   ```
-
-6. Check that `lab-1` left the old fabric and joined the new one. The journal shows `leaving
-   the fabric, as -leave-fabric asks`, then `joined the fabric` with
-   `coordinator=https://yonder.joshthomas.dev`:
-
-   ```sh
-   ssh lab-1 sudo journalctl -u yonderd --since -10min | grep -E 'leaving the fabric|joined the fabric|error'
-   ssh lab-1 sudo yonder status
-   ```
-
-7. Do steps 4 to 6 for `lab-2` and `lab-3`.
-8. Remove the `extraFlags` lines from step 3, and apply again:
-
-   ```sh
-   git checkout hosts/lab-1/default.nix hosts/lab-2/default.nix hosts/lab-3/default.nix
-   colmena apply
-   ```
-
-   yonderd restarts without the flag. It stays a member: its membership now names the new
-   coordinator. Check that no box has the flag. Each line prints `0`:
-
-   ```sh
-   for b in lab-1 lab-2 lab-3; do ssh $b systemctl show yonderd -p ExecStart | grep -c leave-fabric; done
-   ```
+If a box stops halfway, the script says why and stops. Fix the cause, and run it again for
+that box.
 
 To ship yonder work in progress to a box again afterwards, use `deploy.sh` as before.
 
@@ -116,7 +84,7 @@ join each time, with or without the flag. Look for the reason in
 
 | What you see in `journalctl -u yonderd` | Cause | Action |
 | --- | --- | --- |
-| `start it once with -leave-fabric` | The box's membership names the Fly coordinator | Steps 3 to 6 of [Move to the Cloudflare coordinator](#move-to-the-cloudflare-coordinator) |
+| `start it once with -leave-fabric` | The box's membership names the Fly coordinator | Run `scripts/yonder-move.sh <box>` |
 | `flag provided but not defined: -join` | The new yonderd with the old configuration | Apply this repo's configuration |
-| `flag provided but not defined: -coordinator-url` | The old yonderd with the new configuration: old binaries in `/var/lib/yonder/bin`, or `flake.lock` before the coordinator | Step 4, or step 2 |
+| `flag provided but not defined: -coordinator-url` | The old yonderd with the new configuration: old binaries in `/var/lib/yonder/bin` | Run `scripts/yonder-move.sh <box>` |
 | `Failed to load environment files` (systemd) | No `/etc/yonder/coordinator.env` | [The files on each box](#the-files-on-each-box) |

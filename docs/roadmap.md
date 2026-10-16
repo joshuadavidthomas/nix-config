@@ -19,7 +19,8 @@
 - [ ] All three lab boxes members of the fabric that yonder's coordinator on Cloudflare coordinates. See
       [Move to the Cloudflare coordinator](yonder.md#move-to-the-cloudflare-coordinator).
 - [ ] After the move, remove the Fly coordinator: its Fly Machine, and the nodes
-      `yonder-coordinator` and `yonder-coordinator-b` in the Tailscale admin console
+      `yonder-coordinator` and `yonder-coordinator-b` in the Tailscale admin console.
+      Remove `scripts/yonder-move.sh` and its section in [yonder](yonder.md) too.
 - [ ] Optional: install lab boxes again with an XFS root, one at a time, for yonder's reflink
       clones. See [Decisions](decisions.md#machines).
 
