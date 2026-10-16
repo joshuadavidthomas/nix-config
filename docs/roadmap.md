@@ -16,6 +16,10 @@
 - [x] yonder on `lab-1` from its NixOS module (yonder M2), shipped to with yonder's `tests/lab/deploy.sh`
 - [x] yonder's module on `lab-2` and `lab-3`, the same way (for yonder M3)
 - [x] All three lab boxes members of the yonder fabric, coordinated by `yonder-coordinator` on Fly (yonder M3); every lab box accepts the others' routes
+- [ ] All three lab boxes members of the fabric that yonder's coordinator on Cloudflare coordinates. See
+      [Move to the Cloudflare coordinator](yonder.md#move-to-the-cloudflare-coordinator).
+- [ ] After the move, remove the Fly coordinator: its Fly Machine, and the nodes
+      `yonder-coordinator` and `yonder-coordinator-b` in the Tailscale admin console
 - [ ] Optional: install lab boxes again with an XFS root, one at a time, for yonder's reflink
       clones. See [Decisions](decisions.md#machines).
 

@@ -15,6 +15,7 @@ and a 1Password service account. The reasons are in [Decisions](decisions.md#sec
 | SSH keys and the git signing key of the Mac and WSL | 1Password. These machines use them through the 1Password SSH agent. |
 | The git signing key of the lab boxes | 1Password, the item "Lab signing key" in `dotfiles` |
 | The Tailscale OAuth client of the lab boxes | 1Password, the item "Homelab Tailscale OAuth" in `dotfiles` |
+| yonder's coordinator token and each lab box's Cloudflare Access service token | `/etc/yonder/coordinator.env` on each lab box, placed by hand, not by opnix. See [yonder](yonder.md#the-files-on-each-box). |
 
 The service account can read `dotfiles` and nothing else. It cannot write.
 

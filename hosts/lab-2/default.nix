@@ -13,20 +13,8 @@
   # as the fallback.
   services.yonder.enable = true;
   services.yonder.localBinaries = true;
-  # A member of the yonder fabric (yonder M3), coordinated by yonder-coordinator: a Fly
-  # Machine on the tailnet that is not a host, since a host that coordinates others can
-  # always reach itself while cut off (yonder.dev wiki/designs/coordinator-runtime.md).
-  # -join is a flag rather than the module's join option until flake.lock moves past M3.
-  services.yonder.extraFlags = [ "-join" "yonder-coordinator" ];
-  # Each box reaches the others' guests through their routes (yonder's module sets these
-  # too, from M3 on).
-  services.tailscale.useRoutingFeatures = "both";
-  services.tailscale.extraSetFlags = [ "--accept-routes" ];
-  # Guests ask the .internal resolver on this box through their TAPs (yonder M3); the
-  # firewall refuses unknown interfaces otherwise. yonder's own table drops everything
-  # else a guest sends the box. yonder's module does this too, from M3 on.
-  networking.firewall.extraCommands = ''
-    iptables -I nixos-fw -i yt-+ -p udp --dport 53 -j nixos-fw-accept
-    iptables -I nixos-fw -i yt-+ -p tcp --dport 53 -j nixos-fw-accept
-  '';
+  # A member of the yonder fabric, coordinated by yonder's coordinator on Cloudflare, with
+  # this box's own tokens in a file placed by hand (see hosts/lab-1 and docs/yonder.md).
+  services.yonder.coordinatorUrl = "https://yonder.joshthomas.dev";
+  services.yonder.environmentFile = "/etc/yonder/coordinator.env";
 }

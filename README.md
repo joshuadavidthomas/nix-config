@@ -41,6 +41,7 @@ Docs:
 - [Set up a new Mac](docs/new-mac.md)
 - [Set up NixOS-WSL](docs/new-wsl.md)
 - [Set up a lab box](docs/new-lab-box.md)
+- [yonder on the lab boxes](docs/yonder.md)
 - [Make a change](docs/changes.md)
 - [Secrets](docs/secrets.md)
 - [Decisions](docs/decisions.md)

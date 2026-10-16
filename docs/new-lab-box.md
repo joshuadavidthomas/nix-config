@@ -148,9 +148,13 @@ ssh lab-2 nixos-version
 
 ## Apply
 
-```sh
-colmena apply --on lab-2
-```
+1. Put yonder's files on the lab box. yonderd does not start without
+   `/etc/yonder/coordinator.env`. See [The files on each box](yonder.md#the-files-on-each-box).
+2. Apply:
+
+   ```sh
+   colmena apply --on lab-2
+   ```
 
 colmena copies the Mac's opnix token to the lab box. The output ends with
 `Activation successful`.
