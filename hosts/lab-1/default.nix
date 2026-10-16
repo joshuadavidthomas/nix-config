@@ -22,7 +22,7 @@
   services.yonder.localBinaries = true;
   # A member of the yonder fabric, coordinated by yonder's coordinator on Cloudflare (a
   # Durable Object), which each box dials out to. lab-1 coordinated until 2026-10-13, and
-  # a Fly Machine on the tailnet until the move to Cloudflare (docs/yonder.md).
+  # a Fly Machine on the tailnet until 2026-10-16 (docs/yonder.md).
   services.yonder.coordinatorUrl = "https://yonder.joshthomas.dev";
   # The coordinator's token and this box's own Cloudflare Access service token. Placed by
   # hand, root 0600, outside the store (docs/yonder.md); not in /etc/yonder/secrets.env,
