@@ -2,8 +2,17 @@
 
 Each lab box runs yonderd, the daemon of [yonder](https://github.com/joshuadavidthomas/yonder.dev),
 from yonder's NixOS module (`hosts/lab-1`). With `services.yonder.localBinaries`, a box runs
-the yonderd that yonder's `tests/lab/deploy.sh` put in `/var/lib/yonder/bin`, and the version
-pinned in `flake.lock` when nothing is there.
+the yonderd that yonder's `tests/lab/deploy.sh` put in `/var/lib/yonder-bin`, and the version
+pinned in `flake.lock` when nothing is there. Before yonder's module made its state directory
+root's alone, that directory was `/var/lib/yonder/bin`; nothing reads it now.
+
+The `.internal` resolver is not in yonderd. It runs in its own units from the same module:
+systemd listens on `10.86.0.53:53`, UDP and TCP, in `yonder-resolver.socket`, and passes the
+sockets to `yonder-resolver.service`, which runs as the system user `yonder-resolver`, with no
+capabilities and no network of its own. It reads only the names file that yonderd writes in
+`/run/yonder/resolver`. yonderd runs with `-resolver-listen none -resolver-group
+yonder-resolver`, flags that an older yonderd does not have, so the module and the package
+come from the same yonder commit: one bump of the `yonder` input moves both.
 
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
@@ -32,9 +41,44 @@ The boxes moved to it from yonder's old coordinator, a Fly Machine on the tailne
 2026-10-16, with a one-time script (`scripts/yonder-move.sh`, removed afterwards; it is in
 the git history).
 
+## Moving a box to the resolver's own units (once)
+
+yonder's `tests/lab/resolver-unit.sh` ran the resolver's units on each box before nix-config
+took them: copies under `/run/systemd/system`, which hide the module's units in `/etc`, and a
+drop-in `/run/systemd/system/yonderd.service.d/resolver.conf` that gives yonderd the
+resolver's flags. Until then yonderd ran from `/var/lib/yonder/bin`, where `deploy.sh` put
+it, and the script's copy in `/var/lib/yonder-bin` ran only the resolver. After the move the
+module's wrapper runs that copy, which may be older than the box's `host.db`. So remove the
+copy too, and the box runs the pinned package. The `yonder-resolver` user and group that the
+script made with `useradd` stay: NixOS's user activation keeps an existing user's UID and
+group's GID, and sets the declared home and shell.
+
+One box at a time, from the Mac:
+
+```sh
+ssh lab-1 'sudo yonder status'   # build and executable, to compare after
+ssh lab-1 'sudo systemctl stop yonder-resolver.socket yonder-resolver.service; sudo rm -f /run/systemd/system/yonder-resolver.socket /run/systemd/system/yonder-resolver.service /run/systemd/system/yonderd.service.d/resolver.conf /var/lib/yonder-bin/yonderd /var/lib/yonder-bin/yonder; sudo systemctl daemon-reload'
+colmena apply --on lab-1
+```
+
+`.internal` does not answer on the box between the last two. yonderd keeps running; if it
+restarts before the apply, it runs from `/var/lib/yonder/bin` with the resolver inside it,
+so keep that directory until the box has moved. Then on the box:
+
+- `sudo yonder status`: up, with the pinned build, from `/nix/store`
+- `systemctl status yonder-resolver.socket`: active (listening), on `10.86.0.53:53`, datagram
+  and stream, loaded from `/etc/systemd/system`
+- `getent hosts db.internal`: an address
+
+Then `sudo rm -rf /var/lib/yonder/bin`, which nothing reads now.
+
 ## If it stops
 
 | What you see in `journalctl -u yonderd` | Cause | Action |
 | --- | --- | --- |
 | `Failed to load environment files` (systemd) | No `/etc/yonder/coordinator.env` | [The files on each box](#the-files-on-each-box) |
-| `flag provided but not defined: -coordinator-url` | `deploy.sh` put a yonderd older than the coordinator in `/var/lib/yonder/bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
+| `flag provided but not defined: -coordinator-url` or `-resolver-listen` | `deploy.sh` put a yonderd older than the module in `/var/lib/yonder-bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
+
+| What you see | Cause | Action |
+| --- | --- | --- |
+| `getent hosts <name>.internal` finds nothing, and `systemctl status yonder-resolver.socket` is not `active (listening)` | The socket is stopped, or units under `/run/systemd/system` hide the module's (yonder's `tests/lab/resolver-unit.sh` puts them there) | `systemctl cat yonder-resolver.socket` shows which file is loaded. Remove the ones under `/run` (`resolver-unit.sh revert`), then `systemctl start yonder-resolver.socket` |

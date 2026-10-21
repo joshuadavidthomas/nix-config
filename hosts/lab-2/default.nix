@@ -9,7 +9,7 @@
   networking.hostName = "lab-2";
 
   # yonderd, as on lab-1 (see hosts/lab-1): the module, and the binaries yonder's
-  # tests/lab/deploy.sh puts in /var/lib/yonder/bin, with the version pinned in flake.lock
+  # tests/lab/deploy.sh puts in /var/lib/yonder-bin, with the version pinned in flake.lock
   # as the fallback.
   services.yonder.enable = true;
   services.yonder.localBinaries = true;
