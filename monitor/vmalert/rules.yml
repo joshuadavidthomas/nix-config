@@ -41,8 +41,9 @@ groups:
           resolved: "{{ $labels.mountpoint }} is under 90 % again"
 
       - alert: CoreServiceFailed
-        # the services a box needs to work and to be reached; a yonder VM failing is yonder's business
-        expr: node_systemd_unit_state{job="node", state="failed", name=~"(yonderd|tailscaled|vector|sshd|nix-daemon|systemd-resolved|dhcpcd|opnix-secrets|prometheus-smartctl-exporter)\\.service"} == 1
+        # the services a box needs to work and to be reached; a yonder VM failing is yonder's business.
+        # yonder-resolver answers .internal from its socket, so either unit failing stops the names.
+        expr: node_systemd_unit_state{job="node", state="failed", name=~"(yonderd|yonder-resolver|tailscaled|vector|sshd|nix-daemon|systemd-resolved|dhcpcd|opnix-secrets|prometheus-smartctl-exporter)\\.service|yonder-resolver\\.socket"} == 1
         for: 5m
         annotations:
           summary: "{{ $labels.name }} failed"

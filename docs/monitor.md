@@ -246,7 +246,7 @@ dashboards. There is no Discord: a channel that nobody reads is not an alert
 | `BoxSilent` (page) | A lab box sent no metrics for 5 minutes (3, then 2 more to let a queue catch up). Its other alerts are held back. |
 | `DriveFailing`, `DriveCriticalWarning` (pages) | A drive fails its SMART check, or reports an NVMe critical warning |
 | `DiskAlmostFull` | A filesystem is over 90 % full for 10 minutes |
-| `CoreServiceFailed` | yonderd, tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
+| `CoreServiceFailed` | yonderd, the `.internal` resolver (`yonder-resolver.service` or `.socket`), tailscaled, vector, sshd, nix-daemon, systemd-resolved, dhcpcd, opnix-secrets or the SMART exporter failed for 5 minutes |
 | `LowMemory` | Under 10 % of memory free for 15 minutes |
 | `MonitorVolumeFull` | The monitor's volume is over 85 % full for 30 minutes. At 100 % the stores stop taking data; extend it with `fly volumes extend` |
 | `Watchdog` | Always. It is the heartbeat, below. |

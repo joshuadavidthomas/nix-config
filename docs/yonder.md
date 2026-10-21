@@ -41,6 +41,22 @@ The boxes moved to it from yonder's old coordinator, a Fly Machine on the tailne
 2026-10-16, with a one-time script (`scripts/yonder-move.sh`, removed afterwards; it is in
 the git history).
 
+## The CLI on the Mac
+
+The Mac gets the `yonder` CLI from the same pinned input as the boxes (`hosts/mac/home.nix`),
+so `rebuild` after a bump of `yonder` moves it too. To work the whole fabric, it reads the
+coordinator from `~/.config/yonder/config`, mode 0600, placed by hand like the boxes' files:
+
+```sh
+YONDER_COORDINATOR_URL=https://yonder.joshthomas.dev
+YONDER_COORDINATOR_TOKEN=...
+YONDER_ACCESS_CLIENT_ID=...
+YONDER_ACCESS_CLIENT_SECRET=...
+```
+
+Without it, `yonder -ssh lab-1 machine list` works one box over SSH, through the box's socket.
+That needs `josh` in the box's `yonder` group, which nix-config does not add.
+
 ## Moving a box to the resolver's own units (once)
 
 yonder's `tests/lab/resolver-unit.sh` ran the resolver's units on each box before nix-config
