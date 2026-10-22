@@ -1,4 +1,4 @@
-{ lib, pkgs, inputs, vars, ... }: {
+{ config, lib, pkgs, inputs, vars, ... }: {
   # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
   # (modules/secrets.nix).
@@ -17,7 +17,11 @@
           echo "rebuild: couldn't read the opnix token from 1Password; secrets won't update" >&2
         fi
       fi
-      exec sudo /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
+      # sudo leaves out your Nix config and so gh's GitHub token (home/nix.nix); root needs
+      # the token to fetch private inputs (yonder)
+      tokens=${lib.escapeShellArg "${config.xdg.configHome}/nix/access-tokens.conf"}
+      if [ -r "$tokens" ]; then export NIX_CONFIG="$(cat "$tokens")"; fi
+      exec sudo --preserve-env=NIX_CONFIG /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
     '')
     # Rex's own terminals get `rex` on PATH; this puts it everywhere else
     (pkgs.writeShellScriptBin "rex" ''

@@ -140,6 +140,7 @@ Lab boxes do this every day.
 | --- | --- | --- |
 | `path '…' does not exist` for a new file | Nix sees only the files that version control tracks | Track the file |
 | A GitHub rate limit error during an update | Nix has no GitHub token | Run `gh auth login`. Apply again. |
+| `HTTP error 404` for `github.com/joshuadavidthomas/yonder.dev/archive/…` | yonder is private, and Nix has no GitHub token. On the Mac, `rebuild` passes yours to `sudo`; a bare `sudo darwin-rebuild` does not. | Run `gh auth login`. Apply again with `rebuild`. |
 | `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/git.nix` |
 | home-manager stops and names a `.bak` file | An old backup is in the way | Move the old `.bak` file. Apply again. |
 | `infinite recursion encountered` | A module reads `config` to decide what to define | Put the condition in `lib.mkIf` on the value, not around `imports` |
