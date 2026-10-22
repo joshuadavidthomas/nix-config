@@ -29,4 +29,13 @@
   programs.nix-ld.enable = true;
 
   environment.systemPackages = [ pkgs.git ];
+
+  # eMudhra intermediate CA keys were compromised in October 2026
+  # (https://emudhra.we-have-a-problem.com/). Browsers block the intermediates through
+  # revocation, but curl, git and anything else that reads the system bundle does not. Distrust
+  # the roots they chain to until nixpkgs ships cacert 3.131.1 or later, then remove this.
+  security.pki.caCertificateBlacklist = [
+    "Comodo AAA Services root"
+    "emSign ECC Root CA - G3"
+  ];
 }

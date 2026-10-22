@@ -14,4 +14,12 @@
     home = "/Users/${vars.user}";
     shell = pkgs.fish;
   };
+
+  # The same eMudhra workaround as modules/nixos/default.nix; remove both together. This covers
+  # the Nix bundle (NIX_SSL_CERT_FILE) that Nix-built tools read. macOS's own curl, git and
+  # python3 read /etc/ssl/cert.pem, which Nix does not manage (docs/decisions.md).
+  security.pki.caCertificateBlacklist = [
+    "Comodo AAA Services root"
+    "emSign ECC Root CA - G3"
+  ];
 }

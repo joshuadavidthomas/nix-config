@@ -138,6 +138,16 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - **topgrade does not run its `system` step on NixOS.**
   Reason: that step runs `nixos-rebuild` without `--flake`, which builds `/etc/nixos`, not
   this repo.
+- **Every machine distrusts the two roots behind the compromised eMudhra intermediates
+  (October 2026).** The list is `security.pki.caCertificateBlacklist` in
+  `modules/nixos/default.nix` and `modules/darwin/default.nix`. Remove both once
+  `nix eval .#nixosConfigurations.work-wsl.pkgs.cacert.version` shows 3.131.1 or later.
+  Reason: browsers block the intermediates through revocation, but curl, git and OpenSSL read
+  only the system bundle, and nixos-26.05 still shipped cacert 3.126.
+  On the Mac this covers only the Nix bundle. macOS's own `/usr/bin/curl`, `git` and `python3`
+  read `/etc/ssl/cert.pem`, which Nix does not manage and macOS updates can restore. Patch it by
+  hand with the site's command.
+  Details: https://emudhra.we-have-a-problem.com/
 
 ## Project environments
 
