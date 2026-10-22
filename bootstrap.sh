@@ -8,12 +8,13 @@
 #
 #   1. Install Determinate Nix.
 #   2. Install Homebrew with its own installer; after that it updates itself.
-#   3. Switch straight from GitHub. That installs every app (1Password included) and tool,
+#   3. Log in to GitHub with gh. Nix fetches private inputs (yonder) with its token.
+#   4. Switch straight from GitHub. That installs every app (1Password included) and tool,
 #      and clones this repo to ~/.nix-config. Secret-backed steps wait.
-#   4. Wait for you to sign in to 1Password and turn on its CLI integration.
-#   5. Copy the opnix token from 1Password to /etc/opnix-token, and wait for opnix to fetch
+#   5. Wait for you to sign in to 1Password and turn on its CLI integration.
+#   6. Copy the opnix token from 1Password to /etc/opnix-token, and wait for opnix to fetch
 #      the secrets (atuin, fonts, ...).
-#   6. Switch again from ~/.nix-config, so that the steps that use the secrets (atuin's
+#   7. Switch again from ~/.nix-config, so that the steps that use the secrets (atuin's
 #      login) run.
 set -eu
 
@@ -51,13 +52,25 @@ if [ ! -x /opt/homebrew/bin/brew ]; then
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# 3. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
+# 3. GitHub. gh runs from the nixpkgs this repo pins until the first switch installs it; the
+# token stays in the keychain, where that gh finds it. Each Nix command below, and root's
+# under sudo, gets the token in NIX_CONFIG: root doesn't read your Nix config.
+gh() { nix run --inputs-from "$flake" nixpkgs-darwin#gh -- "$@"; }
+if ! gh auth token >/dev/null 2>&1; then
+  say "Log in to GitHub"
+  # the script itself is sh's stdin; git_protocol is ssh, as in home/git.nix
+  gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web </dev/tty
+fi
+NIX_CONFIG="access-tokens = github.com=$(gh auth token)"
+export NIX_CONFIG
+
+# 4. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   say "First switch, straight from GitHub"
-  sudo -H nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
+  sudo -H --preserve-env=NIX_CONFIG nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$flake#$config"
 fi
 
-# 4. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
+# 5. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
 # you to approve the CLI (Touch ID), so wait on that.
 if ! sudo test -s "$token" && ! "$op" vault list >/dev/null 2>&1; then
   say "Sign in to 1Password, turn on Settings > Developer > Integrate with 1Password CLI, then approve the prompt"
@@ -70,7 +83,7 @@ if ! sudo test -s "$token" && ! "$op" vault list >/dev/null 2>&1; then
   echo
 fi
 
-# 5. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
+# 6. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
 if ! sudo test -s "$token"; then
   say "Copying the opnix token from 1Password"
   # vars.opnixTokenArgs
@@ -91,8 +104,8 @@ if [ ! -e "$secret" ]; then
   done
 fi
 
-# 6. Second switch, from the local clone, now that the secrets are there.
+# 7. Second switch, from the local clone, now that the secrets are there.
 say "Switching again from ~/.nix-config"
-sudo -H /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$config"
+sudo -H --preserve-env=NIX_CONFIG /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#$config"
 
 say "Done. Turn on 1Password's SSH agent. Open a new terminal; from now on, \`rebuild\` applies changes."
