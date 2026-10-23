@@ -14,6 +14,13 @@ capabilities and no network of its own. It reads only the names file that yonder
 yonder-resolver`, flags that an older yonderd does not have, so the module and the package
 come from the same yonder commit: one bump of the `yonder` input moves both.
 
+Guests' calls to their host are not in yonderd either. `yonder-connect.service`, from the
+same module, runs `yonderd connect` as the system user `yonder-connect`, with no capabilities
+and no address of a box, a guest, the tailnet or the LAN. It dials yonderd's control socket in
+`/run/yonder/connect`, and yonderd runs with `-connect-group yonder-connect`. A yonderd in
+`/var/lib/yonder-bin` older than that flag stops yonderd from starting (see
+[If it stops](#if-it-stops)).
+
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
 (`services.yonder.coordinatorUrl`).
@@ -93,7 +100,7 @@ Then `sudo rm -rf /var/lib/yonder/bin`, which nothing reads now.
 | What you see in `journalctl -u yonderd` | Cause | Action |
 | --- | --- | --- |
 | `Failed to load environment files` (systemd) | No `/etc/yonder/coordinator.env` | [The files on each box](#the-files-on-each-box) |
-| `flag provided but not defined: -coordinator-url` or `-resolver-listen` | `deploy.sh` put a yonderd older than the module in `/var/lib/yonder-bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
+| `flag provided but not defined: -coordinator-url`, `-resolver-listen` or `-connect-group` | `deploy.sh` put a yonderd older than the module in `/var/lib/yonder-bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
 
 | What you see | Cause | Action |
 | --- | --- | --- |

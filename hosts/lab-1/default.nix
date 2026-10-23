@@ -10,11 +10,13 @@
 
   # yonderd, so a reboot, a reinstall or `colmena apply` brings it back. The module also
   # runs the .internal resolver in its own units (yonder-resolver.socket and .service, as
-  # the user yonder-resolver), enables systemd-resolved (.internal on the box), turns off
-  # SNAT on Tailscale subnet routes, accepts the other boxes' routes, opens the resolver
-  # (port 53) to the tailnet and to guests, and keeps dhcpcd off yonder's interfaces. The
-  # fabric API (tcp 7086) is no longer open. The daemon advertises its own
-  # guest routes; tag:lab's are approved by the tailnet policy (tailscale-acls).
+  # the user yonder-resolver) and guests' calls to their host in yonder-connect.service (as
+  # the user yonder-connect, which yonderd reaches through /run/yonder/connect), enables
+  # systemd-resolved (.internal on the box), turns off SNAT on Tailscale subnet routes,
+  # accepts the other boxes' routes, opens the resolver (port 53) to the tailnet and to
+  # guests, and keeps dhcpcd off yonder's interfaces. The fabric API (tcp 7086) is no longer
+  # open. The daemon advertises its own guest routes; tag:lab's are approved by the tailnet
+  # policy (tailscale-acls).
   services.yonder.enable = true;
   # lab-1 is where yonder is developed: its yonderd runs what yonder's tests/lab/deploy.sh
   # puts in /var/lib/yonder-bin, and the version pinned in flake.lock when nothing is there
