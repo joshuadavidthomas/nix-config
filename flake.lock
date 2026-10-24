@@ -212,11 +212,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1791594108,
-        "narHash": "sha256-XK4KceonkwD8LuMAt/vNrz982mXJM5jeHAxMwsUXXAQ=",
+        "lastModified": 1792502884,
+        "narHash": "sha256-IoNisKcGbUjdd45qCqywGMCYmZ5EnkxezvLII0FWwNA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6510408d147d8c5e6d76043e899e9251756f6a75",
+        "rev": "02c087f3fe673c9e317f206a627cb6b910336dbe",
         "type": "github"
       },
       "original": {
@@ -401,11 +401,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1792790276,
-        "narHash": "sha256-rD7S1tDqM+yUjyEw5HbcgeM68lfTR/DQxKJAlskNu38=",
+        "lastModified": 1792844436,
+        "narHash": "sha256-ybMyXUIGoZ6k1Q/I4cu3u5nVaYMDh4ah9XzMzeBH5Yw=",
         "owner": "joshuadavidthomas",
         "repo": "yonder.dev",
-        "rev": "615d34e277976dd9bb7be9d1dbef9b048af12f2c",
+        "rev": "c40ca1faa933901f26d812587be8fc039a11c68a",
         "type": "github"
       },
       "original": {
