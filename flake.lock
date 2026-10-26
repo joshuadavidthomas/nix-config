@@ -401,11 +401,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1792994767,
-        "narHash": "sha256-5IV1ws39+VDtnRb4yZxo9ybtf7D7kGyzbZM7LHabb0M=",
+        "lastModified": 1792998981,
+        "narHash": "sha256-ZHh6j3OXlYezhxSLy/u5kVapvFM+ZltwST01HurKppk=",
         "owner": "joshuadavidthomas",
         "repo": "yonder.dev",
-        "rev": "9d0ea22c48f24cd408f904595007836520145dd5",
+        "rev": "4a5378dd0405bbb54991b6092068ae95d25614d5",
         "type": "github"
       },
       "original": {
