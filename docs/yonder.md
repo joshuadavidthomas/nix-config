@@ -9,8 +9,11 @@ root's alone, that directory was `/var/lib/yonder/bin`; nothing reads it now.
 The `.internal` resolver is not in yonderd. It runs in its own units from the same module:
 systemd listens on `10.86.0.53:53`, UDP and TCP, in `yonder-resolver.socket`, and passes the
 sockets to `yonder-resolver.service`, which runs as the system user `yonder-resolver`, with no
-capabilities and no network of its own. It reads only the names file that yonderd writes in
-`/run/yonder/resolver`. yonderd runs with `-resolver-listen none -resolver-group
+capabilities. It reads only the names file that yonderd writes in `/run/yonder/resolver`. A
+guest's query for a name outside `.internal` it forwards to 1.1.1.1, then 9.9.9.9 (the module's
+`services.yonder.dns`), the only addresses its unit may send to; the host and tailnet devices
+are refused such names. Before 2026-10-27 it refused them for guests too, and pnpm 12, which does
+not move on to the guest's next server, could not install anything in an orb. yonderd runs with `-resolver-listen none -resolver-group
 yonder-resolver`, flags that an older yonderd does not have, so the module and the package
 come from the same yonder commit: one bump of the `yonder` input moves both.
 
