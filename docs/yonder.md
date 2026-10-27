@@ -21,6 +21,11 @@ and no address of a box, a guest, the tailnet or the LAN. It dials yonderd's con
 `/var/lib/yonder-bin` older than that flag stops yonderd from starting (see
 [If it stops](#if-it-stops)).
 
+Each box sets `services.yonder.cpuOvercommit = 2`: its machines may reserve two vCPUs per
+host CPU (lab-1 24, lab-2 and lab-3 16 each). Memory and disk are never overcommitted, so
+memory is what fills a box first. Before 2026-10-27 the ratio was 1, and the three boxes fit
+four 4-vCPU orbs in all.
+
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
 (`services.yonder.coordinatorUrl`).

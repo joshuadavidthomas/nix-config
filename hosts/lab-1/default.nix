@@ -31,4 +31,6 @@
   # hand, root 0600, outside the store (docs/yonder.md); not in /etc/yonder/secrets.env,
   # which yonderd delivers to every guest.
   services.yonder.environmentFile = "/etc/yonder/coordinator.env";
+  # Machines may reserve two vCPUs per host CPU; memory and disk are never overcommitted.
+  services.yonder.cpuOvercommit = 2;
 }

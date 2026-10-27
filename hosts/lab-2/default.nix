@@ -17,4 +17,6 @@
   # this box's own tokens in a file placed by hand (see hosts/lab-1 and docs/yonder.md).
   services.yonder.coordinatorUrl = "https://yonder.joshthomas.dev";
   services.yonder.environmentFile = "/etc/yonder/coordinator.env";
+  # Machines may reserve two vCPUs per host CPU; memory and disk are never overcommitted.
+  services.yonder.cpuOvercommit = 2;
 }
