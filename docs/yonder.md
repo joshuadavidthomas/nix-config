@@ -33,6 +33,13 @@ The three lab boxes are members of one fabric. yonder's coordinator on Cloudflar
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
 (`services.yonder.coordinatorUrl`).
 
+The guest images are not in this flake. yonder's `tests/lab/deploy.sh images` builds them on
+each box and links `/var/lib/yonder/images/<name>` to the build in the Nix store. Since yonder
+56d42d2 a machine records the build it was made from and boots that build after its image is
+rebuilt, through a link yonderd keeps in `/var/lib/yonder/images/.builds`. `deploy.sh` keeps
+each build alive with its own GC root in `/nix/var/nix/gcroots/yonder-images`. Removing one
+leaves the machines made from that build unable to boot.
+
 ## The files on each box
 
 Two files are placed on each lab box by hand. They are not in the Nix store or in git. Each
