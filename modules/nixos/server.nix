@@ -45,15 +45,18 @@ in
   };
   nix.settings.netrc-file = "/var/lib/nix-credentials/netrc";
   nix.extraOptions = "!include /var/lib/nix-credentials/access-tokens.conf"; # skipped while missing
+  # Readable by wheel: when a user cannot look inside this directory, Nix drops all of
+  # /etc/nix/nix.conf for that user, flakes included. Users fetch yonder too, with the token.
   systemd.services.nix-credentials = {
     wantedBy = [ "multi-user.target" ];
     wants = [ "opnix-secrets.service" ];
     after = [ "opnix-secrets.service" ];
     serviceConfig = {
       Type = "oneshot";
+      Group = "wheel";
       StateDirectory = "nix-credentials";
-      StateDirectoryMode = "0700";
-      UMask = "0077";
+      StateDirectoryMode = "0750";
+      UMask = "0027";
     };
     script = let
       inherit (config.services.onepassword-secrets) secretPaths;

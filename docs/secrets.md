@@ -15,7 +15,7 @@ and a 1Password service account. The reasons are in [Decisions](decisions.md#sec
 | SSH keys and the git signing key of the Mac and WSL | 1Password. These machines use them through the 1Password SSH agent. |
 | The git signing key of the lab boxes | 1Password, the item "Lab signing key" in `dotfiles` |
 | The Tailscale OAuth client of the lab boxes | 1Password, the item "Homelab Tailscale OAuth" in `dotfiles` |
-| The GitHub token of the lab boxes, to fetch yonder | 1Password, the field `password` of the item "Lab GitHub token" in `dotfiles`. Each box writes it into `/var/lib/nix-credentials/access-tokens.conf`. |
+| The GitHub token of the lab boxes, to fetch yonder | 1Password, the field `password` of the item "Lab GitHub token" in `dotfiles`. Each box writes it into `/var/lib/nix-credentials/access-tokens.conf`, which `wheel` can read: `/etc/nix/nix.conf` includes it, and Nix ignores all of `nix.conf` for a user who cannot look inside `/var/lib/nix-credentials`. |
 | Rex's package token | 1Password, the field `password` of the item "Rex packages" in `dotfiles`. The Mac writes it into `~/.config/nix/netrc`, a lab box into `/var/lib/nix-credentials/netrc`. Orbs get it from the Amp project secret `REX_PACKAGE_TOKEN`. See [Rex](rex.md#the-package-login). |
 | yonder's coordinator token and each lab box's Cloudflare Access service token | `/etc/yonder/coordinator.env` on each lab box, placed by hand, not by opnix. See [yonder](yonder.md#the-files-on-each-box). |
 
