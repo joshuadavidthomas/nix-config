@@ -29,19 +29,19 @@ See [Rex on the lab boxes](rex.md).
 
 - [x] Rex's login server on every lab box, on `tailnet://:7297`, from the `snapshot` channel
 - [x] Rex's package login for orbs: the Amp project secret `REX_PACKAGE_TOKEN`
-- [ ] The item "Rex packages" in `dotfiles`, with the token in the field `password`
-- [ ] `rebuild` on the Mac
+- [x] The item "Rex packages" in `dotfiles`, with the token in the field `password`
+- [x] `rebuild` on the Mac
+- [x] Add `lab-1`, `lab-2` and `lab-3` in Rex for Mac
 
 ## Deploys
 
 See [Decisions](decisions.md#deploys).
 
 - [x] Each lab box builds itself from GitHub with `rebuild`; colmena removed
-- [ ] The item "Lab GitHub token" in `dotfiles`. See
+- [x] The item "Lab GitHub token" in `dotfiles`. See
       [The GitHub token of the lab boxes](secrets.md#the-github-token-of-the-lab-boxes).
-- [ ] Move each lab box to `rebuild`, once. See
+- [x] Move each lab box to `rebuild`, once. See
       [Move a lab box to `rebuild`](changes.md#move-a-lab-box-to-rebuild-once).
-- [ ] Add `lab-1`, `lab-2` and `lab-3` in Rex for Mac
 
 ## Secrets
 
