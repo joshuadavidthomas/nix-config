@@ -5,6 +5,11 @@
     enable = true;
   };
 
+  # xcodegen finds its setting presets at ../share/xcodegen next to the path it was run by,
+  # without following symlinks, so the per-user profile must link that directory too.
+  # Without it, generated projects have no base settings (empty PRODUCT_NAME).
+  environment.pathsToLink = [ "/share/xcodegen" ];
+
   # Homebrew stays reachable but after every Nix path, so it can't shadow Nix tools
   environment.systemPath = lib.mkAfter [
     "${config.homebrew.prefix}/bin"

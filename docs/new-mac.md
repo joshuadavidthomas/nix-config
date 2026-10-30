@@ -38,6 +38,7 @@ You can run the bootstrap again at any time.
 | `You have not agreed to the Xcode license` | Xcode was installed or updated | Apply again |
 | `missing Metal Toolchain` when a GPUI app builds | Xcode was installed or updated | Apply again; it downloads the toolchain |
 | `$HOME ('/Users/josh') is not owned by you` | `sudo` without `-H` | Use `sudo -H` |
+| `No "base" settings found` from xcodegen | The user profile does not link `share/xcodegen` | Add it to `environment.pathsToLink` in `hosts/mac/default.nix`. Apply again. |
 | `darwin-rebuild: command not found` | The terminal started before the first apply | Open a new terminal |
 | `Refusing to load formula … from untrusted tap` | The tap is not in `taps` | Add the tap to `taps` in `hosts/mac/default.nix` |
 | The bootstrap waits for 1Password and does not continue | The CLI integration is off, or 1Password is locked | Do steps 4 to 6 |
