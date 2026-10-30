@@ -149,6 +149,27 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   hand with the site's command.
   Details: https://emudhra.we-have-a-problem.com/
 
+## Rex
+
+Details: [Rex on the lab boxes](rex.md).
+
+- **Every lab box runs Rex's login server, from the Rex flake's NixOS module.**
+  Reason: each caller gets a Rex server as their own account, and sessions survive restarts
+  and upgrades. The shared server runs everything as one `rex` account, and an upgrade ends
+  every session.
+- **The login server listens on the box's tailnet addresses (`tailnet://:7297`), not through
+  Tailscale Serve or Rex's built-in Tailscale.**
+  Reason: it needs no Serve setup or tailnet HTTPS certificates, and the box's own tailscaled
+  identifies callers. Built-in Tailscale would add each box to the tailnet a second time.
+  Plain HTTP would let anyone who reaches the port in.
+- **The `snapshot` channel, pinned by `flake.lock`.** Rex updates with `nix flake update rex`,
+  not by itself.
+  Reason: it is the only supported way on NixOS.
+- **Until Rex's first release, its package login is in 1Password and in an Amp project
+  secret.** The Mac reads it with opnix; orbs get it from Amp.
+  Reason: the flake input needs it wherever the lab boxes are evaluated: the Mac (colmena)
+  and orbs (`nix flake check`). Without it in orbs, every orb's setup would fail.
+
 ## Project environments
 
 - **direnv, with nix-direnv, loads project environments.** The mise `layouts` plugin from the old

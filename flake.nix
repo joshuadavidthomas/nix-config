@@ -32,6 +32,13 @@
     # needs Go 1.27 and pins its Firecracker.
     yonder.url = "github:joshuadavidthomas/yonder.dev";
 
+    # Rex's server, on the lab boxes (modules/nixos/server.nix). Until Rex's first release,
+    # pkgs.superlogical.com asks for a login, so whatever evaluates the lab boxes needs its
+    # netrc: the Mac and orbs (docs/rex.md). The binary itself comes from
+    # blob.superlogical.com, which needs none, so the boxes don't.
+    rex.url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
+    rex.inputs.nixpkgs.follows = "nixpkgs";
+
     # source of every tokyonight theme file (bat, btop, eza, ghostty, posting, wezterm)
     tokyonight.url = "github:joshuadavidthomas/tokyonight.nvim";
     tokyonight.flake = false;

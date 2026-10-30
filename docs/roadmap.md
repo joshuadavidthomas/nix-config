@@ -23,6 +23,16 @@
 - [ ] Optional: install lab boxes again with an XFS root, one at a time, for yonder's reflink
       clones. See [Decisions](decisions.md#machines).
 
+## Rex
+
+See [Rex on the lab boxes](rex.md).
+
+- [x] Rex's login server on every lab box, on `tailnet://:7297`, from the `snapshot` channel
+- [x] Rex's package login for orbs: the Amp project secret `REX_PACKAGE_TOKEN`
+- [ ] The item "Rex packages" in `dotfiles`, with the token in the field `password`
+- [ ] `rebuild` on the Mac, then `colmena apply`
+- [ ] Add `lab-1`, `lab-2` and `lab-3` in Rex for Mac
+
 ## Secrets
 
 See [Decisions](decisions.md#secrets).

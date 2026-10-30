@@ -15,6 +15,7 @@ and a 1Password service account. The reasons are in [Decisions](decisions.md#sec
 | SSH keys and the git signing key of the Mac and WSL | 1Password. These machines use them through the 1Password SSH agent. |
 | The git signing key of the lab boxes | 1Password, the item "Lab signing key" in `dotfiles` |
 | The Tailscale OAuth client of the lab boxes | 1Password, the item "Homelab Tailscale OAuth" in `dotfiles` |
+| Rex's package token | 1Password, the field `password` of the item "Rex packages" in `dotfiles`. The Mac writes it into `~/.config/nix/netrc`. Orbs get it from the Amp project secret `REX_PACKAGE_TOKEN`. See [Rex](rex.md#the-package-login). |
 | yonder's coordinator token and each lab box's Cloudflare Access service token | `/etc/yonder/coordinator.env` on each lab box, placed by hand, not by opnix. See [yonder](yonder.md#the-files-on-each-box). |
 
 The service account can read `dotfiles` and nothing else. It cannot write.
@@ -22,7 +23,7 @@ The service account can read `dotfiles` and nothing else. It cannot write.
 ## How the secrets get to a machine
 
 `modules/secrets.nix` declares the secrets that every machine gets. `hosts/mac/default.nix`
-adds the fonts. `modules/nixos/server.nix` adds the signing key and the Tailscale client of the lab boxes.
+adds the fonts and Rex's package login. `modules/nixos/server.nix` adds the signing key and the Tailscale client of the lab boxes.
 
 opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret
 when its list of secrets changes and when the machine starts. An apply does not wait for it,

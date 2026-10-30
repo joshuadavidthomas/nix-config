@@ -1,7 +1,10 @@
 # Everything the homelab boxes have in common. Each hosts/lab-N adds its hostname, disk
 # and generated hardware config.
-{ config, lib, pkgs, vars, ... }:
+{ config, lib, pkgs, inputs, vars, ... }:
 let
+  # your Tailscale login, as Rex names you (docs/rex.md)
+  tailscaleLogin = "tailscale:joshuadavidthomas@github";
+
   # node_exporter's collectors that Grafana shows live, scraped faster than the rest. Every
   # counter that a dashboard draws as a rate is here: a rate over Grafana's 40 s window needs a
   # sample in each window, and the slow scrape is 60 s. cpufreq is a gauge, here so the clock
@@ -15,6 +18,8 @@ let
     + lib.concatMapStringsSep "&" (c: "${param}%5B%5D=${c}") liveCollectors;
 in
 {
+  imports = [ inputs.rex.nixosModules.default ];
+
   nix.settings.trusted-users = [ "root" vars.user ];
   nix.gc = { automatic = true; options = "--delete-older-than 30d"; };
 
@@ -72,6 +77,18 @@ in
     after = [ "opnix-secrets.service" ];
   };
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
+
+  # Rex's login server (docs/rex.md): it asks the box's tailscaled who each caller is and runs
+  # a Rex server as the account they may use, so sessions survive its restarts and upgrades.
+  # It listens on the box's tailnet addresses, port 7297, in plain HTTP inside Tailscale.
+  # tailscale0 is trusted, and the tailnet policy lets members in and keeps orbs out. Rex for
+  # Mac reaches it as `lab-1`. The module also installs `rex` and its terminfo.
+  services.rex.loginServer = {
+    enable = true;
+    accounts.${vars.user}.principals = [ tailscaleLogin ];
+    defaults.${tailscaleLogin} = vars.user;
+    extraListen = [ "tailnet://:7297" ];
+  };
 
   # Monitoring (docs/research/homelab-monitoring.md). The exporters listen on localhost only:
   # tailscale0 is trusted, so on 0.0.0.0 every tailnet node could read them. Vector scrapes

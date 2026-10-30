@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 # Runs each time an orb starts or wakes. Gives Nix a GitHub token, so it can fetch the private
 # yonder input and flake fetches aren't rate-limited, the way home/nix.nix does it on the
-# machines: the project secret NIX_GITHUB_TOKEN, else the thread's token. Docs: docs/orbs.md.
+# machines: the project secret NIX_GITHUB_TOKEN, else the thread's token. Also writes Rex's
+# package login. Docs: docs/orbs.md.
 set -euo pipefail
 
 tokens_file="$HOME/.config/nix/access-tokens.conf"
+netrc_file="$HOME/.config/nix/netrc"
+
+# Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md), from the Amp project
+# secret REX_PACKAGE_TOKEN. Setup names this file in nix.conf and leaves it out of the snapshot.
+mkdir -p "$(dirname "$netrc_file")"
+if [ -n "${REX_PACKAGE_TOKEN:-}" ]; then
+  tmp=$(mktemp "$netrc_file.XXXXXX") # mktemp creates it 0600
+  printf 'machine pkgs.superlogical.com login rex password %s\n' "$REX_PACKAGE_TOKEN" > "$tmp"
+  mv "$tmp" "$netrc_file"
+else
+  echo "REX_PACKAGE_TOKEN isn't set; Nix can't fetch Rex's flake input" >&2
+  rm -f "$netrc_file"
+fi
 
 token=${NIX_GITHUB_TOKEN:-${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}}
 if [ -z "$token" ]; then

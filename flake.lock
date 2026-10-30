@@ -293,6 +293,23 @@
         "type": "github"
       }
     },
+    "rex": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793368937,
+        "narHash": "sha256-67JuAv86uedVhFGlPvLd3xGAsXRuHSiVPR+ONNVoVk4=",
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/snapshot/0.0.1793368937-g8697a6.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz"
+      }
+    },
     "root": {
       "inputs": {
         "colmena": "colmena",
@@ -306,6 +323,7 @@
         "opnix": "opnix",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
+        "rex": "rex",
         "tokyonight": "tokyonight",
         "uv2nix": "uv2nix",
         "yonder": "yonder"

@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, vars, ... }: {
+{ config, osConfig, lib, pkgs, inputs, vars, ... }: {
   # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
   # (modules/secrets.nix).
@@ -28,6 +28,35 @@
       exec "/Applications/Rex Beta.app/Contents/Helpers/Rex Server.app/Contents/MacOS/rex" "$@"
     '')
   ];
+
+  # Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md). opnix writes only the
+  # token (hosts/mac/default.nix), so this agent writes the netrc line from it, at login and
+  # each time opnix changes the token. Nix reads the netrc that netrc-file names, and
+  # Determinate Nix names its own; this one, for you only, has no FlakeHub login, which nothing
+  # here uses.
+  xdg.configFile."nix/nix.conf".text = ''
+    netrc-file = ${config.xdg.configHome}/nix/netrc
+  '';
+  launchd.agents.rex-netrc = {
+    enable = true;
+    config = let
+      tokenFile = osConfig.services.onepassword-secrets.secretPaths.rexToken;
+    in {
+      ProgramArguments = [
+        "${pkgs.writeShellScript "rex-netrc" ''
+          set -eu
+          netrc=${lib.escapeShellArg "${config.xdg.configHome}/nix/netrc"}
+          [ -s "$1" ] || exit 0
+          tmp=$(mktemp "$netrc.XXXXXX") # mktemp creates it 0600
+          printf 'machine pkgs.superlogical.com login rex password %s\n' "$(cat "$1")" > "$tmp"
+          mv "$tmp" "$netrc"
+        ''}"
+        tokenFile
+      ];
+      WatchPaths = [ tokenFile ];
+      RunAtLoad = true;
+    };
+  };
 
   home.sessionVariables.HOMEBREW_NO_ENV_HINTS = "1";
 

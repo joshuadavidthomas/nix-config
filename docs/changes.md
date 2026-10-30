@@ -98,6 +98,9 @@ Apply first, so that topgrade updates what the new configuration installs.
 
    To update one input: `nix flake update nixpkgs`.
 
+   Run it on the Mac or in an orb. Rex's input needs a login that only they have
+   ([Rex](rex.md#the-package-login)).
+
 2. Optional: compare the new Mac configuration with the current one:
 
    ```sh

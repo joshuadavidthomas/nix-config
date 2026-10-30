@@ -76,6 +76,15 @@
       monolisaItalic = font "MonoLisa Italic" "MonoLisaItalic.ttf";
       monolisaVariableNormal = font "MonoLisa Variable Normal" "MonoLisaVariableNormal.ttf";
       monolisaVariableItalic = font "MonoLisa Variable Italic" "MonoLisaVariableItalic.ttf";
+
+      # pkgs.superlogical.com's token, for Rex's flake input: colmena evaluates the lab boxes
+      # here, as you (docs/rex.md). hosts/mac/home.nix makes it a netrc.
+      rexToken = {
+        reference = "op://dotfiles/Rex packages/password";
+        path = "${config.users.users.${vars.user}.home}/Library/Application Support/opnix/rexToken";
+        owner = vars.user;
+        group = "staff";
+      };
     };
 
   home-manager.users.${vars.user}.imports = [ ./home.nix ];

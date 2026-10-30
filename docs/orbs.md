@@ -9,7 +9,8 @@ of the machines. It does not apply this configuration, and it has no secrets.
 later orbs from it, for up to 72 hours. The script:
 
 1. Installs Nix for the user, without a daemon.
-2. Turns on flakes in `~/.config/nix/nix.conf`.
+2. Turns on flakes in `~/.config/nix/nix.conf`, and names `~/.config/nix/netrc` there as
+   the netrc file.
 3. Fetches the inputs, evaluates every configuration and builds the packages in `pkgs/`, so
    `nix flake check` has nothing left to build.
 4. Writes notes for agents in the orb to `~/.config/amp/AGENTS.md`. See [Memory](#memory).
@@ -20,6 +21,11 @@ what changed.
 `.agents/resume` runs each time an orb starts or wakes. It writes a GitHub token to
 `~/.config/nix/access-tokens.conf`, as `home/nix.nix` does on the machines. Setup deletes this
 file, so the snapshot has no token.
+
+Rex's flake input needs a login until Rex's first release ([Rex](rex.md#the-package-login)).
+`.agents/resume` writes it to `~/.config/nix/netrc` from the Amp project secret
+`REX_PACKAGE_TOKEN`. Setup writes the same file for its own run and deletes it when it ends.
+Without the secret, setup and `nix flake check` fail on the lab boxes' configurations.
 
 ## GitHub token
 
@@ -60,7 +66,7 @@ larger orb size removes the problem.
 
 - Apply a configuration. It is not a Mac, NixOS or a lab box.
 - Build the Mac configuration. It is `x86_64-linux`.
-- Read secrets. It has no opnix token.
+- Read secrets. It has no opnix token. Rex's package login, from Amp, is the one exception.
 - Sign commits. The signing keys are in 1Password.
 
 ## Orbs on the lab boxes

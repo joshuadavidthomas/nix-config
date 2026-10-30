@@ -42,6 +42,7 @@ Docs:
 - [Set up NixOS-WSL](docs/new-wsl.md)
 - [Set up a lab box](docs/new-lab-box.md)
 - [yonder on the lab boxes](docs/yonder.md)
+- [Rex on the lab boxes](docs/rex.md)
 - [Make a change](docs/changes.md)
 - [Secrets](docs/secrets.md)
 - [Decisions](docs/decisions.md)
@@ -63,7 +64,9 @@ the user. So every machine has the same shells, tools, languages and coding agen
 interop. The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
 the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
 the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine
-uses, such as the username and the public keys, are in `vars.nix`.
+uses, such as the username and the public keys, are in `vars.nix`. `server.nix` also runs
+Rex's login server, so Rex for Mac can open sessions on the boxes over Tailscale
+([Rex on the lab boxes](docs/rex.md)).
 
 `overlay.nix` selects the source of each package. Command-line tools come from
 `nixpkgs-unstable`. Runtimes and libraries come from the release. Packages that nixpkgs does not

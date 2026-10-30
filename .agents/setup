@@ -34,11 +34,22 @@ configure_nix() {
   # it when it's missing. Same layout as home/nix.nix. Setup output goes into a snapshot
   # that other threads reuse, so drop any token a previous resume left behind.
   rm -f "$nix_conf_dir/access-tokens.conf"
-  cat > "$nix_conf_dir/nix.conf" <<'EOF'
+  cat > "$nix_conf_dir/nix.conf" <<EOF
 experimental-features = nix-command flakes
 max-jobs = auto
+netrc-file = $nix_conf_dir/netrc
 !include access-tokens.conf
 EOF
+}
+
+write_rex_netrc() {
+  # Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md), from the Amp project
+  # secret REX_PACKAGE_TOKEN. .agents/resume writes the same file.
+  if [ -z "${REX_PACKAGE_TOKEN:-}" ]; then
+    echo "REX_PACKAGE_TOKEN isn't set; Nix can't fetch Rex's flake input" >&2
+    return
+  fi
+  (umask 077; printf 'machine pkgs.superlogical.com login rex password %s\n' "$REX_PACKAGE_TOKEN" > "$nix_conf_dir/netrc")
 }
 
 warm_store() {
@@ -90,5 +101,8 @@ step "Install Nix" install_nix
 # shellcheck disable=SC1091
 source "$nix_profile/etc/profile.d/nix.sh"
 step "Configure Nix" configure_nix
+# The snapshot must not keep the Rex token, whether warming the store works or not
+trap 'rm -f "$nix_conf_dir/netrc"' EXIT
+write_rex_netrc
 step "Warm the store for nix flake check" warm_store
 step "Write notes for agents" write_agent_notes
