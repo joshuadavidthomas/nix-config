@@ -1,5 +1,5 @@
 # Any Apple Silicon Mac; bootstrap.sh and `rebuild` use this, not the hostname.
-{ config, lib, vars, ... }: {
+{ config, lib, pkgs, vars, ... }: {
   # installs op to /usr/local/bin, the only place the 1Password app integration accepts
   programs._1password = {
     enable = true;
@@ -28,8 +28,9 @@
       "steipete/tap"
       "yakitrak/yakitrak"
     ];
-    # not in nixpkgs
+    # not in nixpkgs, or released too often to pin (like cf)
     brews = [
+      "cloudflared" # the micro-hunter tunnel below; Cloudflare supports a release for about a year
       "antoniorodr/memo/memo" # Apple Notes
       "steipete/tap/gifgrep"
       "steipete/tap/remindctl" # Apple Reminders
@@ -96,6 +97,33 @@
         owner = vars.user;
         group = "staff";
       };
+    };
+
+  # micro-hunter's Reddit proxy and the Cloudflare Tunnel that the Worker reaches it through.
+  # Boot services that run as vars.user, so a restart brings them back without a login. node
+  # comes from Nix; cloudflared from Homebrew (brews above), so it stays current. The script and
+  # its secrets (proxy.env, cookie.txt, tunnel-token) are still files in this directory.
+  launchd.daemons =
+    let
+      dir = "${config.users.users.${vars.user}.home}/Library/Application Support/micro-hunter";
+      service = log: args: {
+        serviceConfig = {
+          ProgramArguments = args;
+          UserName = vars.user;
+          GroupName = "staff";
+          RunAtLoad = true;
+          KeepAlive = true;
+          ThrottleInterval = 10;
+          StandardOutPath = "${dir}/${log}.log";
+          StandardErrorPath = "${dir}/${log}.log";
+        };
+      };
+    in
+    {
+      micro-hunter-reddit = service "proxy" [ "${pkgs.nodejs}/bin/node" "${dir}/reddit.mjs" ];
+      micro-hunter-tunnel = service "tunnel" [
+        "${config.homebrew.prefix}/bin/cloudflared" "tunnel" "--no-autoupdate" "run" "--token-file" "${dir}/tunnel-token"
+      ];
     };
 
   home-manager.users.${vars.user}.imports = [ ./home.nix ];
