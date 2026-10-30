@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Runs each time an orb starts or wakes. Gives Nix the thread's GitHub token, so flake fetches
-# aren't rate-limited, the way home/nix.nix does it on the machines. Docs: docs/orbs.md.
+# Runs each time an orb starts or wakes. Gives Nix a GitHub token, so it can fetch the private
+# yonder input and flake fetches aren't rate-limited, the way home/nix.nix does it on the
+# machines: the project secret NIX_GITHUB_TOKEN, else the thread's token. Docs: docs/orbs.md.
 set -euo pipefail
 
 tokens_file="$HOME/.config/nix/access-tokens.conf"
 
-token=${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}
+token=${NIX_GITHUB_TOKEN:-${GH_TOKEN:-$(gh auth token 2>/dev/null || true)}}
 if [ -z "$token" ]; then
   echo "No GitHub token; Nix fetches from GitHub without one" >&2
   rm -f "$tokens_file"

@@ -76,10 +76,13 @@ $marker
 EOF
 }
 
-# GitHub limits anonymous flake fetches to 60 requests an hour. Use Amp's token for this run
-# only; it is never written to disk here.
-if [ -n "${GH_TOKEN:-}" ]; then
-  export NIX_CONFIG="access-tokens = github.com=$GH_TOKEN"
+# yonder is a private input, and GitHub limits anonymous flake fetches to 60 requests an hour.
+# Prefer the project secret NIX_GITHUB_TOKEN, which can read yonder; the GH_TOKEN that Amp
+# gives setup cannot. Use it for this run only; it is never written to
+# disk here.
+token=${NIX_GITHUB_TOKEN:-${GH_TOKEN:-}}
+if [ -n "$token" ]; then
+  export NIX_CONFIG="access-tokens = github.com=$token"
 fi
 
 step "Install Nix" install_nix

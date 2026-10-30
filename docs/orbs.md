@@ -17,9 +17,23 @@ later orbs from it, for up to 72 hours. The script:
 Each step skips what is already done. When `flake.lock` or `pkgs/` change, setup builds only
 what changed.
 
-`.agents/resume` runs each time an orb starts or wakes. It writes the thread's GitHub token to
+`.agents/resume` runs each time an orb starts or wakes. It writes a GitHub token to
 `~/.config/nix/access-tokens.conf`, as `home/nix.nix` does on the machines. Setup deletes this
 file, so the snapshot has no token.
+
+## GitHub token
+
+The `yonder` input is a private repo. The `GH_TOKEN` that Amp gives setup cannot read it, so
+setup cannot fetch yonder with it. Setup and resume use the project secret
+`NIX_GITHUB_TOKEN` first, and fall back to `GH_TOKEN`. Make it a fine-grained personal access
+token with read-only access to the contents of `joshuadavidthomas/yonder.dev`. It can also read
+public repos, so it covers the rate limit too. Set it with:
+
+```sh
+amp secrets set NIX_GITHUB_TOKEN --secret --project joshthomas/nix-config
+```
+
+When it expires, setup fails at "Warm the store" with an HTTP 404 for yonder.
 
 ## Time
 
