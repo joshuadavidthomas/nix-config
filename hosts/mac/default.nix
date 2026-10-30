@@ -24,6 +24,7 @@
     onActivation.cleanup = "uninstall"; # anything not declared here gets removed
     # declared here means trusted: Homebrew refuses formulae from untrusted third-party taps
     taps = map (name: { inherit name; trusted = true; }) [
+      "abue-ammar/tinycast"
       "antoniorodr/memo"
       "steipete/tap"
       "yakitrak/yakitrak"
@@ -40,11 +41,18 @@
     ];
     casks = [
       "1password" # updates itself; the first switch on a new Mac installs it
+      "abue-ammar/tinycast/tinycast"
+      "alt-tab"
       "ghostty"
-      "jordanbaird-ice@beta"
+      "jordanbaird-ice@beta" # until Thaw has replaced it
+      "karabiner-elements"
+      "linearmouse"
+      "monitorcontrol"
+      "omniwm"
       "orbstack"
       "steipete/tap/codexbar"
       "t3-code@nightly"
+      "thaw" # replaces Ice
       "wezterm"
       "zed"
     ];
