@@ -24,7 +24,7 @@
     '')
     # Rex's own terminals get `rex` on PATH; this puts it everywhere else
     (pkgs.writeShellScriptBin "rex" ''
-      exec "/Applications/Rex Beta.app/Contents/Helpers/Rex Server.app/Contents/MacOS/rex" "$@"
+      exec "/Applications/Rex Beta.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex" "$@"
     '')
   ];
 
