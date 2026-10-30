@@ -32,8 +32,9 @@ in the iPhone:
 lab-1.tail014d2.ts.net
 ```
 
-A bare host name tries HTTPS on 443, then on 7297, then HTTP on 7297, so it finds 7297. The
-HTTPS certificate is for the full name only, so `lab-1` alone does not work.
+The HTTPS certificate covers only the full name, so a bare `lab-1` gets `tls: internal error`.
+On the command line, `lab-1`, `lab-2` and `lab-3` are host labels for the full names, declared
+with `rex.host` in `home/files/rex/init.lua`, so `rex -S lab-1 ls` works on every machine.
 
 You don't need `rex server tailscale pair`. It shows a QR code of the address of Rex's
 built-in Tailscale, which only a personal or shared server has, so on a box it says
@@ -42,7 +43,7 @@ built-in Tailscale, which only a personal or shared server has, so on a box it s
 From the command line:
 
 ```sh
-rex -S lab-1.tail014d2.ts.net ls
+rex -S lab-1 ls
 ```
 
 On a box, `sudo systemctl status rex-login-server rex-tailscale-serve` shows the server and

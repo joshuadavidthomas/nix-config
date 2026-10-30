@@ -41,3 +41,9 @@ rex.bind("shift+enter", function(ctx, ev)
   })
   return true
 end)
+
+-- The lab boxes, by their short names: `rex -S lab-1`. Their HTTPS certificates cover only the
+-- full names, so a bare `lab-1` can't connect (docs/rex.md).
+for _, box in ipairs({ "lab-1", "lab-2", "lab-3" }) do
+  rex.host{ label = box, endpoint = "https://" .. box .. ".tail014d2.ts.net:7297" }
+end
