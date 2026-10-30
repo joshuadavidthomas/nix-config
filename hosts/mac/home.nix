@@ -3,7 +3,6 @@
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
   # (modules/secrets.nix).
   home.packages = [
-    inputs.colmena.packages.${pkgs.stdenv.hostPlatform.system}.colmena # deploys the homelab
     # the yonder CLI, the build the lab boxes run (flake.lock); reads the fabric's coordinator
     # from ~/.config/yonder/config (docs/yonder.md)
     inputs.yonder.packages.${pkgs.stdenv.hostPlatform.system}.yonder

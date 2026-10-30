@@ -13,6 +13,7 @@ The examples use `lab-2`. For a new lab box, use the next free number.
 - For a new lab box: a USB stick with the NixOS minimal ISO
 - The Mac, with the configuration applied
 - The Tailscale OAuth client in 1Password. See [The Tailscale client](secrets.md#the-tailscale-client).
+- The items "Lab GitHub token" and "Rex packages" in 1Password. See [Secrets](secrets.md).
 
 ## Add the lab box to the repo
 
@@ -88,7 +89,7 @@ yonder's machines and volumes in `/var/lib/yonder`.
    `disko.devices.disk.main.content.partitions.root.content.format = "xfs";`.
 
 To change the root filesystem of an installed lab box, set it here and install the lab box
-again. Do not apply the change with colmena: the format applies only at install, and a lab
+again. Do not apply the change with `rebuild`: the format applies only at install, and a lab
 box whose configuration has another filesystem than its disk does not start.
 
 ## Install
@@ -133,7 +134,8 @@ box whose configuration has another filesystem than its disk does not start.
    rm -r /tmp/lab-2
    ```
 
-6. `hosts/lab-2/hardware-configuration.nix` is new or changed. Commit it.
+6. `hosts/lab-2/hardware-configuration.nix` is new or changed. Commit it and push. The lab
+   box builds itself from GitHub, so it needs this commit.
 
 ## Connect to Tailscale
 
@@ -150,14 +152,14 @@ ssh lab-2 nixos-version
 
 1. Put yonder's files on the lab box. yonderd does not start without
    `/etc/yonder/coordinator.env`. See [The files on each box](yonder.md#the-files-on-each-box).
-2. Apply:
+2. Apply. The lab box builds itself from `main` on GitHub:
 
    ```sh
-   colmena apply --on lab-2
+   ssh lab-2 rebuild
    ```
 
-colmena copies the Mac's opnix token to the lab box. The output ends with
-`Activation successful`.
+The lab box fetches the flake's inputs with the GitHub token and Rex's token that opnix
+reads. If `rebuild` cannot fetch yonder or Rex, wait a minute for opnix and run it again.
 
 ## If it stops
 
@@ -171,5 +173,6 @@ colmena copies the Mac's opnix token to the lab box. The output ends with
 | The lab box is not on the router | NixOS did not start | Look at the screen. The lab box can be in the BIOS boot menu or on the USB stick. |
 | `ssh lab-2` does not find the lab box | The lab box did not join Tailscale | Find the IP address on the router. Run `ssh -o IdentitiesOnly=yes -i ~/.ssh/lab.pub josh@<ip> journalctl -u opnix-secrets -u tailscaled-autoconnect`. |
 | `Token file /etc/opnix-token does not exist` in that log | The install did not get the token | Run `ssh -o IdentitiesOnly=yes -i ~/.ssh/lab.pub josh@<ip> 'sudo tee /etc/opnix-token >/dev/null && sudo systemctl restart opnix-secrets tailscaled-autoconnect' < /etc/opnix-token` |
+| `rebuild` fails with `HTTP error 404` for yonder, or `Rex packages require a token` | `/var/lib/nix-credentials` does not have the tokens yet | Run `ssh lab-2 sudo systemctl restart opnix-secrets nix-credentials`, then `rebuild` again. Check the items in 1Password. |
 | `requested tags [tag:lab] are invalid or not permitted` | The OAuth client does not have the tag `lab` | Make the client again. See [The Tailscale client](secrets.md#the-tailscale-client). |
 | The lab box is `lab-2-1` in Tailscale | An old `lab-2` is in the tailnet | Remove the old `lab-2` in the admin console. Then rename the new one to `lab-2` there. |

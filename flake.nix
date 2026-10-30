@@ -11,8 +11,6 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-    colmena.url = "github:nix-community/colmena";
-    colmena.inputs.nixpkgs.follows = "nixpkgs";
     # reads secrets from 1Password with a service account (modules/secrets.nix)
     opnix.url = "github:brizzbuzz/opnix";
     opnix.inputs.nixpkgs.follows = "nixpkgs";
@@ -44,7 +42,7 @@
     tokyonight.flake = false;
   };
 
-  outputs = inputs@{ self, nixpkgs, colmena, ... }:
+  outputs = inputs@{ self, nixpkgs, ... }:
     let
       vars = import ./vars.nix;
       mkSystem = import ./lib/mksystem.nix { inherit self inputs vars; };
@@ -70,37 +68,8 @@
       nixosConfigurations = {
         work-wsl = mkSystem "work-wsl" { system = "x86_64-linux"; };
       }
-      # nixos-anywhere installs a lab box from here; colmenaHive deploys it afterwards
+      # nixos-anywhere installs a lab box from here; afterwards each box rebuilds itself from
+      # GitHub (`rebuild`, modules/nixos/server.nix)
       // nixpkgs.lib.genAttrs labs (name: mkSystem name { system = "x86_64-linux"; });
-
-      # `colmena apply` from the Mac; every build runs on the boxes themselves
-      colmenaHive = colmena.lib.makeHive ({
-        meta.nixpkgs = import nixpkgs { system = "x86_64-linux"; };
-        meta.specialArgs = { inherit inputs vars; };
-        defaults = {
-          deployment.buildOnTarget = true;
-          # colmena's lib comes from plain `import nixpkgs`, which lacks the flake's version
-          # info; without these the system calls itself 26.05pre-git
-          system.nixos.versionSuffix = nixpkgs.lib.trivial.versionSuffix;
-          system.nixos.revision = nixpkgs.lib.trivial.revisionWithDefault null;
-
-          # Each deploy copies the Mac's own opnix token to /etc/opnix-token (modules/secrets.nix),
-          # so it needs no 1Password approval. opnix waits for it, so a box's first deploy
-          # fetches its secrets.
-          deployment.keys.opnix-token = {
-            keyFile = "/etc/opnix-token";
-            destDir = "/etc";
-          };
-          systemd.services.opnix-secrets = {
-            wants = [ "opnix-token-key.service" ];
-            after = [ "opnix-token-key.service" ];
-          };
-        };
-      } // nixpkgs.lib.genAttrs labs (name: {
-        # every module nixosSystem used, including the one nixpkgs adds itself (the
-        # `nixpkgs` registry pin), so colmena deploys exactly what was installed
-        imports = self.nixosConfigurations.${name}._module.args.modules;
-        deployment.targetHost = name; # Tailscale MagicDNS
-      }));
     };
 }

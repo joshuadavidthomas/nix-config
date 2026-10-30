@@ -64,7 +64,8 @@ larger orb size removes the problem.
 
 ## What an orb cannot do
 
-- Apply a configuration. It is not a Mac, NixOS or a lab box.
+- Apply a configuration to itself. It is not a Mac, NixOS or a lab box. It can apply a lab box
+  over SSH; see below.
 - Build the Mac configuration. It is `x86_64-linux`.
 - Read secrets. It has no opnix token. Rex's package login, from Amp, is the one exception.
 - Sign commits. The signing keys are in 1Password.
@@ -86,6 +87,13 @@ journalctl _COMM=sudo
 ```
 
 A lab box needs the tag `lab` before orbs can reach it.
+
+An orb applies a pushed change to a lab box the way any machine does, with `rebuild` on the box
+(see [Apply a change](changes.md#apply-a-change)):
+
+```sh
+ssh orb@lab-2 rebuild
+```
 
 ## Change the setup
 

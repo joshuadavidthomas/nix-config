@@ -96,7 +96,7 @@ One box at a time, from the Mac:
 ```sh
 ssh lab-1 'sudo yonder status'   # build and executable, to compare after
 ssh lab-1 'sudo systemctl stop yonder-resolver.socket yonder-resolver.service; sudo rm -f /run/systemd/system/yonder-resolver.socket /run/systemd/system/yonder-resolver.service /run/systemd/system/yonderd.service.d/resolver.conf /var/lib/yonder-bin/yonderd /var/lib/yonder-bin/yonder; sudo systemctl daemon-reload'
-colmena apply --on lab-1
+ssh lab-1 rebuild
 ```
 
 `.internal` does not answer on the box between the last two. yonderd keeps running; if it

@@ -45,18 +45,20 @@ file. The token is kept on its own; each place writes the netrc line from it:
 | Where | Token | Netrc |
 | --- | --- | --- |
 | Mac | The field `password` of the item "Rex packages" in `dotfiles`. opnix writes it to `~/Library/Application Support/opnix/rexToken`. | `~/.config/nix/netrc`, written by the launchd agent `rex-netrc` at login and when the token file changes (`hosts/mac/home.nix`) |
+| Lab boxes | The same field. opnix writes it to `/var/lib/opnix/secrets/rexToken`. | `/var/lib/nix-credentials/netrc`, written by `nix-credentials.service` (`modules/nixos/server.nix`) |
 | Orbs | The Amp project secret `REX_PACKAGE_TOKEN` | `~/.config/nix/netrc`, written by `.agents/resume` |
 
-Both name the file with `netrc-file` in `~/.config/nix/nix.conf`. The line is:
+Each names the file with `netrc-file`: in `~/.config/nix/nix.conf` on the Mac and in orbs, in
+`/etc/nix/nix.conf` on the lab boxes. The line is:
 
 ```text
 machine pkgs.superlogical.com login rex password TOKEN
 ```
 
-The lab boxes need no login: colmena evaluates on the Mac, and the Rex binary comes from
-`blob.superlogical.com`, which needs none. WSL and the Mac's own `rebuild` need none either:
-Nix fetches an input only when a configuration uses it, and only the lab boxes use Rex.
-`nix flake update` and `nix flake check` do need it, so run them on the Mac or in an orb.
+The Rex binary comes from `blob.superlogical.com`, which needs no login; only the flake does.
+WSL and the Mac's own `rebuild` need none: Nix fetches an input only when a configuration
+uses it, and only the lab boxes use Rex. nixos-anywhere, `nix flake update` and
+`nix flake check` do need it, so run them on the Mac or in an orb.
 
 Determinate Nix on the Mac reads only the netrc that `netrc-file` names, and it names its
 own. The one in `~/.config/nix/nix.conf` applies to you only, and has no FlakeHub login,
@@ -71,12 +73,13 @@ build. To move to the newest:
 nix flake update rex
 ```
 
-Then `colmena apply`. The `preview` and `stable` channels are other URLs; see the comments in
+Then push, and `rebuild` each box. The `preview` and `stable` channels are other URLs; see the comments in
 the Rex flake.
 
 ## Change the password
 
 1. Change the field `password` of "Rex packages" in 1Password. Fetch the secrets again on the
-   Mac (see [Change a secret](secrets.md#change-a-secret)). The agent rewrites the netrc.
+   Mac and on each lab box (see [Change a secret](secrets.md#change-a-secret)). The Mac's
+   agent and the boxes' `nix-credentials` rewrite the netrc.
 2. Change the Amp project secret `REX_PACKAGE_TOKEN` of `joshthomas/nix-config`. Orbs that
    start later get it.

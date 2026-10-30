@@ -16,6 +16,9 @@ systemFunc {
       nixpkgs.hostPlatform = system;
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [ self.overlays.default ];
+      # the commit this was built from, or its dirty tree: nixos-version
+      # --configuration-revision, darwin-version --configuration-revision
+      system.configurationRevision = self.rev or self.dirtyRev or null;
     }
     ../modules/${os}
     inputs.opnix."${os}Modules".default

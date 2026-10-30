@@ -15,7 +15,7 @@ up each machine by hand.
 | Package manager | [Nix](https://nixos.org), with flakes. Determinate Nix on the Mac. |
 | Mac | [nix-darwin](https://github.com/nix-darwin/nix-darwin), with Homebrew for Mac apps |
 | Work laptop | [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) |
-| Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated with [colmena](https://colmena.cli.rs) over Tailscale |
+| Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated by each box from GitHub, over SSH on Tailscale |
 | User settings | [home-manager](https://github.com/nix-community/home-manager), shared by all machines |
 | Secrets | 1Password, read with [opnix](https://github.com/brizzbuzz/opnix) and a service account |
 | Monitoring | VictoriaMetrics, VictoriaLogs and Grafana on a [Fly](https://fly.io) machine, fed by Vector on the lab boxes |
@@ -34,7 +34,7 @@ Then apply changes with:
 | --- | --- |
 | Mac | `rebuild` |
 | Work laptop | `rebuild` |
-| Homelab | `colmena apply`, on the Mac, in `~/.nix-config` |
+| Homelab | Push, then `ssh lab-1 rebuild`, from any machine on the tailnet |
 
 Docs:
 

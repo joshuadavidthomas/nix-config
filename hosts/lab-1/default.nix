@@ -8,7 +8,7 @@
 
   networking.hostName = "lab-1";
 
-  # yonderd, so a reboot, a reinstall or `colmena apply` brings it back. The module also
+  # yonderd, so a reboot, a reinstall or `rebuild` brings it back. The module also
   # runs the .internal resolver in its own units (yonder-resolver.socket and .service, as
   # the user yonder-resolver) and guests' calls to their host in yonder-connect.service (as
   # the user yonder-connect, which yonderd reaches through /run/yonder/connect), enables

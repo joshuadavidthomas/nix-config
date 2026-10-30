@@ -23,6 +23,56 @@ in
   nix.settings.trusted-users = [ "root" vars.user ];
   nix.gc = { automatic = true; options = "--delete-older-than 30d"; };
 
+  # Each box builds and applies itself from GitHub (docs/changes.md#apply-a-change), from any
+  # machine that can SSH in: `ssh lab-2 rebuild`, or `ssh lab-2 rebuild test my-branch` to try
+  # a pushed branch until the next reboot. Only commits reach a box.
+  environment.systemPackages = [
+    pkgs.htop
+    (pkgs.writeShellScriptBin "rebuild" ''
+      # rebuild [ACTION [REF]]: ACTION is nixos-rebuild's (switch, boot, test...), REF a branch,
+      # tag or commit of the repo on GitHub. --refresh: a branch moves, so don't use a cached copy.
+      exec sudo nixos-rebuild "''${1:-switch}" --refresh \
+        --flake "github:joshuadavidthomas/nix-config?ref=''${2:-main}#${config.networking.hostName}"
+    '')
+  ];
+
+  # Nix's logins for the flake's inputs, so a box can fetch them itself: a GitHub token for
+  # yonder, a private repo, and Rex's package token (docs/rex.md). opnix writes each token
+  # alone; nix-credentials writes them in Nix's formats, at boot and when opnix changes them.
+  services.onepassword-secrets.secrets = {
+    githubToken.reference = "op://dotfiles/Lab GitHub token/password";
+    rexToken.reference = "op://dotfiles/Rex packages/password";
+  };
+  nix.settings.netrc-file = "/var/lib/nix-credentials/netrc";
+  nix.extraOptions = "!include /var/lib/nix-credentials/access-tokens.conf"; # skipped while missing
+  systemd.services.nix-credentials = {
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "opnix-secrets.service" ];
+    after = [ "opnix-secrets.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "nix-credentials";
+      StateDirectoryMode = "0700";
+      UMask = "0077";
+    };
+    script = let
+      inherit (config.services.onepassword-secrets) secretPaths;
+    in ''
+      # write FILE TOKEN FORMAT, once opnix has the token
+      write() {
+        [ -s "$2" ] || return 0
+        printf "$3" "$(cat "$2")" > "$STATE_DIRECTORY/$1.tmp"
+        mv "$STATE_DIRECTORY/$1.tmp" "$STATE_DIRECTORY/$1"
+      }
+      write access-tokens.conf ${secretPaths.githubToken} 'access-tokens = github.com=%s\n'
+      write netrc ${secretPaths.rexToken} 'machine pkgs.superlogical.com login rex password %s\n'
+    '';
+  };
+  systemd.paths.nix-credentials = {
+    wantedBy = [ "paths.target" ];
+    pathConfig.PathChanged = with config.services.onepassword-secrets.secretPaths; [ githubToken rexToken ];
+  };
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   hardware.enableRedistributableFirmware = true; # NIC firmware and CPU microcode
@@ -37,7 +87,6 @@ in
     settings.KbdInteractiveAuthentication = false;
   };
   users.users.${vars.user}.openssh.authorizedKeys.keys = [ vars.keys.controller ];
-  users.users.root.openssh.authorizedKeys.keys = [ vars.keys.controller ]; # colmena deploys as root
   security.sudo.wheelNeedsPassword = false;
 
   # Amp orbs log in as orb, over Tailscale SSH (docs/orbs.md). Agents' files stay out of josh's
@@ -219,7 +268,6 @@ in
     };
   };
 
-  environment.systemPackages = [ pkgs.htop ];
 
   system.stateVersion = "26.05"; # set at install; never bump it
 }

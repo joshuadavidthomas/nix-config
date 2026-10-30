@@ -155,7 +155,7 @@ The dashboards select by the labels `job` and `instance`, which Vector adds on t
 `tailscale`, `units` (systemd units, from Vector) or `vector`.
 
 The marks on the graphs: deploys are the journal's "finished switching to system configuration"
-lines (each `colmena apply`), from VictoriaLogs; a reboot is a machine booted less than 5 minutes
+lines (each `rebuild` that switches), from VictoriaLogs; a reboot is a machine booted less than 5 minutes
 before; out of memory is node_exporter's `oom_kill` count going up. Failed units are units in
 systemd's `failed` state now.
 

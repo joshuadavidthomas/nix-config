@@ -102,8 +102,9 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - **opnix reads the secrets, with a 1Password service account, on every machine.** The Mac uses
   the same service account as the other machines, not the 1Password app integration. The
   service account token is the only secret that a machine gets from outside opnix: `rebuild`
-  copies it from 1Password on the Mac and WSL, and colmena copies the Mac's token to the lab
-  boxes. Your user on the Mac can read the token, so agents on the Mac can read the vault.
+  copies it from 1Password on the Mac and WSL, and nixos-anywhere copies the Mac's token to a
+  lab box at install. Your user on the Mac can read the token, so agents on the Mac can read
+  the vault.
 - **Start with one shared vault, `dotfiles`, that the service account reads.** Split it later
   by reader, for example a separate vault for agents in sandboxed VMs.
   Reason: a service account cannot get access to more vaults after it is created. New items in
@@ -149,6 +150,21 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   hand with the site's command.
   Details: https://emudhra.we-have-a-problem.com/
 
+## Deploys
+
+- **Each lab box builds and applies itself from the repo on GitHub, with `rebuild`.** Any
+  machine on the tailnet deploys over SSH: the Mac, WSL, or an orb as `orb`. There is no
+  colmena, and root has no SSH key of its own.
+  Reason: what runs on a box is always a commit. An orb's checkout goes away with the orb, so
+  a deploy from it of changes that were not committed could leave a box with a configuration
+  that exists nowhere. Each box evaluates itself, so no deploying machine needs the memory or
+  the inputs. To try a change, push a branch and apply it with `rebuild test`.
+- **The lab boxes keep a GitHub token and Rex's package token, through opnix.**
+  Reason: a box fetches the flake's inputs itself. yonder is a private repo.
+- **A lab box gets the opnix token once, at install.** It is copied again only when it is
+  replaced (docs/secrets.md).
+  Reason: colmena copied it at each deploy; without colmena, a deploy has no token to copy.
+
 ## Rex
 
 Details: [Rex on the lab boxes](rex.md).
@@ -167,8 +183,10 @@ Details: [Rex on the lab boxes](rex.md).
   Reason: it is the only supported way on NixOS.
 - **Until Rex's first release, its package login is in 1Password and in an Amp project
   secret.** The Mac reads it with opnix; orbs get it from Amp.
-  Reason: the flake input needs it wherever the lab boxes are evaluated: the Mac (colmena)
-  and orbs (`nix flake check`). Without it in orbs, every orb's setup would fail.
+  The lab boxes read it with opnix too.
+  Reason: the flake input needs it wherever the lab boxes are evaluated: on the boxes
+  (`rebuild`), the Mac (nixos-anywhere, `nix flake check`) and orbs (`nix flake check`).
+  Without it in orbs, every orb's setup would fail.
 
 ## Project environments
 

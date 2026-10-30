@@ -30,11 +30,40 @@
    | --- | --- |
    | Mac | `rebuild` |
    | Work laptop (WSL) | `rebuild` |
-   | All lab boxes | `colmena apply`, on the Mac, in `~/.nix-config` |
-   | One lab box | `colmena apply --on lab-2`, on the Mac, in `~/.nix-config` |
+   | One lab box | Push, then `ssh lab-2 rebuild`, from any machine on the tailnet |
+   | All lab boxes | Push, then `for box in lab-1 lab-2 lab-3; do ssh $box rebuild; done` |
+
+A lab box builds itself from the repo on GitHub, not from your checkout, so only pushed
+commits reach it. Orbs connect as `orb`: `ssh orb@lab-2 rebuild`.
+
+To try a change on a lab box before it is on `main`, push a branch and apply it with `test`:
+
+```sh
+ssh lab-2 rebuild test my-branch
+```
+
+`test` activates the branch until the next reboot, without making it the default. When it
+works, merge the branch and run `ssh lab-2 rebuild`. To undo a `switch`, run
+`ssh lab-2 sudo nixos-rebuild switch --rollback`. `nixos-version --configuration-revision` on
+a box shows the commit it runs.
 
 To see a value before you apply, run `nix repl`, then `:lf .`, then the option path. For
 example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.settings`.
+
+### Move a lab box to `rebuild` (once)
+
+A box that colmena deployed has no GitHub or Rex token for Nix yet, so its first `rebuild`
+cannot fetch yonder or Rex. Give the first one the Mac's tokens through stdin, so they are
+not in a command line or the journal. From the Mac, after the items "Lab GitHub token" and
+"Rex packages" are in 1Password and the Mac has applied, for each box:
+
+```sh
+ssh lab-2 'sudo install -d -m 700 /root/bootstrap && sudo tee /root/bootstrap/netrc >/dev/null' < ~/.config/nix/netrc
+printf 'access-tokens = github.com=%s\nnetrc-file = /root/bootstrap/netrc\n' "$(gh auth token)" | ssh lab-2 'sudo tee /root/bootstrap/nix.conf >/dev/null'
+ssh lab-2 'sudo NIX_USER_CONF_FILES=/root/bootstrap/nix.conf nixos-rebuild switch --refresh --flake github:joshuadavidthomas/nix-config#lab-2; sudo rm -r /root/bootstrap'
+```
+
+After that, the box has its own tokens, and `ssh lab-2 rebuild` works.
 
 ## Add a package that nixpkgs does not have
 

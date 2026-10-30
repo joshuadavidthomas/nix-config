@@ -30,7 +30,17 @@ See [Rex on the lab boxes](rex.md).
 - [x] Rex's login server on every lab box, on `tailnet://:7297`, from the `snapshot` channel
 - [x] Rex's package login for orbs: the Amp project secret `REX_PACKAGE_TOKEN`
 - [ ] The item "Rex packages" in `dotfiles`, with the token in the field `password`
-- [ ] `rebuild` on the Mac, then `colmena apply`
+- [ ] `rebuild` on the Mac
+
+## Deploys
+
+See [Decisions](decisions.md#deploys).
+
+- [x] Each lab box builds itself from GitHub with `rebuild`; colmena removed
+- [ ] The item "Lab GitHub token" in `dotfiles`. See
+      [The GitHub token of the lab boxes](secrets.md#the-github-token-of-the-lab-boxes).
+- [ ] Move each lab box to `rebuild`, once. See
+      [Move a lab box to `rebuild`](changes.md#move-a-lab-box-to-rebuild-once).
 - [ ] Add `lab-1`, `lab-2` and `lab-3` in Rex for Mac
 
 ## Secrets
@@ -87,7 +97,7 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [x] Dashboards, one for each job (Homelab, Capacity, VMs, Machine, Logs, Monitor), for any
       number of machines; the monitor scrapes its own services
 - [ ] Per-VM CPU and memory, from each VM's systemd unit (Vector's `cgroups` collector), on the
-      VMs and Machine dashboards. Built; check it on a box with VMs after `colmena apply`
+      VMs and Machine dashboards. Built; check it on a box with VMs after `rebuild`
 - [ ] Find out why data queued during an outage arrives thinned: 1–2 samples a minute, not 6
 - [ ] Agent access through the VictoriaMetrics MCP server
 - [ ] A second Vector sink to Cloudflare Basin

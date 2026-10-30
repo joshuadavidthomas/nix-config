@@ -57,7 +57,7 @@
 
   # MonoLisa is licensed, so it's kept in 1Password, not in the repo. macOS ignores symlinked
   # fonts, so opnix writes the files straight into ~/Library/Fonts.
-  # colmena reads /etc/opnix-token to copy it to the lab boxes (flake.nix)
+  # you read /etc/opnix-token to give it to a lab box at install (docs/new-lab-box.md)
   services.onepassword-secrets.users = [ vars.user ];
 
   services.onepassword-secrets.secrets =
@@ -77,8 +77,8 @@
       monolisaVariableNormal = font "MonoLisa Variable Normal" "MonoLisaVariableNormal.ttf";
       monolisaVariableItalic = font "MonoLisa Variable Italic" "MonoLisaVariableItalic.ttf";
 
-      # pkgs.superlogical.com's token, for Rex's flake input: colmena evaluates the lab boxes
-      # here, as you (docs/rex.md). hosts/mac/home.nix makes it a netrc.
+      # pkgs.superlogical.com's token, for Rex's flake input: `nix flake check` and
+      # `nix flake update` here fetch it (docs/rex.md). hosts/mac/home.nix makes it a netrc.
       rexToken = {
         reference = "op://dotfiles/Rex packages/password";
         path = "${config.users.users.${vars.user}.home}/Library/Application Support/opnix/rexToken";

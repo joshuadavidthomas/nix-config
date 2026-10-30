@@ -11,7 +11,7 @@
 
   # public halves of keys kept in 1Password
   keys = {
-    # "Mac mini": the lab boxes trust it for SSH, and colmena deploys with it
+    # "Mac mini": the lab boxes trust it for SSH as vars.user, and nixos-anywhere installs with it
     controller = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHVCdVXgBfljpv3nqraSApsBRM7Lg5U/L8HIXTNXesBn";
     # "github.com": signs commits
     signing = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFu+mS88ARLvrHMl3CshOJRL/Ft3TJRr/dG+hTq39aNW";
