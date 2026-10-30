@@ -42,6 +42,86 @@ let
 
   direnvLoad = ''eval "$(DIRENV_NONINTERACTIVE=1 DIRENV_LOG_FORMAT= ${config.programs.direnv.package}/bin/direnv export bash 2>/dev/null)"'';
 
+  claudeSettings = json.generate "claude-settings.json" {
+    agentPushNotifEnabled = true;
+    attribution = {
+      commit = "";
+      pr = "";
+      sessionUrl = false;
+    };
+    theme = "auto";
+    tui = "fullscreen";
+    skipDangerousModePermissionPrompt = true;
+    hooks = {
+      PreToolUse = atuinHook "claude-code" "Bash";
+      PostToolUse = atuinHook "claude-code" "Bash";
+      PostToolUseFailure = atuinHook "claude-code" "Bash";
+      SessionStart = herdrSessionStart "$HOME/.claude/hooks/herdr-agent-state.sh" ++ [
+        {
+          hooks = [
+            {
+              # Claude restores its PATH snapshot after .zshenv; load direnv afterwards.
+              type = "command";
+              command = ''grep -qxF ${lib.escapeShellArg direnvLoad} "$CLAUDE_ENV_FILE" 2>/dev/null || echo ${lib.escapeShellArg direnvLoad} >> "$CLAUDE_ENV_FILE"'';
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  # Only hooks.json: config.toml stays Codex's, the app records trusted projects there.
+  codexHooks = json.generate "codex-hooks.json" {
+    hooks = {
+      PreToolUse = atuinHook "codex" "^Bash$";
+      PostToolUse = atuinHook "codex" "^Bash$";
+      PostToolUseFailure = atuinHook "codex" "^Bash$";
+      SessionStart = herdrSessionStart "$HOME/.codex/herdr-agent-state.sh";
+    };
+  };
+
+  # Agents and tools such as Rex write these files too, so Nix merges its settings into them
+  # instead of linking a read-only copy. Objects merge recursively and Nix wins for the keys it
+  # declares. Hook events are lists that others add to, so Nix replaces only the entries it
+  # wrote on the previous switch, recorded in .nix-managed-hooks.json next to the file.
+  # Runs before Home Manager removes an old symlink to the file, which becomes a regular file.
+  mergeAgentJsonProgram = ''
+    def drop($xs): map(. as $e | select(any($xs[]; . == $e) | not));
+    ($current[0] // {}) as $c | $managed[0] as $n | ($previous[0] // {}) as $p
+    | if ($c | type) != "object" then error("\($file) must be a JSON object") else . end
+    | ($c.hooks // {}) as $h | ($n.hooks // {}) as $nh
+    | (reduce ((($h | keys) + ($nh | keys)) | unique)[] as $k ({};
+        .[$k] = ((($h[$k] // []) | drop($p[$k] // []) | drop($nh[$k] // [])) + ($nh[$k] // [])))
+      | with_entries(select(.value != []))) as $hooks
+    | ($c * ($n | del(.hooks))) + { hooks: $hooks }
+  '';
+
+  mergeAgentJson = name: target: managed: lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ] ''
+    merge${name}() (
+      set -eu
+      target="${target}"
+      state="$(dirname "$target")/.nix-managed-hooks.json"
+      mkdir -p "$(dirname "$target")"
+      if [ -L "$target" ] && [ ! -e "$target" ]; then
+        echo "$target is a broken symlink" >&2
+        exit 1
+      fi
+      current=/dev/null
+      if [ -e "$target" ]; then current="$target"; fi
+      previous=/dev/null
+      if [ -e "$state" ]; then previous="$state"; fi
+      temp=$(mktemp "$target.XXXXXXXX")
+      trap 'rm -f "$temp" "$temp.hooks"' EXIT
+      ${pkgs.jq}/bin/jq -n -e --arg file "$target" \
+        --slurpfile current "$current" --slurpfile managed ${managed} --slurpfile previous "$previous" \
+        ${lib.escapeShellArg mergeAgentJsonProgram} > "$temp"
+      ${pkgs.jq}/bin/jq -e '.hooks // {}' ${managed} > "$temp.hooks"
+      mv -f "$temp" "$target"
+      mv -f "$temp.hooks" "$state"
+    )
+    run merge${name}
+  '';
+
   installerPath = lib.makeBinPath (with pkgs; [
     bash
     coreutils
@@ -97,46 +177,10 @@ in
   programs.claude-code = {
     enable = true;
     package = null; # native install in ~/.local/bin, self-updating
-    settings = {
-      agentPushNotifEnabled = true;
-      attribution = {
-        commit = "";
-        pr = "";
-        sessionUrl = false;
-      };
-      theme = "auto";
-      tui = "fullscreen";
-      skipDangerousModePermissionPrompt = true;
-      hooks = {
-        PreToolUse = atuinHook "claude-code" "Bash";
-        PostToolUse = atuinHook "claude-code" "Bash";
-        PostToolUseFailure = atuinHook "claude-code" "Bash";
-        SessionStart = herdrSessionStart "$HOME/.claude/hooks/herdr-agent-state.sh" ++ [
-          {
-            hooks = [
-              {
-                # Each Bash call sources a snapshot of the login shell after .zshenv, and its
-                # PATH undoes direnv's. CLAUDE_ENV_FILE runs after the snapshot, so direnv
-                # loads from there instead (see cli.nix).
-                type = "command";
-                command = ''grep -qxF ${lib.escapeShellArg direnvLoad} "$CLAUDE_ENV_FILE" 2>/dev/null || echo ${lib.escapeShellArg direnvLoad} >> "$CLAUDE_ENV_FILE"'';
-              }
-            ];
-          }
-        ];
-      };
-    };
   };
 
-  # config.toml stays Codex's: the app records trusted projects there.
-  home.file.".codex/hooks.json".source = json.generate "codex-hooks.json" {
-    hooks = {
-      PreToolUse = atuinHook "codex" "^Bash$";
-      PostToolUse = atuinHook "codex" "^Bash$";
-      PostToolUseFailure = atuinHook "codex" "^Bash$";
-      SessionStart = herdrSessionStart "$HOME/.codex/herdr-agent-state.sh";
-    };
-  };
+  home.activation.claudeSettings = mergeAgentJson "ClaudeSettings" "$HOME/.claude/settings.json" claudeSettings;
+  home.activation.codexHooks = mergeAgentJson "CodexHooks" "$HOME/.codex/hooks.json" codexHooks;
 
   xdg.configFile."opencode/plugins/atuin.ts".source = ./files/opencode-atuin.ts;
   home.file.".pi/agent/extensions/atuin.ts".source = ./files/pi-atuin.ts;

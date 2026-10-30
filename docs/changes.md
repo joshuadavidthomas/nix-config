@@ -177,6 +177,16 @@ Lab boxes do this every day.
 | home-manager stops and names a `.bak` file | An old backup is in the way | Move the old `.bak` file. Apply again. |
 | `infinite recursion encountered` | A module reads `config` to decide what to define | Put the condition in `lib.mkIf` on the value, not around `imports` |
 
+## Agent settings that stay writable
+
+`~/.claude/settings.json` and `~/.codex/hooks.json` are regular files, because Claude installs
+plugins and Rex installs its session hooks there. On each switch, Nix merges the settings from
+`home/agents.nix` into them. For keys outside `hooks`, Nix wins and other keys remain. In each
+hook event, Nix replaces only the entries it wrote on the previous switch, which it records in
+`.nix-managed-hooks.json` next to the file, so hooks from Rex and other tools stay. Removing a
+non-hook key from Nix does not remove it from the file. Invalid JSON stops the switch rather
+than overwriting the file.
+
 ## Option search
 
 - [NixOS](https://search.nixos.org/options)
