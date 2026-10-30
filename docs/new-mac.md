@@ -36,6 +36,7 @@ You can run the bootstrap again at any time.
 | What you see | Cause | Action |
 | --- | --- | --- |
 | `You have not agreed to the Xcode license` | Xcode was installed or updated | Apply again |
+| `missing Metal Toolchain` when a GPUI app builds | Xcode was installed or updated | Apply again; it downloads the toolchain |
 | `$HOME ('/Users/josh') is not owned by you` | `sudo` without `-H` | Use `sudo -H` |
 | `darwin-rebuild: command not found` | The terminal started before the first apply | Open a new terminal |
 | `Refusing to load formula … from untrusted tap` | The tap is not in `taps` | Add the tap to `taps` in `hosts/mac/default.nix` |

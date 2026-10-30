@@ -51,6 +51,12 @@
       echo "accepting the Xcode license..." >&2
       /usr/bin/xcodebuild -license accept || echo "warning: could not accept the Xcode license" >&2
     fi
+    # Xcode 26+ ships the Metal shader compiler as a separate download, which GPUI builds need.
+    # A new Xcode can need it again. It's about 850 MB, so only fetch it when it's missing.
+    if [ -d /Applications/Xcode.app ] && ! /usr/bin/xcodebuild -showComponent MetalToolchain 2>/dev/null | grep -q 'Status: installed'; then
+      echo "downloading the Xcode Metal Toolchain..." >&2
+      /usr/bin/xcodebuild -downloadComponent MetalToolchain || echo "warning: could not download the Metal Toolchain" >&2
+    fi
   '';
 
   system.defaults.dock.autohide = true;
