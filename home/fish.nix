@@ -5,6 +5,12 @@
     interactiveShellInit = ''
       set -g fish_greeting
 
+      # In a Rex terminal, the rex that matches its server first: NixOS and nix-darwin set PATH
+      # anew, after Rex put it in front (docs/rex.md)
+      if set -q REX_BIN_DIR; and test -n "$REX_BIN_DIR"
+        fish_add_path --path --prepend --move $REX_BIN_DIR
+      end
+
       # tokyonight moon
       set -g fish_color_normal c8d3f5
       set -g fish_color_command 86e1fc

@@ -129,14 +129,14 @@ in
 
   # Rex's login server (docs/rex.md): it asks the box's tailscaled who each caller is and runs
   # a Rex server as the account they may use, so sessions survive its restarts and upgrades.
-  # It listens on the box's tailnet addresses, port 7297, in plain HTTP inside Tailscale.
-  # tailscale0 is trusted, and the tailnet policy lets members in and keeps orbs out. Rex for
-  # Mac reaches it as `lab-1`. The module also installs `rex` and its terminfo.
+  # It listens through Tailscale Serve, in HTTPS on Rex's own port, 7297, at
+  # lab-1.tail014d2.ts.net: Rex for iOS needs HTTPS. tailscale0 is trusted, and the tailnet
+  # policy lets members in and keeps orbs out. The module also installs `rex` and its terminfo.
   services.rex.loginServer = {
     enable = true;
     accounts.${vars.user}.principals = [ tailscaleLogin ];
     defaults.${tailscaleLogin} = vars.user;
-    extraListen = [ "tailnet://:7297" ];
+    tailscaleServe.enable = true; # port 7297
   };
 
   # Monitoring (docs/research/homelab-monitoring.md). The exporters listen on localhost only:

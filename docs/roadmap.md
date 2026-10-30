@@ -27,7 +27,7 @@
 
 See [Rex on the lab boxes](rex.md).
 
-- [x] Rex's login server on every lab box, on `tailnet://:7297`, from the `snapshot` channel
+- [x] Rex's login server on every lab box, through Tailscale Serve on 7297 (HTTPS), from the `snapshot` channel
 - [x] Rex's package login for orbs: the Amp project secret `REX_PACKAGE_TOKEN`
 - [x] The item "Rex packages" in `dotfiles`, with the token in the field `password`
 - [x] `rebuild` on the Mac

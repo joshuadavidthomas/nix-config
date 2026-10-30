@@ -2,7 +2,7 @@
 
 [Rex](https://www.superlogical.com/rex/docs/linux/installation) is the terminal multiplexer from
 Superlogical. Each lab box runs its Linux server, from the Rex flake's NixOS module, so Rex for
-Mac can open sessions on the boxes. The reasons are in [Decisions](decisions.md#rex).
+Mac and Rex for iOS can open sessions on the boxes. The reasons are in [Decisions](decisions.md#rex).
 
 ## What each box runs
 
@@ -14,8 +14,9 @@ Mac can open sessions on the boxes. The reasons are in [Decisions](decisions.md#
 - It starts a Rex server as that account and passes the connection to it. Sessions survive
   restarts and upgrades of the login server. An account server keeps the old version until
   its sessions end.
-- It listens on `/run/rex/login-server.sock` and on the box's tailnet addresses, port 7297,
-  in plain HTTP inside Tailscale (`tailnet://:7297`).
+- It listens on `/run/rex/login-server.sock`, and on the tailnet in HTTPS through Tailscale
+  Serve, on Rex's port, 7297, at `lab-1.tail014d2.ts.net`. `rex-tailscale-serve.service`
+  sets up the mapping. Port 443 stays free.
 - The module also installs `rex` for every user, its terminfo, and the SSH fallback to
   `xterm-256color`.
 
@@ -24,17 +25,40 @@ port on the boxes. Orbs reach port 22 only.
 
 ## Connect
 
-In Rex for Mac, choose **Add Remote Host…** and enter `lab-1`. A bare host name tries HTTPS
-on 443, then on 7297, then HTTP on 7297.
+Use the full name, in Rex for Mac's **Add Remote Host…** and in Rex for iOS, with Tailscale on
+in the iPhone:
+
+```text
+lab-1.tail014d2.ts.net
+```
+
+A bare host name tries HTTPS on 443, then on 7297, then HTTP on 7297, so it finds 7297. The
+HTTPS certificate is for the full name only, so `lab-1` alone does not work.
+
+You don't need `rex server tailscale pair`. It shows a QR code of the address of Rex's
+built-in Tailscale, which only a personal or shared server has, so on a box it says
+`tailscale is off`. Type the address instead.
 
 From the command line:
 
 ```sh
-rex -S lab-1 ls
+rex -S lab-1.tail014d2.ts.net ls
 ```
 
-On a box, `sudo systemctl status rex-login-server` shows the server, and
-`journalctl -u rex-login-server` its log.
+On a box, `sudo systemctl status rex-login-server rex-tailscale-serve` shows the server and
+the Serve mapping, `journalctl -u rex-login-server` the login server's log, and
+`rex server status` your account's server.
+
+## Keybinds and PATH
+
+Each Rex server reads its own `~/.config/rex/init.lua`, so a session on a lab box uses the
+box's copy, not the Mac's. `home/files/rex` gives every machine the same file, from
+`home/cli.nix`. A running server reads it again only after `rex config reload`, which must
+run on that machine as you: `ssh lab-1 rex config reload`.
+
+Rex puts the `rex` that matches its server first in `PATH`, as `REX_BIN_DIR`. NixOS and
+nix-darwin set `PATH` again when fish starts, so `home/fish.nix` moves `REX_BIN_DIR` back to
+the front.
 
 ## The package login
 

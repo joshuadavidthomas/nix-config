@@ -154,6 +154,13 @@ in
     width = 88;
   };
 
+  # Rex's keybinds, for every Rex server: the Mac app's own, and the lab boxes', which each read
+  # their own copy for sessions on them (docs/rex.md)
+  xdg.configFile."rex" = {
+    source = ./files/rex;
+    recursive = true;
+  };
+
   xdg.configFile."herdr/config.toml".source = toml.generate "herdr-config.toml" {
     onboarding = false;
     theme = {

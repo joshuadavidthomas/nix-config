@@ -156,12 +156,6 @@
   xdg.configFile."ghostty/themes/tokyonight_moon".source = "${inputs.tokyonight}/extras/ghostty/tokyonight_moon";
   xdg.configFile."ghostty/themes/tokyonight_day".source = "${inputs.tokyonight}/extras/ghostty/tokyonight_day";
 
-  # Rex Beta isn't in Homebrew or nixpkgs; the app is installed by hand and updates itself.
-  xdg.configFile."rex" = {
-    source = ./rex;
-    recursive = true;
-  };
-
   xdg.configFile."wezterm" = {
     source = ./wezterm;
     recursive = true;

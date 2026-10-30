@@ -173,11 +173,14 @@ Details: [Rex on the lab boxes](rex.md).
   Reason: each caller gets a Rex server as their own account, and sessions survive restarts
   and upgrades. The shared server runs everything as one `rex` account, and an upgrade ends
   every session.
-- **The login server listens on the box's tailnet addresses (`tailnet://:7297`), not through
-  Tailscale Serve or Rex's built-in Tailscale.**
-  Reason: it needs no Serve setup or tailnet HTTPS certificates, and the box's own tailscaled
-  identifies callers. Built-in Tailscale would add each box to the tailnet a second time.
-  Plain HTTP would let anyone who reaches the port in.
+- **The login server listens through Tailscale Serve, in HTTPS on Rex's port, 7297. Not on
+  443, not on a plain tailnet address, and not through Rex's built-in Tailscale.**
+  Reason: Rex for iOS needs HTTPS, which Serve gives with the tailnet's certificates, and the
+  box's own tailscaled identifies callers. 443 stays free for anything else that serves HTTPS
+  on a box. Serve and a plain listener can't share a port, and one listener is simpler.
+  Built-in Tailscale would add each box to the tailnet a second time.
+- **Every machine gets the same Rex keybinds (`home/files/rex`).**
+  Reason: each Rex server reads its own `init.lua`, so a session on a lab box uses the box's.
 - **The `snapshot` channel, pinned by `flake.lock`.** Rex updates with `nix flake update rex`,
   not by itself.
   Reason: it is the only supported way on NixOS.
