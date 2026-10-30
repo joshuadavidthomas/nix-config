@@ -32,6 +32,10 @@ except that home-manager waits for it on NixOS. On NixOS a failed fetch is retri
 seconds, at most 5 times an hour (`modules/nixos/default.nix`), not opnix's own 15 minutes:
 at boot the first fetch can fail while DNS is still coming up.
 
+On a lab box, `nix-credentials.service` writes the GitHub token and Rex's token into Nix's
+files in `/var/lib/nix-credentials`. It runs at boot, again when opnix changes a token, and
+again when an apply changes the service.
+
 ## Put the token on a machine
 
 Each machine copies the token from 1Password to `/etc/opnix-token` when you apply. The token

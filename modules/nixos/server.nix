@@ -53,6 +53,8 @@ in
     after = [ "opnix-secrets.service" ];
     serviceConfig = {
       Type = "oneshot";
+      # stays active, so a switch restarts it when the unit changes; it skips inactive units
+      RemainAfterExit = true;
       Group = "wheel";
       StateDirectory = "nix-credentials";
       StateDirectoryMode = "0750";
@@ -71,9 +73,15 @@ in
       write netrc ${secretPaths.rexToken} 'machine pkgs.superlogical.com login rex password %s\n'
     '';
   };
+  # a path unit only starts its unit, which does nothing to an active one, so it restarts it
   systemd.paths.nix-credentials = {
     wantedBy = [ "paths.target" ];
     pathConfig.PathChanged = with config.services.onepassword-secrets.secretPaths; [ githubToken rexToken ];
+    pathConfig.Unit = "nix-credentials-restart.service";
+  };
+  systemd.services.nix-credentials-restart = {
+    serviceConfig.Type = "oneshot";
+    script = "systemctl restart nix-credentials.service";
   };
 
   boot.loader.systemd-boot.enable = true;
