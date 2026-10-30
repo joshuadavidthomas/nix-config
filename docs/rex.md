@@ -25,16 +25,20 @@ port on the boxes. Orbs reach port 22 only.
 
 ## Connect
 
-Use the full name, in Rex for Mac's **Add Remote Host…** and in Rex for iOS, with Tailscale on
-in the iPhone:
+In Rex for Mac's **Add Remote Host…** and in Rex for iOS, with Tailscale on in the iPhone,
+use the full name and the port:
 
 ```text
-lab-1.tail014d2.ts.net
+https://lab-1.tail014d2.ts.net:7297
 ```
+
+Rex for iOS doesn't find the port by itself.
 
 The HTTPS certificate covers only the full name, so a bare `lab-1` gets `tls: internal error`.
 On the command line, `lab-1`, `lab-2` and `lab-3` are host labels for the full names, declared
-with `rex.host` in `home/files/rex/init.lua`, so `rex -S lab-1 ls` works on every machine.
+with `rex.host` in `home/files/rex/init.lua`, so `rex -S lab-1 ls` works on every machine. Those labels are for the CLI only: the apps keep
+their own host lists and don't read them. After a `rebuild`, run `rex config reload` so the
+running server reads the labels.
 
 You don't need `rex server tailscale pair`. It shows a QR code of the address of Rex's
 built-in Tailscale, which only a personal or shared server has, so on a box it says
