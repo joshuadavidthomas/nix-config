@@ -72,6 +72,10 @@ Rex's login server, so Rex for Mac can open sessions on the boxes over Tailscale
 `nixpkgs-unstable`. Runtimes and libraries come from the release. Packages that nixpkgs does not
 have are in `pkgs/`.
 
+The Mac declares some current CLI tools in Homebrew, including `sentry-cli` for app dSYM
+uploads. Declaring its tap and formula keeps rebuild cleanup from removing it. Homebrew's
+`bin` directory is on the login-shell PATH, including SSH builds.
+
 Coding agents (Amp, Claude Code, Codex, opencode, pi) install and update themselves. Nix only makes
 sure that they are installed, and writes their settings. Claude Code's settings and Codex's hooks
 stay writable so Claude and Rex can add to them; Nix merges its own on each switch. Cloudflare's `cf`

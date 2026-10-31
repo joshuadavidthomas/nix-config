@@ -10,7 +10,7 @@
 | A tool that releases too often to pin, such as cf | The npm installs in `home/agents.nix` |
 | A tool or setting on the Mac only | `hosts/mac/home.nix` |
 | A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
-| A Homebrew formula that nixpkgs does not have | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
+| A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
 | A macOS setting | `system.defaults` in `hosts/mac/default.nix` |
 | A work setting | `hosts/work-wsl/home.nix`. A system setting goes in `hosts/work-wsl/default.nix`. |
 | A system setting on all NixOS machines | `modules/nixos/default.nix` |
@@ -49,6 +49,19 @@ a box shows the commit it runs.
 
 To see a value before you apply, run `nix repl`, then `:lf .`, then the option path. For
 example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.settings`.
+
+### Sentry CLI on the Mac
+
+`hosts/mac/default.nix` declares the trusted `getsentry/tools` tap and
+`getsentry/tools/sentry-cli` formula. Both pinned nixpkgs inputs have 2.58.2; Homebrew supplies
+the 3.x CLI used for app dSYM uploads. Rebuild cleanup removes undeclared Brew packages, so
+keep the formula declared rather than installing it by hand.
+
+After applying with `rebuild`, check from a new SSH login shell that `command -v sentry-cli`
+prints `/opt/homebrew/bin/sentry-cli` and `sentry-cli --version` succeeds. The existing
+Homebrew PATH configuration covers login shells; no project-specific PATH change is needed.
+This declaration does not configure Sentry authentication or upload symbols. Keep credentials
+in the existing owner-only environment file, outside this repo.
 
 ### Move a lab box to `rebuild` (once)
 

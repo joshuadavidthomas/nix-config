@@ -26,6 +26,7 @@
     taps = map (name: { inherit name; trusted = true; }) [
       "abue-ammar/tinycast"
       "antoniorodr/memo"
+      "getsentry/tools"
       "steipete/tap"
       "yakitrak/yakitrak"
     ];
@@ -33,6 +34,7 @@
     brews = [
       "cloudflared" # the micro-hunter tunnel below; Cloudflare supports a release for about a year
       "antoniorodr/memo/memo" # Apple Notes
+      "getsentry/tools/sentry-cli" # app dSYM uploads; nixpkgs still has 2.x, upstream is 3.x
       "steipete/tap/gifgrep"
       "steipete/tap/remindctl" # Apple Reminders
       "steipete/tap/sag"
