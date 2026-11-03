@@ -343,11 +343,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1793136660,
-        "narHash": "sha256-OXqE8Sjh5ZfwzF8RW43EoEb3wsY4+w12dn/7wLl+BXs=",
+        "lastModified": 1793665756,
+        "narHash": "sha256-O4bUpeXm4fOABjW7TX8PRJScfmFOSz8FPcElpBqBZ/I=",
         "owner": "joshuadavidthomas",
         "repo": "yonder.dev",
-        "rev": "c38e7c0c120c6ba0ddde7c40fede64634ebb8de3",
+        "rev": "308c401c82251678051e320bf971ab7fd42e0667",
         "type": "github"
       },
       "original": {
