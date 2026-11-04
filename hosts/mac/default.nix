@@ -35,6 +35,7 @@
       "cloudflared" # the micro-hunter tunnel below; Cloudflare supports a release for about a year
       "antoniorodr/memo/memo" # Apple Notes
       "getsentry/tools/sentry-cli" # app dSYM uploads; nixpkgs still has 2.x, upstream is 3.x
+      "mole" # Mac cleanup and disk analysis; nixpkgs' mole is a different tool
       "steipete/tap/gifgrep"
       "steipete/tap/remindctl" # Apple Reminders
       "steipete/tap/sag"

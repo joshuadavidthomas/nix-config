@@ -31,6 +31,9 @@ A new Mac needs no change to the repo.
 
 You can run the bootstrap again at any time.
 
+The Mac includes Mole's `mo` CLI for cleanup and disk analysis. Preview cleanup with
+`mo clean --dry-run` before removing anything. Homebrew updates Mole along with its other formulae.
+
 ## If it stops
 
 | What you see | Cause | Action |
