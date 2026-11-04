@@ -33,6 +33,7 @@ You can run the bootstrap again at any time.
 
 The Mac includes Mole's `mo` CLI for cleanup and disk analysis. Preview cleanup with
 `mo clean --dry-run` before removing anything. Homebrew updates Mole along with its other formulae.
+The Mac also installs Hex from the `anomalyco/tap` Homebrew tap.
 
 ## If it stops
 

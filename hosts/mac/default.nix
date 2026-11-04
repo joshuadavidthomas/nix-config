@@ -25,6 +25,7 @@
     # declared here means trusted: Homebrew refuses formulae from untrusted third-party taps
     taps = map (name: { inherit name; trusted = true; }) [
       "abue-ammar/tinycast"
+      "anomalyco/tap"
       "antoniorodr/memo"
       "getsentry/tools"
       "steipete/tap"
@@ -46,6 +47,7 @@
       "1password" # updates itself; the first switch on a new Mac installs it
       "abue-ammar/tinycast/tinycast"
       "alt-tab"
+      "anomalyco/tap/hex"
       "ghostty"
       "jordanbaird-ice@beta" # until Thaw has replaced it
       "karabiner-elements"
