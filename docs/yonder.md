@@ -29,6 +29,13 @@ host CPU (lab-1 24, lab-2 and lab-3 16 each). Memory and disk are never overcomm
 memory is what fills a box first. Before 2026-10-27 the ratio was 1, and the three boxes fit
 four 4-vCPU orbs in all.
 
+lab-2 and lab-3 serve their machines' disks from the block store (`services.yonder.servedDir
+= "/var/lib/yonder-served"`), from 2026-11-05: a new machine's disk is an E2B-format disk the
+box reads over NBD from R2 through URLs the coordinator signs, and a pause publishes it as a
+checkpoint instead of exporting a gzip. The module loads `nbd` with `nbds_max=0 max_part=0`
+and adds udev rules that keep the host's own storage stack off the NBD devices. lab-1 keeps
+loop disks.
+
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
 (`services.yonder.coordinatorUrl`).

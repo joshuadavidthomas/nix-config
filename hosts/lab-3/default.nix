@@ -19,4 +19,8 @@
   services.yonder.environmentFile = "/etc/yonder/coordinator.env";
   # Machines may reserve two vCPUs per host CPU; memory and disk are never overcommitted.
   services.yonder.cpuOvercommit = 2;
+  # Machine disks are served from the block store over NBD (yonder's E2B-format disks)
+  # instead of loop files: the module loads nbd with nbds_max=0 max_part=0 and adds the
+  # udev rules. Outside yonder's state and run directories, which VMs mount read-only.
+  services.yonder.servedDir = "/var/lib/yonder-served";
 }
