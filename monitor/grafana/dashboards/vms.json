@@ -582,6 +582,23 @@
                 "value": 100
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "VM"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__value.text}",
+                    "url": "/d/vm/vm?var-instance=${__data.fields.Machine}&var-vm=${__value.text}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },

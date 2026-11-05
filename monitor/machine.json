@@ -357,6 +357,10 @@
           "local_path": "grafana/dashboards/vms.json"
         },
         {
+          "guest_path": "/etc/grafana/dashboards/vm.json",
+          "local_path": "grafana/dashboards/vm.json"
+        },
+        {
           "guest_path": "/etc/grafana/dashboards/box.json",
           "local_path": "grafana/dashboards/box.json"
         },
