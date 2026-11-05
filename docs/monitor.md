@@ -44,6 +44,13 @@ only from 127.0.0.1, which is serve. So anything that runs inside the machine (e
 and `fly machine exec` or `fly ssh` with a token for the org) can sign in as anyone; that was
 already true of anyone who can exec into it.
 
+Grafana's session cookie is `grafana_ts_session`, not the default `grafana_session`. A browser
+that signed in with the login form before Tailscale sign-in kept `grafana_session` and
+`grafana_session_expiry`; Grafana's page then asks to rotate the session, an auth-proxy user has
+none, the 401 makes the page reload, and it loops for good (Grafana 13). Under the new name the
+old cookie is ignored, and the 401 clears `grafana_session_expiry`, so such a browser reloads once
+and stops.
+
 Break-glass: the `admin` account keeps its password. In a browser through serve you are always
 your Tailscale identity, so use it from the API with basic auth, which wins over the header:
 `curl -u admin https://monitor.tail014d2.ts.net/api/...`. To make another tailnet user an Admin,

@@ -340,7 +340,8 @@
         "GF_AUTH_PROXY_HEADERS": "Name:Tailscale-User-Name",
         "GF_AUTH_PROXY_AUTO_SIGN_UP": "true",
         "GF_AUTH_PROXY_WHITELIST": "127.0.0.1",
-        "GF_USERS_AUTO_ASSIGN_ORG_ROLE": "Viewer"
+        "GF_USERS_AUTO_ASSIGN_ORG_ROLE": "Viewer",
+        "GF_AUTH_LOGIN_COOKIE_NAME": "grafana_ts_session"
       },
       "files": [
         {
