@@ -116,6 +116,7 @@ Then `sudo rm -rf /var/lib/yonder/bin`, which nothing reads now.
 | --- | --- | --- |
 | `Failed to load environment files` (systemd) | No `/etc/yonder/coordinator.env` | [The files on each box](#the-files-on-each-box) |
 | `flag provided but not defined: -coordinator-url`, `-resolver-listen` or `-connect-group` | `deploy.sh` put a yonderd older than the module in `/var/lib/yonder-bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
+| `database schema version N is newer than this binary (M)` | A newer yonderd (a later pin, or `deploy.sh`) migrated `/var/lib/yonder/host.db`; host migrations only go forward | Run a yonderd at least that new: bump the pin, or ship one with `deploy.sh`. Going back to an older pin needs the database from before the migration |
 
 | What you see | Cause | Action |
 | --- | --- | --- |
