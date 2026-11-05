@@ -194,6 +194,16 @@ in
         ];
         scrape_interval_secs = 60;
       };
+      # yonderd's own metrics, every 10 s: its ledger (what it admits and what its machines
+      # reserve), its machines by state, its operations, and each machine's VM as the host sees
+      # it from outside (CPU and memory of its unit, its TAP, its disk and console counters from
+      # Firecracker), labelled by the machine's ID and name. yonderd serves them on 127.0.0.1
+      # only (its -metrics-listen), as node_exporter does. Only on a yonder host.
+      sources.yonder = lib.mkIf config.services.yonder.enable {
+        type = "prometheus_scrape";
+        endpoints = [ "http://127.0.0.1:9466/metrics" ];
+        scrape_interval_secs = 10;
+      };
       # Each systemd unit's CPU and memory, from its cgroup, every 10 s: what is using the box,
       # each yonder VM (its unit, yonder-vm-<ID>.service) among them. Only Vector's cgroups
       # collector; node_exporter has the rest.
@@ -209,7 +219,7 @@ in
       # stays, for the stock dashboards
       transforms.useful = {
         type = "filter";
-        inputs = [ "fast" "slow" ];
+        inputs = [ "fast" "slow" ] ++ lib.optional config.services.yonder.enable "yonder";
         condition = ''!match(string!(.name), r'^(go|process|promhttp)_')'';
       };
       # Of Vector's own metrics, only what shows a backlog or lost events
@@ -244,7 +254,7 @@ in
           .tags.host = "${config.networking.hostName}"
           .tags.instance = .tags.host
           name = string!(.name)
-          .tags.job = if .namespace == "vector" { "vector" } else if .namespace == "host" { "units" } else if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "tailscaled_") { "tailscale" } else { "node" }
+          .tags.job = if .namespace == "vector" { "vector" } else if .namespace == "host" { "units" } else if starts_with(name, "smartctl_") { "smartctl" } else if starts_with(name, "tailscaled_") { "tailscale" } else if starts_with(name, "yonder_") { "yonder" } else { "node" }
         '';
       };
       sinks.victoriametrics = {

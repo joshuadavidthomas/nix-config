@@ -106,6 +106,7 @@ has one job and links to the others; each panel's ⓘ says what it shows.
 | **Homelab**, the home page (`overview.json`) | After an alert: which machine looks off, and what else changed then | A row per machine (reporting, CPU over the last hours, memory, disk, temperature, failed units, Tailscale's warnings, VMs, uptime); CPU, load (as a share of the threads), memory, network and disk I/O over time, with marks for alerts (red), deploys (blue), reboots (purple) and processes killed for memory (orange): a line per machine, the highest on top of the legend, and a click on a line opens that machine; network and disk show the 5 busiest machines, the rest as other, and the total; 7 days of reporting; errors |
 | **Capacity** (`capacity.json`) | Room left, and how fast it goes | Each machine's cores, threads, memory and disk, and the share free; days until / is full at last week's rate; drive wear; 30-day trends |
 | **VMs** (`vms.json`) | yonder's VMs | Each VM, its machine, when it started, its CPU, memory and traffic; when each ran; CPU and memory per VM; VMs per machine; yonderd |
+| **VM** (`vm.json`) | One yonder host and one of its VMs, from yonderd's own metrics | The host: yonderd's build and when it started, its machines by state, the coordinator and the connector, what its machines reserve of what it admits, operations by kind and status and how long they take, yonderd's warnings and errors. The VM, chosen by name: its recorded, requested and observed states, CPU, memory, traffic, disk reads and writes, dropped packets, console bytes lost to its bound, vCPU failures, its console and yonderd's lines about it. A VM's ID in VMs opens it here |
 | **Machine** (`box.json`) | One machine in detail | Hardware (model, CPU, cores and threads, memory, drive, system), live CPU, memory, disk, pressure and temperature, 7 days of reporting, failed units, Tailscale's warnings, CPU by kind and per thread (with its core), clock speed, load, the drive's health and I/O, network, Tailscale's traffic (direct or relayed), VMs, the journal's warnings and errors; the same marks as Homelab. Now, as in btop: each thread's CPU with its last hour, each core's temperature, the clock and load, memory, how full each filesystem is, the network now with its top and total. What is using it: CPU and memory by systemd unit, the 8 largest and the rest, and every unit in a table |
 | **Logs** (`logs.json`) | Searching the journals | Lines over time per machine, the loudest sources, and the lines, filtered by machine, level and words |
 | **Monitor** (`monitor.json`) | The monitor itself | The heartbeat, the last alert, failed sends, data arriving, the Fly machine's CPU (against its baseline), memory and disk, the volume, Vector's queues, memory per service, Tailscale's traffic, the relay's and the monitor's logs; restarts as marks |
@@ -126,6 +127,12 @@ Alertmanager, Tailscale's client metrics (`100.100.100.100/metrics`), and the Fl
 (`api.fly.io/prometheus/personal/federate`). Logs:
 Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
 `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
+
+yonderd serves its own metrics on 127.0.0.1:9466 (its `-metrics-listen`), and Vector on a yonder
+host scrapes them every 10 s with `job` `yonder` (`modules/nixos/server.nix`): what the host admits
+and what its machines reserve, its machines by state, its operations, and each VM as the host sees
+it from outside (its unit's CPU and memory, its TAP, Firecracker's disk, console and vCPU
+counters), labelled `machine` (the ID) and `name`. They are the VM dashboard's.
 
 A VM is known by its yonder ID, from its unit `yonder-vm-<ID>.service`. Its traffic is its
 TAP's on the host (`yt-` and the ID's last 12 characters), so what the TAP receives the VM sent.
