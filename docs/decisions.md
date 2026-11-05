@@ -56,6 +56,12 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   Tailscale, and Grafana is reached over Tailscale.
   Reason: the lab is a trusted network behind Tailscale. VictoriaMetrics and VictoriaLogs have
   no per-client auth, and a public endpoint would need a token on each lab box.
+- **Grafana signs you in with your Tailscale identity.** `tailscale serve` passes the user's
+  login, and Grafana trusts it from 127.0.0.1 only. New users are Viewers; the owner is Admin.
+  `admin` with its password stays, for the API, as the break-glass.
+  Reason: no Grafana password to keep for everyday use, and the tailnet already says who you
+  are. A role is never taken from a header: serve strips only its own headers, so a role
+  header would be the client's to set.
 - **The monitor has its own tag, `tag:monitor`, and no public IP.** The tailnet policy lets
   lab boxes reach it on ports 8428 and 9428 only.
   Reason: lab boxes may not open connections on the tailnet. `tag:lab` would also give the

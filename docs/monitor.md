@@ -33,6 +33,28 @@ in `/data/tailscale/certs`. The tailnet needs HTTPS certificates turned on (DNS 
 admin console), which it has. Each certificate is listed in the public Certificate
 Transparency logs, so the name `monitor.tail014d2.ts.net` is public; the machine is not.
 
+You sign in to Grafana with your Tailscale identity. `tailscale serve` adds
+`Tailscale-User-Login` and `Tailscale-User-Name` to each request from a tailnet member's
+device, after deleting any the client sent itself, and Grafana's auth proxy
+(`GF_AUTH_PROXY_*` in `monitor/machine.json`) takes the user from them: a first visit makes the
+account, named from Tailscale, as a Viewer. `joshuadavidthomas@github` is made Admin once, by
+hand (below); Grafana keeps the role on later sign-ins. A tagged node (a lab box, an orb) gets
+no identity, so Grafana answers it 401. Grafana listens on 127.0.0.1 only and trusts the header
+only from 127.0.0.1, which is serve. So anything that runs inside the machine (each container,
+and `fly machine exec` or `fly ssh` with a token for the org) can sign in as anyone; that was
+already true of anyone who can exec into it.
+
+Break-glass: the `admin` account keeps its password. In a browser through serve you are always
+your Tailscale identity, so use it from the API with basic auth, which wins over the header:
+`curl -u admin https://monitor.tail014d2.ts.net/api/...`. To make another tailnet user an Admin,
+once they have signed in:
+
+```sh
+id=$(curl -su admin "https://monitor.tail014d2.ts.net/api/users/lookup?loginOrEmail=LOGIN" | jq .id)
+curl -su admin -X PATCH -H 'Content-Type: application/json' -d '{"role":"Admin"}' \
+  "https://monitor.tail014d2.ts.net/api/org/users/$id"
+```
+
 Other apps in the Fly org can reach it over Fly's private network. They are all yours, and the
 lab is a trusted network ([Decisions](decisions.md#network)).
 
@@ -75,8 +97,10 @@ lab is a trusted network ([Decisions](decisions.md#network)).
    monitor/deploy.sh status
    ```
 
-5. Open <https://monitor.tail014d2.ts.net>, log in as `admin` with the password `admin`, and set a new
-   password. Grafana keeps it on the volume.
+5. Set `admin`'s password, the break-glass (Grafana keeps it on the volume), from the API, since
+   a browser through serve signs you in as your Tailscale identity:
+   `curl -u admin:admin -X PUT -H 'Content-Type: application/json' -d '{"oldPassword":"admin","newPassword":"…","confirmNew":"…"}' https://monitor.tail014d2.ts.net/api/user/password`.
+   Then open <https://monitor.tail014d2.ts.net> once, and make your account Admin as below.
 
 Orbs cannot reach the monitor. To check it from an orb, SSH to a lab box and query from
 there; see [Check what a lab box sends](research/homelab-monitoring.md#check-what-a-lab-box-sends).
