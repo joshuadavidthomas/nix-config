@@ -46,6 +46,9 @@
     let
       vars = import ./vars.nix;
       mkSystem = import ./lib/mksystem.nix { inherit self inputs vars; };
+      # standalone home-manager for machines whose OS is not Nix: the Steam Deck (hosts/deck).
+      # Its output is applied on the machine, not rebuilt by anything on the tailnet.
+      mkHome = import ./lib/mkhome.nix { inherit self inputs vars; };
 
       # the homelab boxes, by hostname; each has a hosts/<name>
       labs = [ "lab-1" "lab-2" "lab-3" ];
@@ -71,5 +74,9 @@
       # nixos-anywhere installs a lab box from here; afterwards each box rebuilds itself from
       # GitHub (`rebuild`, modules/nixos/server.nix)
       // nixpkgs.lib.genAttrs labs (name: mkSystem name { system = "x86_64-linux"; });
+
+      # the Steam Deck: Valve's SteamOS with the official Nix installer, so home-manager runs
+      # as its own flake; see hosts/deck and docs/new-deck.md
+      homeConfigurations.deck = mkHome "deck" { system = "x86_64-linux"; };
     };
 }

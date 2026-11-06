@@ -16,6 +16,7 @@ up each machine by hand.
 | Mac | [nix-darwin](https://github.com/nix-darwin/nix-darwin), with Homebrew for Mac apps |
 | Work laptop | [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) |
 | Homelab | NixOS, installed with [nixos-anywhere](https://github.com/nix-community/nixos-anywhere) and updated by each box from GitHub, over SSH on Tailscale |
+| Steam Deck | [SteamOS](https://steamos.com) left as Valve ships it; the shared [home-manager](https://github.com/nix-community/home-manager) configuration applied as a standalone flake |
 | User settings | [home-manager](https://github.com/nix-community/home-manager), shared by all machines |
 | Secrets | 1Password, read with [opnix](https://github.com/brizzbuzz/opnix) and a service account |
 | Monitoring | VictoriaMetrics, VictoriaLogs and Grafana on a [Fly](https://fly.io) machine, fed by Vector on the lab boxes |
@@ -35,12 +36,14 @@ Then apply changes with:
 | Mac | `rebuild` |
 | Work laptop | `rebuild` |
 | Homelab | Push, then `ssh lab-1 rebuild`, from any machine on the tailnet |
+| Steam Deck | On the Deck: `home-manager switch --flake github:joshuadavidthomas/nix-config#deck` |
 
 Docs:
 
 - [Set up a new Mac](docs/new-mac.md)
 - [Set up NixOS-WSL](docs/new-wsl.md)
 - [Set up a lab box](docs/new-lab-box.md)
+- [Set up the Steam Deck](docs/new-deck.md)
 - [yonder on the lab boxes](docs/yonder.md)
 - [Rex on the lab boxes](docs/rex.md)
 - [Make a change](docs/changes.md)
@@ -59,9 +62,12 @@ Research:
 `flake.nix` has one configuration for each kind of machine: `mac` for all Apple Silicon Macs,
 `work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds each of them the same
 way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/` for
-the user. So every machine has the same shells, tools, languages and coding agents.
-`hosts/<name>/` adds what only that machine or platform can have, such as Mac apps or WSL
-interop. The Mac also gets Mole's `mo` CLI and the Hex app through Homebrew.
+the user. So every machine has the same shells, tools, languages and coding agents. The Steam
+Deck is not one of these: it runs Valve's SteamOS, so `homeConfigurations.deck` applies the
+same `home/` to its `deck` user as a standalone home-manager (`lib/mkhome.nix`,
+[Set up the Steam Deck](docs/new-deck.md)). `hosts/<name>/` adds what only that machine or
+platform can have, such as Mac apps or WSL interop. The Mac also gets Mole's `mo` CLI and the
+Hex app through Homebrew.
 The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
 the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
 the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine

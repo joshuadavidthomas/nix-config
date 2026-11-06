@@ -110,6 +110,23 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - [ ] Move the remaining tokens (Claude, gh, Todoist) into 1Password
 - [ ] Garbage collection
 
+## Steam Deck
+
+See [Set up the Steam Deck](new-deck.md).
+
+- [x] Stage 1, in the repo: `homeConfigurations.deck` from the shared `home/`, with
+      `lib/mkhome.nix`; atuin works where standalone home-manager has no `osConfig`
+- [ ] On the Deck: Nix installed with the official installer, the shared home applied, and
+      `ssh deck` usable from the tailnet
+- [ ] Stage 2: [steamos-etc-nix](https://github.com/JRMurr/steamos-etc-nix) pinned to a
+      revision, and its `--check` run against the Deck, before it writes any `/etc` file
+- [ ] Stage 2: Tailscale through it, as a system service, and a cold-reboot test where it
+      comes up with no desktop session
+- [ ] Stage 2: opnix on the Deck, so atuin syncs and commits sign
+- [ ] Stage 2: A recovery runbook for a SteamOS update, proven from the console with the
+      docked keyboard
+- [ ] Stage 3: Apply over the tailnet, and monitoring
+
 ## All machines
 
 - [ ] Pin SSH host keys (GitHub, Forgejo, lab boxes) in `modules/known-hosts.nix`

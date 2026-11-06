@@ -6,6 +6,26 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 ## Machines
 
 - **One user, `josh`, on every machine.** The lab boxes add `orb`, for Amp orbs.
+- **The Steam Deck keeps Valve's SteamOS and Valve's own `deck` user.** It is not a NixOS
+  machine. `homeConfigurations.deck` applies the shared `home/` to it with standalone
+  home-manager, over the official Nix installer with its Steam Deck mode. Determinate Nix
+  does not install there: the write of `determinate-nixd` needs a `/usr/local/bin` that
+  SteamOS's read-only root does not allow (nix-installer issue #1285).
+  Reason: keeping SteamOS keeps the gaming environment and Valve's hardware support, which is
+  the machine's job, and the installer's `/home/nix` store survives SteamOS updates. The lab
+  machines' model (`rebuild`, system modules, `tag:lab`, monitoring) stays theirs for now.
+- **The Deck's login shell stays `bash`; `fish` starts by hand.**
+  Reason: a SteamOS update resets `/etc/shells`, and a login shell that is not in it keeps
+  both the desktop and SSH from logging in, an outage that looks like a dead machine
+  ([SteamOS issue #2922](https://github.com/ValveSoftware/SteamOS/issues/2922)).
+- **The Deck gets no system integration until its recovery is proven.** Tailscale, `/etc`
+  files, secrets (opnix and the signing key) and monitoring wait, in stages, for the tests:
+  a cold reboot reachable over SSH, and a SteamOS update survived. Stages:
+  [Set up the Steam Deck](roadmap.md#steam-deck).
+  Reason: SteamOS updates drop `/etc` files that no keep-list entry covers, and hang
+  mid-update with any keep-list entry at all
+  ([Valve issue #2957](https://github.com/ValveSoftware/SteamOS/issues/2957)). Nothing may
+  depend on the Deck's home-manager state that the machine's own state files do not survive.
 - **Amp orbs log in to the lab boxes as `orb`, not `root` or `josh`.** `orb` has passwordless
   sudo, like `josh`.
   Reason: the risk is an agent's mistake, not an attacker. A separate user keeps agents out of

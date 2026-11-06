@@ -2,7 +2,12 @@
 { config, lib, osConfig, ... }:
 let
   atuin = lib.getExe config.programs.atuin.package;
-  secret = lib.mapAttrs (_: lib.escapeShellArg) osConfig.services.onepassword-secrets.secretPaths;
+  # opnix writes the secret files in the machine configuration (NixOS or macOS), so a machine
+  # whose osConfig is null has none yet. That is standalone home-manager, the Steam Deck
+  # (hosts/deck): there atuin stays logged out until opnix is integrated for it (Stage 2,
+  # docs/new-deck.md), and the login does not run.
+  secrets = if osConfig == null then { } else osConfig.services.onepassword-secrets.secretPaths;
+  secret = lib.mapAttrs (_: lib.escapeShellArg) secrets;
 in
 {
   programs.atuin = {
@@ -16,7 +21,7 @@ in
       update_check = false;
     };
   };
-
+} // lib.optionalAttrs (secrets != { }) {
   # Log atuin in to sync wherever it isn't yet (fresh install, rebuilt machine), then pull
   # history down. Skipped once logged in.
   # `atuin status` exits 1 when logged out, so read its output first; under activation's
