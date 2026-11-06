@@ -29,18 +29,19 @@ host CPU (lab-1 24, lab-2 and lab-3 16 each). Memory and disk are never overcomm
 memory is what fills a box first. Before 2026-10-27 the ratio was 1, and the three boxes fit
 four 4-vCPU orbs in all.
 
-lab-2 and lab-3 serve their machines' disks from the block store (`services.yonder.servedDir
-= "/var/lib/yonder-served"`), from 2026-11-05: a new machine's disk is an E2B-format disk the
+All three boxes serve their machines' disks from the block store (`services.yonder.servedDir
+= "/var/lib/yonder-served"`), lab-2 and lab-3 from 2026-11-05 and lab-1 from 2026-11-06: a new machine's disk is an E2B-format disk the
 box reads over NBD from R2 through URLs the coordinator signs, and a pause publishes it as a
 checkpoint instead of exporting a gzip. The module loads `nbd` with `nbds_max=0 max_part=0`
-and adds udev rules that keep the host's own storage stack off the NBD devices. lab-1 keeps
-loop disks.
+and adds udev rules that keep the host's own storage stack off the NBD devices. A machine made
+on loop disks before the switch keeps them.
 
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
 `services.yonder.extraFlags = [ "-image-cache-gib" "20" ]`; lab-1 keeps the default 32 GiB.
-Orbs place only on lab-2 and lab-3, the boxes labelled `disks=served`.
+Orbs place only on boxes labelled `disks=served` (`yonder node label <box> disks=served`):
+all three, lab-1 from 2026-11-06.
 
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
