@@ -82,7 +82,50 @@
     ]
   },
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "name": "yonderd started",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "iconColor": "blue",
+        "expr": "changes(yonder_start_time_seconds{instance=\"$instance\"}[2m]) > 0",
+        "step": "30s",
+        "titleFormat": "yonderd started",
+        "textFormat": "",
+        "useValueForTime": false
+      },
+      {
+        "name": "yonder-connect restarted",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "iconColor": "orange",
+        "expr": "increase(yonder_connect_restarts_total{instance=\"$instance\"}[2m]) > 0",
+        "step": "30s",
+        "titleFormat": "yonder-connect restarted",
+        "textFormat": "",
+        "useValueForTime": false
+      },
+      {
+        "name": "coordinator down",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "victoriametrics"
+        },
+        "enable": true,
+        "iconColor": "red",
+        "expr": "max(yonder_coordinator_up{instance=\"$instance\"}) == 0",
+        "step": "30s",
+        "titleFormat": "coordinator down",
+        "textFormat": "",
+        "useValueForTime": false
+      }
+    ]
   },
   "panels": [
     {
@@ -245,7 +288,9 @@
           },
           "expr": "sum by (state) (yonder_machines{instance=\"$instance\"}) > 0",
           "legendFormat": "{{state}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -643,12 +688,98 @@
       "id": 9
     },
     {
+      "type": "state-timeline",
+      "title": "Over time",
+      "description": "yonderd's connection to the coordinator (yonder_coordinator_up) and yonder-connect's to yonderd (yonder_connect_up) over the time range; a gap is yonderd not answering Vector. A host notices a cut uplink after 30 s without a frame, so Down starts that much after the cut. The markers on every graph: yonderd started (yonder_start_time_seconds moved), yonder-connect restarted, the coordinator down.",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max(yonder_coordinator_up{instance=\"$instance\"})",
+          "legendFormat": "Coordinator",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "max(yonder_connect_up{instance=\"$instance\"})",
+          "legendFormat": "Connector",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No yonderd metrics from this host yet",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Down",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Up",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "showValue": "never",
+        "mergeValues": true,
+        "alignValue": "left",
+        "rowHeight": 0.8,
+        "insertNulls": 30000,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "id": 10
+    },
+    {
       "type": "logs",
       "title": "yonderd's warnings and errors",
       "description": "yonderd's journal lines at WARN or ERROR on this host (VictoriaLogs). yonderd writes its level into the line, so the filter is on the text.",
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 16,
         "w": 24,
         "h": 8
       },
@@ -676,7 +807,7 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 10
+      "id": 11
     },
     {
       "type": "row",
@@ -684,12 +815,12 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 24,
         "w": 24,
         "h": 1
       },
       "panels": [],
-      "id": 11
+      "id": 12
     },
     {
       "type": "stat",
@@ -697,7 +828,7 @@
       "description": "What the VM's last operations recorded, what they asked for, and what the host last saw (yonder_machine_info), and its unit's state in systemd (node_exporter). Requested and observed differ while an operation runs, or when the VM stopped by itself.",
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 25,
         "w": 12,
         "h": 4
       },
@@ -797,7 +928,7 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 12
+      "id": 13
     },
     {
       "type": "stat",
@@ -805,7 +936,7 @@
       "description": "The VM's unit's CPU now, in cores: yonderd's (yonder_machine_cpu_seconds_total), else Vector's cgroup reading of the unit. What the host gives the VM, not what runs in it.",
       "gridPos": {
         "x": 12,
-        "y": 21,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -860,7 +991,7 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 13
+      "id": 14
     },
     {
       "type": "stat",
@@ -868,7 +999,7 @@
       "description": "The memory the VM's unit holds now: yonderd's (memory.current), else Vector's cgroup reading of the unit (anonymous memory only), the guest's RAM among it.",
       "gridPos": {
         "x": 16,
-        "y": 21,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -924,15 +1055,15 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 14
+      "id": 15
     },
     {
       "type": "stat",
       "title": "Console lost",
-      "description": "Console bytes the host dropped since yonderd started reading, because the guest wrote faster than its bound (Firecracker's uart.rate_limiter_dropped_bytes).",
+      "description": "Console bytes the host dropped in the dashboard's time range, because the guest wrote faster than its bound (Firecracker's uart.rate_limiter_dropped_bytes). The counter starts again when yonderd does; the sum spans that.",
       "gridPos": {
         "x": 20,
-        "y": 21,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -946,9 +1077,11 @@
             "type": "prometheus",
             "uid": "victoriametrics"
           },
-          "expr": "max(yonder_machine_firecracker_uart_rate_limiter_dropped_bytes_total{instance=\"$instance\", machine=\"$vm\"})",
+          "expr": "sum(increase(yonder_machine_firecracker_uart_rate_limiter_dropped_bytes_total{instance=\"$instance\", machine=\"$vm\"}[$__range]))",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "fieldConfig": {
@@ -987,7 +1120,7 @@
         "wideLayout": true,
         "showPercentChange": false
       },
-      "id": 15
+      "id": 16
     },
     {
       "type": "timeseries",
@@ -995,7 +1128,7 @@
       "description": "The VM's unit's CPU, in cores: yonderd's, else Vector's cgroup reading.",
       "gridPos": {
         "x": 0,
-        "y": 25,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -1047,7 +1180,7 @@
           "sort": "desc"
         }
       },
-      "id": 16
+      "id": 17
     },
     {
       "type": "timeseries",
@@ -1055,7 +1188,7 @@
       "description": "The memory the VM's unit holds: yonderd's, else Vector's cgroup reading (anonymous memory).",
       "gridPos": {
         "x": 8,
-        "y": 25,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -1107,7 +1240,7 @@
           "sort": "desc"
         }
       },
-      "id": 17
+      "id": 18
     },
     {
       "type": "timeseries",
@@ -1115,7 +1248,7 @@
       "description": "The VM's traffic, at its TAP on the host (yonderd's counters, else node_exporter's for yt- and the ID's last 12 characters): up is what the VM sent (the TAP's rx), down what it received.",
       "gridPos": {
         "x": 16,
-        "y": 25,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -1176,7 +1309,7 @@
           "sort": "desc"
         }
       },
-      "id": 18
+      "id": 19
     },
     {
       "type": "timeseries",
@@ -1184,7 +1317,7 @@
       "description": "What the VM read and wrote on its drives, from Firecracker's block counters: up is read, down written.",
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 36,
         "w": 8,
         "h": 7
       },
@@ -1245,7 +1378,7 @@
           "sort": "desc"
         }
       },
-      "id": 19
+      "id": 20
     },
     {
       "type": "timeseries",
@@ -1253,7 +1386,7 @@
       "description": "Packets the VM's TAP dropped a minute, either way.",
       "gridPos": {
         "x": 8,
-        "y": 32,
+        "y": 36,
         "w": 8,
         "h": 7
       },
@@ -1315,7 +1448,7 @@
           "sort": "desc"
         }
       },
-      "id": 20
+      "id": 21
     },
     {
       "type": "timeseries",
@@ -1323,7 +1456,7 @@
       "description": "Console bytes dropped by its bound each second, console writes Firecracker missed, and vCPU failures (Firecracker's counters).",
       "gridPos": {
         "x": 16,
-        "y": 32,
+        "y": 36,
         "w": 8,
         "h": 7
       },
@@ -1393,7 +1526,68 @@
           "sort": "desc"
         }
       },
-      "id": 21
+      "id": 22
+    },
+    {
+      "type": "timeseries",
+      "title": "Connector calls",
+      "description": "The VM's calls to its connectors a minute, by connector and the status yonder-connect answered (yonder_connector_calls_total). A call refused before it named one of the VM's connectors is \"unnamed\": a name a guest chose is never a label.",
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 24,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "victoriametrics"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "victoriametrics"
+          },
+          "expr": "sum by (connector, status) (label_replace(rate(yonder_connector_calls_total{instance=\"$instance\", machine=\"$vm\"}[$__rate_interval]), \"connector\", \"unnamed\", \"connector\", \"\")) * 60",
+          "legendFormat": "{{connector}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No calls",
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisSoftMin": 0
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 23
     },
     {
       "type": "logs",
@@ -1401,7 +1595,7 @@
       "description": "The VM's console, as its unit yonder-vm-<ID>.service wrote it to the host's journal: bounded in bytes before it gets there.",
       "gridPos": {
         "x": 0,
-        "y": 39,
+        "y": 50,
         "w": 12,
         "h": 10
       },
@@ -1429,7 +1623,7 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 22
+      "id": 24
     },
     {
       "type": "logs",
@@ -1437,7 +1631,7 @@
       "description": "yonderd's journal lines naming this VM: its operations and what the host saw of it.",
       "gridPos": {
         "x": 12,
-        "y": 39,
+        "y": 50,
         "w": 12,
         "h": 10
       },
@@ -1465,7 +1659,7 @@
         "dedupStrategy": "none",
         "prettifyLogMessage": false
       },
-      "id": 23
+      "id": 25
     }
   ]
 }
