@@ -36,6 +36,12 @@ checkpoint instead of exporting a gzip. The module loads `nbd` with `nbds_max=0 
 and adds udev rules that keep the host's own storage stack off the NBD devices. lab-1 keeps
 loop disks.
 
+From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
+and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
+filesystem, and lab-2's and lab-3's are 234 GiB, so both set
+`services.yonder.extraFlags = [ "-image-cache-gib" "20" ]`; lab-1 keeps the default 32 GiB.
+Orbs place only on lab-2 and lab-3, the boxes labelled `disks=served`.
+
 The three lab boxes are members of one fabric. yonder's coordinator on Cloudflare, a Durable
 Object at `https://yonder.joshthomas.dev`, coordinates it. Each box dials out to it
 (`services.yonder.coordinatorUrl`).

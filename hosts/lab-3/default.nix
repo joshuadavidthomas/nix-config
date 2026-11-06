@@ -23,4 +23,7 @@
   # instead of loop files: the module loads nbd with nbds_max=0 max_part=0 and adds the
   # udev rules. Outside yonder's state and run directories, which VMs mount read-only.
   services.yonder.servedDir = "/var/lib/yonder-served";
+  # The OCI image cache is capped at 10% of the state filesystem (yonderd's
+  # -disk-headroom-percent); this box's is 234 GiB, so the default 32 GiB is refused.
+  services.yonder.extraFlags = [ "-image-cache-gib" "20" ];
 }
