@@ -32,8 +32,13 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 config=$tmp/machine.json # flyctl takes a config file only by a .json name
 cp machine.json "$config"
+# A JSON file goes minified: the Machines API refuses a request body over 1 MiB ("http: request
+# body too large"), and the dashboards, indented, came to more than that with the rest.
 for path in $(jq -r '.. | objects | .local_path? // empty' machine.json); do
-  base64 < "$path" | tr -d '\n' > "$tmp/file.b64"
+  case $path in
+  *.json) jq -c . "$path" ;;
+  *) cat "$path" ;;
+  esac | base64 | tr -d '\n' > "$tmp/file.b64"
   jq --arg p "$path" --rawfile v "$tmp/file.b64" \
     '(.. | objects | select(.local_path? == $p)) |= (del(.local_path) + {raw_value: $v})' \
     "$config" > "$tmp/next.json"
