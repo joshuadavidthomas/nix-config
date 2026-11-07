@@ -126,7 +126,9 @@ See [Set up the Steam Deck](new-deck.md).
 - [x] Stage 2: Rex's login server on the Deck, the lab boxes' shape, and the every-boot
       lookup that keeps a SteamOS update from hanging on `/etc/atomic-update.conf.d`
       (verified live: `rex-login-server` and `rex-tailscale-serve` active, Serve mapping on
-      `steamdeck.tail014d2.ts.net:7297`)
+      `steamdeck.tail014d2.ts.net:7297`, admitted and reachable from Rex for Mac and iOS)
+- [x] The Deck on the tailnet as a tagged node, `tag:deck`, with its key expiry off
+      (applied in the console; recorded for the next install in the runbook)
 - [ ] Stage 2: A recovery runbook for a SteamOS update, proven from the console with the
       docked keyboard, and a cold-reboot test where the units come up with no session
 - [ ] Stage 3: Apply over the tailnet, and monitoring

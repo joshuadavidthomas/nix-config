@@ -13,7 +13,7 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   SteamOS's read-only root does not allow (nix-installer issue #1285).
   Reason: keeping SteamOS keeps the gaming environment and Valve's hardware support, which is
   the machine's job, and the installer's `/home/nix` store survives SteamOS updates. The lab
-  machines' model (`rebuild`, system modules, `tag:lab`, monitoring) stays theirs for now.
+  machines' model (`rebuild`, system modules, monitoring) stays theirs for now.
 - **The Deck's login shell stays `bash`; `fish` starts by hand.**
   Reason: a SteamOS update resets `/etc/shells`, and a login shell that is not in it keeps
   both the desktop and SSH from logging in, an outage that looks like a dead machine
@@ -100,6 +100,13 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Tailscale OAuth client, from 1Password.
   Reason: no lab box is set up by hand. An auth key expires after 90 days at most; the client
   secret does not. A tagged node's key does not expire.
+- **The Steam Deck is a tagged node, with the tag `deck`.** It carries no personal identity,
+  and its key does not expire.
+  Reason: it is a machine, not a personal device, on the same tailnet, and it should outlive
+  a login the same way the lab boxes do. Tagging after today's login was a console action
+  (the deck was already enrolled); a tag applied that way does not clear a key's expiry, so
+  the expiry was switched off by hand in the same place
+  ([Set up the Steam Deck](new-deck.md#on-the-tailnet)).
 
 ## Monitoring
 

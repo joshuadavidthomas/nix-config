@@ -51,6 +51,23 @@ shell. What it does not touch: system services, `/etc`, Steam and Proton. Those 
    nix run nixpkgs#hello
    ```
 
+## On the tailnet
+
+The Deck was already on the tailnet under the owner's identity before Stage 2, joined by
+SteamOS's own tailscaled. It is a tag-carrying node, not a personal device: in the Tailscale
+admin console, `steamdeck` has the tag `deck`, and its key expiry is off.
+
+Apply the same two steps for a future install, in one visit:
+
+1. Machines → `steamdeck` → Edit ACL tags → the tag `deck`.
+2. The same machine's Key expiry: turn it off. A tag applied to a node that has already
+   logged in does not clear the expiry by itself; lab-1's is the recorded sibling of this
+   ([Decisions](decisions.md#network)).
+
+The `tailscale-acls` change that makes the tag exist lives in that repo, not this one; the
+tag is the Deck's own, so the policy can treat the Deck by tag without dragging a personal
+identity into it.
+
 ## Apply
 
 1. Apply. The first apply builds every package that is not in the cache already, so it takes a
