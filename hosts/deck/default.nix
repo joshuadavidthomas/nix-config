@@ -173,6 +173,32 @@ in {
           Install.WantedBy = [ "multi-user.target" ];
         };
 
+        # The Deck is a docked server: a suspend — SteamOS's idle one, a session's, or a lid
+        # event — takes the tailnet with it. This holds a logind inhibitor open while it
+        # runs, which blocks every suspend path that goes through logind. Valve's
+        # auto-suspend and the sessions' own both do, so the screen can still go dark after
+        # its own timeout, with CPU, Wi-Fi and services running behind the blank screen.
+        # Both binaries are SteamOS's own and live on the always-present root, so this unit
+        # does not reach into the store and survives every update by itself.
+        # For a manual suspend, stop this unit first: `sudo systemctl stop deck-always-on`.
+        "deck-always-on" = {
+          Unit = {
+            Description = "Inhibit suspend, so the deck stays reachable while docked";
+            After = [ "multi-user.target" ];
+          };
+          Service = {
+            Type = "simple";
+            ExecStart = lib.escapeShellArgs [
+              "/usr/bin/systemd-inhibit"
+              "--what=sleep" "--who=deck" "--why=docked"
+              "/usr/bin/sleep" "infinity"
+            ];
+            Restart = "on-failure";
+            RestartSec = 5;
+          };
+          Install.WantedBy = [ "multi-user.target" ];
+        };
+
         # SteamOS issue #2957: an update freezes /var, then blocks forever on its first
         # lookup of /etc/atomic-update.conf.d, because the last update's rsync dropped the
         # OverlayFS xattr that the lookup would write back. A lookup once per boot, while
