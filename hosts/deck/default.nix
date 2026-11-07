@@ -117,8 +117,10 @@ in {
       # process that asks the deck's own tailscaled who each caller is, maps them to the
       # `deck` account, and listens through Tailscale Serve, in HTTPS on Rex's port, so Rex
       # for Mac and Rex for iOS open sessions on the deck like they do on lab-1.
+      # The attrset key is the unit file's name: keep the lab boxes' snake-case shape, which
+      # this unit's Requires and After also name.
       services = {
-        rexLoginServer = {
+        "rex-login-server" = {
           Unit = {
             Description = "Rex Login Server";
             Documentation = [ "https://superlogical.com" ];
@@ -153,7 +155,7 @@ in {
         # Tailscale Serve's mapping, the module's rex-tailscale-serve.service verbatim, run
         # against the deck's tailscaled by its own CLI: at boot `serve --bg` maps HTTPS 7297
         # to the login server's Serve socket, and on stop it takes the mapping off.
-        rexTailscaleServe = {
+        "rex-tailscale-serve" = {
           Unit = {
             Description = "Rex Tailscale Serve";
             After = [ "tailscaled.service" "rex-login-server.service" ];
@@ -177,7 +179,7 @@ in {
         # /var is writable, sets the xattr so the frozen-time lookup has nothing to write.
         # The default keep list carries the unit and its enablement to each new slot, and
         # Valve's own fix in holo-sync-var makes this unnecessary.
-        atomicUpdateConfPrime = {
+        "atomic-update-conf-prime" = {
           Unit = {
             Description = "Pre-resolve /etc/atomic-update.conf.d, for the SteamOS update hang";
             After = [ "local-fs.target" ];
