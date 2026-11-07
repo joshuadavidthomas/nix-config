@@ -36,6 +36,25 @@ checkpoint instead of exporting a gzip. The module loads `nbd` with `nbds_max=0 
 and adds udev rules that keep the host's own storage stack off the NBD devices. A machine made
 on loop disks before the switch keeps them.
 
+The 2026-11-07 pin supports live checkpoints. A plain checkpoint freezes the guest
+filesystem, cuts its disk and thaws it before upload. An Amp pause freezes the filesystem,
+pauses Firecracker, stores the cut and stops the VM without resuming it. Resume can restore
+the disk on another host, but does not preserve memory or processes. A guest without a
+working freeze listener takes the existing stop/checkpoint fallback during Amp pause.
+
+The block worker keeps Objects read-only. It exports a publication into its private queue,
+and the host checks and uploads those bytes. Only bounded, root-owned metadata enters
+Objects. Admission reserves the worst-case staging space and 132 MiB of host metadata,
+so a 20 GiB served disk charges 41 GiB. Older, smaller queue files are refused rather than
+silently resized. Daemon recovery counts allocated served queues as yonder's reserved space,
+so their allocation is not charged twice after a restart.
+
+The production coordinator and all three lab hosts already run the verified live-checkpoint
+build. The hosts still use `/var/lib/yonder-bin` overrides. This pin makes that code available
+through Nix, but does not remove those overrides or apply a new NixOS generation. The old
+pin cannot handle the coordinator's running stop-checkpoint requests, so do not remove an
+override until its replacement pinned package is built and ready to run.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
