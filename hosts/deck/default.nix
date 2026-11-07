@@ -113,6 +113,26 @@ in {
         defaults.${vars.tailscaleLogin} = "deck";
       };
 
+      # The login server's PAM policy. The callers' identities come from tailscaled and the
+      # accounts file above, so authentication denies by itself; the account check is where a
+      # policy is missing refuses every account on Arch-family systems
+      # (steamdeck's journal for rex-login-server, "no PAM policy"), so this names the real
+      # checks with SteamOS's own modules. The NixOS machines get the same checks, generated
+      # from their PAM store paths (lab-1's /etc/pam.d/rex-login-server).
+      files."pam.d/rex-login-server" = ''
+        #%PAM-1.0
+        # Account management: the account the caller maps to must exist
+        account  required  /usr/lib/security/pam_unix.so
+        # Authentication: already proven by the caller's tailnet identity
+        auth     required  /usr/lib/security/pam_deny.so
+        # Password and session, the rest of what the account servers' sessions need
+        password required  /usr/lib/security/pam_deny.so
+        session  required  /usr/lib/security/pam_limits.so
+        session  required  /usr/lib/security/pam_loginuid.so
+        session  required  /usr/lib/security/pam_unix.so
+        session  optional  /usr/lib/security/pam_systemd.so
+      '';
+
       # Rex's login server, the lab boxes' shape brought to SteamOS (docs/rex.md): one root
       # process that asks the deck's own tailscaled who each caller is, maps them to the
       # `deck` account, and listens through Tailscale Serve, in HTTPS on Rex's port, so Rex
