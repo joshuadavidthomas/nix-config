@@ -49,14 +49,19 @@ in {
       # atuin's login to the sync server (home/atuin.nix reads these; same item as
       # modules/secrets.nix on the other machines)
       atuinUsername.reference = "op://dotfiles/Atuin/username";
+      atuinUsername.path = ".config/opnix/atuinUsername";
       atuinPassword.reference = "op://dotfiles/Atuin/password";
+      atuinPassword.path = ".config/opnix/atuinPassword";
       atuinKey.reference = "op://dotfiles/Atuin/key";
+      atuinKey.path = ".config/opnix/atuinKey";
       # Nix's login for the rex flake input (docs/rex.md), written to the netrc below
       rexToken.reference = "op://dotfiles/Rex packages/password";
+      rexToken.path = ".config/opnix/rexToken";
       # commits sign with the lab boxes' shared key (docs/decisions.md#git-signing); the Mac
       # signs through 1Password's own signer, the Deck has neither app nor agent, so the file
       gitSigningKey = {
         reference = "op://dotfiles/Lab signing key/private key?ssh-format=openssh";
+        path = ".config/opnix/gitSigningKey";
       };
     };
   };
