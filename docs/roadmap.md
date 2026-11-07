@@ -119,13 +119,14 @@ See [Set up the Steam Deck](new-deck.md).
 - [x] On the Deck: Nix installed with the official installer (steam-deck planner, Nix
       2.35.4), the shared home applied, and `ssh deck@steamdeck` over the tailnet. Tailscale
       was already there: SteamOS ships `tailscaled`, the Deck has its tailnet state kept
+- [ ] Stage 2: the token in the Deck's home and opnix at the home-manager level, so atuin
+      syncs and commits sign
 - [ ] Stage 2: [steamos-etc-nix](https://github.com/JRMurr/steamos-etc-nix) pinned to a
       revision, and its `--check` run against the Deck, before it writes any `/etc` file
-- [ ] Stage 2: Tailscale through it, as a system service, and a cold-reboot test where it
-      comes up with no desktop session
-- [ ] Stage 2: opnix on the Deck, so atuin syncs and commits sign
+- [ ] Stage 2: Rex's login server on the Deck, the lab boxes' shape, and the every-boot
+      lookup that keeps a SteamOS update from hanging on `/etc/atomic-update.conf.d`
 - [ ] Stage 2: A recovery runbook for a SteamOS update, proven from the console with the
-      docked keyboard
+      docked keyboard, and a cold-reboot test where the units come up with no session
 - [ ] Stage 3: Apply over the tailnet, and monitoring
 
 ## All machines

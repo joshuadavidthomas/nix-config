@@ -18,14 +18,37 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Reason: a SteamOS update resets `/etc/shells`, and a login shell that is not in it keeps
   both the desktop and SSH from logging in, an outage that looks like a dead machine
   ([SteamOS issue #2922](https://github.com/ValveSoftware/SteamOS/issues/2922)).
-- **The Deck gets no system integration until its recovery is proven.** Tailscale, `/etc`
-  files, secrets (opnix and the signing key) and monitoring wait, in stages, for the tests:
-  a cold reboot reachable over SSH, and a SteamOS update survived. Stages:
-  [Set up the Steam Deck](roadmap.md#steam-deck).
-  Reason: SteamOS updates drop `/etc` files that no keep-list entry covers, and hang
-  mid-update with any keep-list entry at all
+- **The Deck gets system integration in stages, and what it gets runs itself.** Stage 2 adds
+  the secrets (opnix at the home-manager level, its token in the home at
+  `~/.config/opnix/token`), the keep-list and Rex's login server, through the pinned
+  steamos-etc-nix — plus one unit of its own: an every-boot lookup of
+  `/etc/atomic-update.conf.d`, so an update never blocks on a frozen `/var`. Applies over the
+  tailnet and monitoring still wait for the runbook to survive a SteamOS update and a cold
+  reboot without a session. Stages: [Set up the Steam Deck](roadmap.md#steam-deck).
+  Reason: SteamOS updates drop `/etc` files that no keep-list entry covers and hang
+  mid-update on any keep-list entry at all
   ([Valve issue #2957](https://github.com/ValveSoftware/SteamOS/issues/2957)). Nothing may
-  depend on the Deck's home-manager state that the machine's own state files do not survive.
+  depend on home-manager state that the machine's own state files do not survive.
+- **The Deck keeps Valve's SteamOS and its own tailscaled.** SteamOS tailscaled comes from the
+  Tailscale script's layout (`/opt/tailscale`, on the home partition) and its keep-listed
+  files, which this repo does not manage. It serves SSH, once enabled on the Deck. The CLI
+  that talks to it in the repo's `rex-tailscale-serve` unit is that daemon's own build, so
+  the two cannot drift.
+  Reason: replacing an installation that works would only add drift, and it is the only
+  connection that an apply comes through today.
+- **The Deck keeps opnix's home-manager module.** On the machines NixOS and macOS configure,
+  opnix runs as a system service, and the home-manager writes no secrets. The Deck is
+  different: it has no system service, so the secrets come in at the home level, and this is
+  the one module that uses the HM module (`hosts/deck/default.nix`).
+  Reason: the HM module carries its own way of applying the secrets, so atuin's login and
+  the signing key land without a system unit that SteamOS would drop on the next update. opnix
+  does fail clean on a missing token.
+- **Rex runs on the Deck like the lab boxes.** The login server as a system unit through
+  steamos-etc, identified against the deck's own tailscaled, reachable through Tailscale
+  Serve on 7297, and a single policy file `/etc/rex/accounts.jsonc` mapping the owner's
+  Tailscale login to the account `deck`. It is one root process, one Serve mapping, no
+  second tailnet identity. The account differs from the lab boxes: `deck`, not `josh`, the
+  one account exception above.
 - **Amp orbs log in to the lab boxes as `orb`, not `root` or `josh`.** `orb` has passwordless
   sudo, like `josh`.
   Reason: the risk is an agent's mistake, not an attacker. A separate user keeps agents out of

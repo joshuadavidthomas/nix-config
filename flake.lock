@@ -75,6 +75,27 @@
         "type": "github"
       }
     },
+    "home-manager_2": {
+      "inputs": {
+        "nixpkgs": [
+          "steamos-etc",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791123389,
+        "narHash": "sha256-4ln1QbTLlSC6Wo0Jus/YZuueOBBNhTSa9KMSnco+j8M=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "8cfa9c9514e86f3b88856958b4692e7312b96598",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -279,9 +300,32 @@
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "rex": "rex",
+        "steamos-etc": "steamos-etc",
         "tokyonight": "tokyonight",
         "uv2nix": "uv2nix",
         "yonder": "yonder"
+      }
+    },
+    "steamos-etc": {
+      "inputs": {
+        "home-manager": "home-manager_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791332674,
+        "narHash": "sha256-Qr356WNNCA96wAqfsuR/Aw+b/yAmwCfaOaMsSxnfPYg=",
+        "owner": "JRMurr",
+        "repo": "steamos-etc-nix",
+        "rev": "e33b7fa2606971294c0e7ac44b8c54920920363c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "JRMurr",
+        "repo": "steamos-etc-nix",
+        "rev": "e33b7fa2606971294c0e7ac44b8c54920920363c",
+        "type": "github"
       }
     },
     "systems": {

@@ -2,12 +2,30 @@
 { config, lib, osConfig, ... }:
 let
   atuin = lib.getExe config.programs.atuin.package;
-  # opnix writes the secret files in the machine configuration (NixOS or macOS), so a machine
-  # whose osConfig is null has none yet. That is standalone home-manager, the Steam Deck
-  # (hosts/deck): there atuin stays logged out until opnix is integrated for it (Stage 2,
-  # docs/new-deck.md), and the login does not run.
-  secrets = if osConfig == null then { } else osConfig.services.onepassword-secrets.secretPaths;
-  secret = lib.mapAttrs (_: lib.escapeShellArg) secrets;
+
+  # The login, with the account's files: a username, a password and a key. On the machines
+  # NixOS and macOS configure, those files are the machine's (modules/secrets.nix); on the
+  # Steam Deck (hosts/deck), where home-manager is standalone, they are in the home instead
+  # (programs.onepassword-secrets, hosts/deck/default.nix). Config reads happen inside the
+  # option values, not in a let here: the module argument is still being built when this
+  # module is evaluated, so a top-level access of it recurses.
+  loginScript = secrets:
+    let
+      secret = lib.mapAttrs (_: lib.escapeShellArg) secrets;
+    in ''
+      if [[ "$(${atuin} status 2>&1 || true)" == *"not logged in"* ]]; then
+        if [ ! -r ${secret.atuinPassword} ]; then
+          warnEcho "atuin: opnix hasn't fetched the account from 1Password yet (docs/secrets.md); switch again when it has"
+        elif [[ -v DRY_RUN ]]; then
+          echo "would log atuin in as $(cat ${secret.atuinUsername}) and sync"
+        elif ${atuin} login -u "$(cat ${secret.atuinUsername})" -p "$(cat ${secret.atuinPassword})" \
+            -k "$(cat ${secret.atuinKey})"; then
+          ${atuin} sync || warnEcho "atuin: logged in, but the first sync failed; run 'atuin sync'"
+        else
+          warnEcho "atuin: login failed (two-factor auth on the account, or a changed password?)"
+        fi
+      fi
+    '';
 in
 {
   programs.atuin = {
@@ -21,23 +39,13 @@ in
       update_check = false;
     };
   };
-} // lib.optionalAttrs (secrets != { }) {
-  # Log atuin in to sync wherever it isn't yet (fresh install, rebuilt machine), then pull
-  # history down. Skipped once logged in.
-  # `atuin status` exits 1 when logged out, so read its output first; under activation's
-  # pipefail, piping it to grep would never match.
-  home.activation.atuinLogin = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    if [[ "$(${atuin} status 2>&1 || true)" == *"not logged in"* ]]; then
-      if [ ! -r ${secret.atuinPassword} ]; then
-        warnEcho "atuin: opnix hasn't fetched the account from 1Password yet (docs/secrets.md); switch again when it has"
-      elif [[ -v DRY_RUN ]]; then
-        echo "would log atuin in as $(cat ${secret.atuinUsername}) and sync"
-      elif ${atuin} login -u "$(cat ${secret.atuinUsername})" -p "$(cat ${secret.atuinPassword})" \
-          -k "$(cat ${secret.atuinKey})"; then
-        ${atuin} sync || warnEcho "atuin: logged in, but the first sync failed; run 'atuin sync'"
-      else
-        warnEcho "atuin: login failed (two-factor auth on the account, or a changed password?)"
-      fi
-    fi
-  '';
+
+  home.activation.atuinLogin = lib.hm.dag.entryAfter [ "linkGeneration" ]
+    # Log atuin in to sync wherever it isn't yet (fresh install, rebuilt machine), then pull
+    # history down. Skipped once logged in.
+    # `atuin status` exits 1 when logged out, so read its output first; under activation's
+    # pipefail, piping it to grep would never match.
+    (if osConfig != null
+    then loginScript osConfig.services.onepassword-secrets.secretPaths
+    else loginScript config.programs.onepassword-secrets.secretPaths);
 }

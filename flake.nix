@@ -15,6 +15,11 @@
     opnix.url = "github:brizzbuzz/opnix";
     opnix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # declarative /etc files and system services for SteamOS, from standalone home-manager
+    # (hosts/deck). Pinned by revision, because it has no release yet.
+    steamos-etc.url = "github:JRMurr/steamos-etc-nix/e33b7fa2606971294c0e7ac44b8c54920920363c";
+    steamos-etc.inputs.nixpkgs.follows = "nixpkgs";
+
     # builds Python apps from a uv.lock (pkgs/llm)
     pyproject-nix.url = "github:pyproject-nix/pyproject.nix";
     pyproject-nix.inputs.nixpkgs.follows = "nixpkgs-unstable";

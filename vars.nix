@@ -16,4 +16,7 @@
     # "github.com": signs commits
     signing = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFu+mS88ARLvrHMl3CshOJRL/Ft3TJRr/dG+hTq39aNW";
   };
+
+  # the owner's Tailscale login, as the login servers name callers (hosts/deck, hosts/lab-*)
+  tailscaleLogin = "tailscale:joshuadavidthomas@github";
 }
