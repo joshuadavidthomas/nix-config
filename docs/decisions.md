@@ -43,6 +43,13 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Reason: the HM module carries its own way of applying the secrets, so atuin's login and
   the signing key land without a system unit that SteamOS would drop on the next update. opnix
   does fail clean on a missing token.
+- **The Deck's suspend is blocked by a system unit, not by a SteamOS setting.** While the
+  Deck is docked, `deck-always-on` holds a logind inhibitor open, which every sleep path
+  honors; the screen still goes dark, and CPU, Wi-Fi and services run behind it. A deliberate
+  suspend means stopping the unit first, on purpose
+  ([Set up the Steam Deck](new-deck.md#staying-on-while-docked)).
+  Reason: a setting in Valve's own screens would be unowned and unrecorded, and Valve moves
+  them; one keep-listed unit in the repo is the machine's own record.
 - **Rex runs on the Deck like the lab boxes.** The login server as a system unit through
   steamos-etc, identified against the deck's own tailscaled, reachable through Tailscale
   Serve on 7297, and a single policy file `/etc/rex/accounts.jsonc` mapping the owner's

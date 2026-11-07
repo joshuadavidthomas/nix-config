@@ -137,6 +137,28 @@ The attrset keys in `programs.steamos-etc.services` name their unit files — ke
 boxes' snake-case shape (`rex-login-server`), which the units' `Requires` and `After` also
 name.
 
+## Staying on while docked
+
+The Deck's job when docked is to be reachable, and the thing that undoes that is a suspend —
+SteamOS's idle one, a session's, or a lid event all take the tailnet with it. The repo owns
+one unit for this: `deck-always-on.service`, a logind inhibitor (`systemd-inhibit --what=sleep`)
+that runs from both SteamOS binaries. While it runs, no sleep happens: CPU, Wi-Fi and
+services keep running behind the screen, which still goes dark on its own timeout. The
+`sshd` and `tailscaled` services were enabled once by hand and the SteamOS keep-list keeps
+them across updates, so a restart brings them back by themselves.
+
+For a deliberate suspend — say, to unplug and walk away — stop the unit first:
+
+```sh
+sudo systemctl stop deck-always-on
+```
+
+and start it again when it goes back on the dock:
+
+```sh
+sudo systemctl start deck-always-on
+```
+
 Atuin syncs from the first apply; commits sign with the lab boxes' shared key, as on a lab
 box. The tailnet side itself — SteamOS's own tailscaled under `/opt/tailscale` and its
 keep-listed files — stays out of this repo's hands.
