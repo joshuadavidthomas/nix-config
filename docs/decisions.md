@@ -54,7 +54,10 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   steamos-etc, identified against the deck's own tailscaled, reachable through Tailscale
   Serve on 7297, and a single policy file `/etc/rex/accounts.jsonc` mapping the owner's
   Tailscale login to the account `deck`. It is one root process, one Serve mapping, no
-  second tailnet identity. The account differs from the lab boxes: `deck`, not `josh`, the
+  second tailnet identity. It runs `--pam=false`: a prebuilt rex binary cannot dlopen
+  SteamOS's PAM modules (their libraries sit off its loader path), so rex's shadow checks
+  do the admission, its container mode. The lab boxes keep the Rex module's own PAM stack.
+  The account differs from the lab boxes: `deck`, not `josh`, the
   one account exception above.
 - **Amp orbs log in to the lab boxes as `orb`, not `root` or `josh`.** `orb` has passwordless
   sudo, like `josh`.

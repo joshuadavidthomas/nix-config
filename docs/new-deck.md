@@ -130,8 +130,19 @@ configuration plus one privileged apply. It happens in this order, once:
    ```sh
    systemctl is-active rex-login-server rex-tailscale-serve
    /opt/tailscale/tailscale serve status
-   curl https://steamdeck.tail014d2.ts.net:7297/   # 403 without a caller is right
+   curl https://steamdeck.tail014d2.ts.net:7297/   # 404 without a caller is right
    ```
+
+   A bare GET returns 404 here, not 403: it means the caller was admitted onto the account
+   server and the refusal came only from there (Rex's handshake didn't start), same as lab-1.
+   A refusal at admission would show 403. If Rex ever refused a caller again, the first
+   line to look for in `journalctl -u rex-login-server` is `pam` — SteamOS's modules dlopen
+   libraries rex's prebuilt binary rolls without. On the deck, the unit runs `--pam=false`
+   (rex's container mode, which does shadow-based account checks): without it, admission
+   happened nowhere — SteamOS being Arch-family, its "other" PAM policy refuses every
+   account, and the NixOS-built PAM file this repo's lab boxes carry would have to be
+   SteamOS-shaped for a prebuilt binary. The deck stays on rex's simpler path; the lab
+   boxes keep the module-shaped one.
 
 The attrset keys in `programs.steamos-etc.services` name their unit files — keep the lab
 boxes' snake-case shape (`rex-login-server`), which the units' `Requires` and `After` also
