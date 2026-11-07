@@ -80,12 +80,66 @@ update resets `/etc/shells`, and a login shell that is not in it keeps both the 
 and SSH from logging in at all
 ([SteamOS issue #2922](https://github.com/ValveSoftware/SteamOS/issues/2922)).
 
-Two things are not set up yet, on purpose (roadmap, Stage 2):
+Two things need the home's secrets, which arrive at Stage 2 below: atuin's login and commits'
+signing. A first Stage 1 apply logs neither, and says so.
 
-- **atuin is logged out.** opnix reads its secrets on the machines NixOS and macOS configure;
-  the Deck has neither yet. The apply passes and mentions it.
-- **commits do not sign.** The lab boxes share a signing key that opnix writes; the Deck gets
-  that in Stage 2 too. Until then, sign nothing from it.
+## Stage 2: secrets, Rex and the keep-list
+
+Stage 2 gives the Deck the secrets and the lab boxes' system services, from the home-manager
+configuration plus one privileged apply. It happens in this order, once:
+
+1. Copy the service account's token from the Mac into the Deck's home, not `/etc/opnix-token`:
+   an update drops `/etc`, and the home is the Deck's own. Now the secrets arrive at each
+   apply, not once:
+
+   ```sh
+   cat /etc/opnix-token | ssh deck 'umask 077; mkdir -p ~/.config/opnix && cat > ~/.config/opnix/token'
+   ```
+
+2. Write Nix's netrc for the rex flake input, from the same secret a lab box or the Mac has,
+   so the apply can fetch it. After the first apply, home-manager itself rewrites it
+   (hosts/deck), so this is the only time it is by hand:
+
+   ```sh
+   ssh lab-1 'sudo cat /var/lib/opnix/secrets/rexToken' \
+     | ssh deck 'umask 077; printf "machine pkgs.superlogical.com login rex password %s\n" "$(cat)" > ~/.config/nix/netrc'
+   ```
+
+3. Apply. Always with `--refresh`: a branch moves, and a cached evaluation has the inputs of
+   an older commit:
+
+   ```sh
+   home-manager switch --refresh --flake github:joshuadavirthomas/nix-config#deck
+   ```
+
+4. Privileged apply. `steamos-etc` writes the `/etc` files home-manager declares, carries
+   them over SteamOS updates with its keep-list, and starts the units it keeps:
+
+   ```sh
+   ssh -t deck 'sudo /home/deck/.nix-profile/bin/steamos-etc'
+   ```
+
+   It runs with sudo only when something actually changed; without changes it says
+   `/etc up to date`. After an apply, `steamos-etc --check` without sudo reports what still
+   differs. What it manages: `/etc/rex/accounts.jsonc`, the units `rex-login-server` and
+   `rex-tailscale-serve`, the every-boot lookup that keeps a SteamOS update from hanging on
+   `/etc/atomic-update.conf.d`, and home-manager's `user@.service` drop-in.
+
+5. Check. Rex's login server and the Serve mapping answer like the lab boxes:
+
+   ```sh
+   systemctl is-active rex-login-server rex-tailscale-serve
+   /opt/tailscale/tailscale serve status
+   curl https://steamdeck.tail014d2.ts.net:7297/   # 403 without a caller is right
+   ```
+
+The attrset keys in `programs.steamos-etc.services` name their unit files — keep the lab
+boxes' snake-case shape (`rex-login-server`), which the units' `Requires` and `After` also
+name.
+
+Atuin syncs from the first apply; commits sign with the lab boxes' shared key, as on a lab
+box. The tailnet side itself — SteamOS's own tailscaled under `/opt/tailscale` and its
+keep-listed files — stays out of this repo's hands.
 
 ## After a SteamOS update
 
@@ -94,7 +148,7 @@ the Deck's own storage. An update replaces the rest of the root, including `/etc
 
 | What you see | Why | What to do |
 | --- | --- | --- |
-| `nix` no longer builds, or a setting it had is gone | The update dropped the files in `/etc` that the installer had written, the ones its keep-list entry covers | Run the installer step again. It overwrites the same files, in the same places. |
+| `nix` no longer builds, or a setting it had is gone | The update dropped the files in `/etc` that the installer had written, the ones its keep-list entry covers | Run the installer step again. It overwrites the same files, in the same places. Then the Stage 2 apply: `steamos-etc` and the switch (its order is the Stage 2 list above). |
 | A dotfile went back to its image version | The update image writes its own versions of a few files in the home | The `.bak` next to it, from the `backupFileExtension` rule. |
 | The desktop session or SSH will not log in, `pam_shells` in the journal | The update reset `/etc/shells` and the login shell is not in it | This should stay impossible by rule: the Deck keeps bash. It has happened when a deck had `chsh` run on it; the recovery is the boot menu's "previous SteamOS" and then the shell back to `/bin/bash`. |
 
