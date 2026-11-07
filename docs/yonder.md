@@ -49,11 +49,13 @@ so a 20 GiB served disk charges 41 GiB. Older, smaller queue files are refused r
 silently resized. Daemon recovery counts allocated served queues as yonder's reserved space,
 so their allocation is not charged twice after a restart.
 
-The production coordinator and all three lab hosts already run the verified live-checkpoint
-build. The hosts still use `/var/lib/yonder-bin` overrides. This pin makes that code available
-through Nix, but does not remove those overrides or apply a new NixOS generation. The old
-pin cannot handle the coordinator's running stop-checkpoint requests, so do not remove an
-override until its replacement pinned package is built and ready to run.
+All three lab hosts applied this pin on 2026-11-07, one at a time, lab-3 first.
+Their daemon, connector and resolver run from the pinned Nix package, and
+`/var/lib/yonder/platform` points directly to the pinned platform in `/nix/store`.
+The temporary `/var/lib/yonder-bin` binaries and platform-link overrides are gone.
+Canary VMs survived the service restarts, and fresh VMs booted with the guest freeze
+service active. The production coordinator was already on the verified build and was
+not redeployed during this rollout.
 
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
