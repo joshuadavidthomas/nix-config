@@ -116,8 +116,9 @@ See [Set up the Steam Deck](new-deck.md).
 
 - [x] Stage 1, in the repo: `homeConfigurations.deck` from the shared `home/`, with
       `lib/mkhome.nix`; atuin works where standalone home-manager has no `osConfig`
-- [ ] On the Deck: Nix installed with the official installer, the shared home applied, and
-      `ssh deck` usable from the tailnet
+- [x] On the Deck: Nix installed with the official installer (steam-deck planner, Nix
+      2.35.4), the shared home applied, and `ssh deck@steamdeck` over the tailnet. Tailscale
+      was already there: SteamOS ships `tailscaled`, the Deck has its tailnet state kept
 - [ ] Stage 2: [steamos-etc-nix](https://github.com/JRMurr/steamos-etc-nix) pinned to a
       revision, and its `--check` run against the Deck, before it writes any `/etc` file
 - [ ] Stage 2: Tailscale through it, as a system service, and a cold-reboot test where it

@@ -54,18 +54,26 @@ shell. What it does not touch: system services, `/etc`, Steam and Proton. Those 
 ## Apply
 
 1. Apply. The first apply builds every package that is not in the cache already, so it takes a
-   while. `home-manager switch` runs on the Deck over the internet, because nothing on the
-   tailnet asks it to rebuild yet.
+   while, and `home-manager` has to bootstrap itself: until its CLI is on `PATH`, reach it
+   with `nix run`, and give every conflicting file a backup with `-b backup`.
 
    ```sh
+   nix run github:nix-community/home-manager/release-26.05 -- switch \
+     --flake github:joshuadavidthomas/nix-config#deck -b backup
+   ```
+
+   Then install the CLI once, and later applies are the plain command:
+
+   ```sh
+   nix profile install nixpkgs#home-manager
    home-manager switch --flake github:joshuadavidthomas/nix-config#deck
    ```
 
 2. Apply again after a change you want on it, as on any machine: the latest `main`, one
    command. What runs on the Deck is always a commit, as on the others.
 3. `home-manager switch` writes user files that SteamOS update images own with a `.bak`
-   next to them, because `home-manager.backupFileExtension` is set. When a SteamOS update
-   put an image version of one of those files back, the `.bak` is the rollback.
+   next to them. When a SteamOS update put an image version of one of those files back,
+   the `.bak` is the rollback.
 
 The login shell stays `bash`: fish starts by typing `fish`. Do **not** run `chsh`: a SteamOS
 update resets `/etc/shells`, and a login shell that is not in it keeps both the desktop
