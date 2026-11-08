@@ -23,6 +23,10 @@ in
   nix.settings.trusted-users = [ "root" vars.user ];
   nix.gc = { automatic = true; options = "--delete-older-than 30d"; };
 
+  # firmware updates from LVFS: a daily timer refreshes the list; installing one is by hand
+  # (docs/changes.md#update-firmware), because it reboots the box
+  services.fwupd.enable = true;
+
   # Each box builds and applies itself from GitHub (docs/changes.md#apply-a-change), from any
   # machine that can SSH in: `ssh lab-2 rebuild`, or `ssh lab-2 rebuild test my-branch` to try
   # a pushed branch until the next reboot. Only commits reach a box.

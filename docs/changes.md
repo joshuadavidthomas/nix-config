@@ -173,6 +173,25 @@ If an update breaks a machine:
 2. Apply.
 3. Update one input at a time. Apply after each. Stop at the input that breaks the machine.
 
+## Update firmware
+
+The lab boxes run fwupd, which gets firmware from LVFS. It does not install anything by
+itself. Nix pins its version, not the firmware's.
+
+1. List the updates for a box:
+
+   ```sh
+   ssh lab-2 fwupdmgr get-updates
+   ```
+
+2. Install them. Most updates restart the box to flash, so its VMs stop:
+
+   ```sh
+   ssh -t lab-2 sudo fwupdmgr update
+   ```
+
+Do one box at a time.
+
 ## Roll back
 
 > **Warning:** On the Mac, a rollback removes Homebrew apps that the older generation does not
