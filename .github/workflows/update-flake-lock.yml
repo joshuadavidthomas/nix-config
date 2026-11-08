@@ -1,0 +1,27 @@
+# Opens a pull request each week that updates flake.lock (docs/changes.md#update-inputs).
+# It updates every input except rex and yonder: Rex's needs a login and yonder is private,
+# so they are updated by hand.
+name: update-flake-lock
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * 1" # Mondays, 13:00 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - id: inputs
+        run: echo "names=$(jq -r '.nodes.root.inputs | keys - ["rex", "yonder"] | join(" ")' flake.lock)" >> "$GITHUB_OUTPUT"
+      - uses: DeterminateSystems/update-flake-lock@v29
+        with:
+          inputs: ${{ steps.inputs.outputs.names }}
+          branch: update-flake-lock
+          pr-title: "Update flake.lock"

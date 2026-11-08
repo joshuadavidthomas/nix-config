@@ -132,24 +132,39 @@ Apply first, so that topgrade updates what the new configuration installs.
 
 ## Update inputs
 
-1. Update all inputs:
+1. Every Monday, GitHub Actions opens the pull request "Update flake.lock" on the branch
+   `update-flake-lock` (`.github/workflows/update-flake-lock.yml`). It updates every input
+   except `rex` and `yonder`: Rex's input needs a login and yonder is private. Its
+   description lists each input that changed. To open it now:
 
    ```sh
-   nix flake update
+   gh workflow run update-flake-lock.yml
    ```
 
-   To update one input: `nix flake update nixpkgs`.
+   No checks run on the pull request. Try it on a lab box before you merge:
 
-   Run it on the Mac or in an orb. Rex's input needs a login that only they have
-   ([Rex](rex.md#the-package-login)).
+   ```sh
+   ssh lab-2 rebuild test update-flake-lock
+   ```
 
-2. Optional: compare the new Mac configuration with the current one:
+   Then squash and merge it. GitHub signs the squashed commit.
+
+2. Update `rex` and `yonder` by hand, on the Mac or in an orb, which have their logins
+   ([Rex](rex.md#the-package-login)):
+
+   ```sh
+   nix flake update rex yonder
+   ```
+
+   To update one input: `nix flake update nixpkgs`. To update all of them: `nix flake update`.
+
+3. Optional: compare the new Mac configuration with the current one:
 
    ```sh
    nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
    ```
 
-3. Apply it on each machine.
+4. Apply it on each machine.
 
 If an update breaks a machine:
 
@@ -184,6 +199,7 @@ Lab boxes do this every day.
 | What you see | Cause | Action |
 | --- | --- | --- |
 | `path '…' does not exist` for a new file | Nix sees only the files that version control tracks | Track the file |
+| The update-flake-lock workflow fails with `GitHub Actions is not permitted to create or approve pull requests` | The repo does not let workflows open pull requests | In the repo's Settings > Actions > General, turn on **Allow GitHub Actions to create and approve pull requests**. Run the workflow again. |
 | A GitHub rate limit error during an update | Nix has no GitHub token | Run `gh auth login`. Apply again. |
 | `HTTP error 404` for `github.com/joshuadavidthomas/yonder.dev/archive/…` | yonder is private, and Nix has no GitHub token. On the Mac, `rebuild` passes yours to `sudo`; a bare `sudo darwin-rebuild` does not. | Run `gh auth login`. Apply again with `rebuild`. |
 | `gh config set` fails on a read-only file | home-manager writes `~/.config/gh/config.yml` | Set it in `programs.gh.settings` in `home/git.nix` |

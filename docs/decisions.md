@@ -198,6 +198,12 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
   Reason: Homebrew releases about twice a week. Pinned in the flake, it had to be bumped by hand.
 - **Tools that release faster than nixpkgs update themselves.** The coding agents and cf are
   installed with their own installers or npm, not packaged in Nix.
+- **A weekly GitHub Actions workflow opens a pull request that updates `flake.lock`.** It
+  updates every input except `rex` and `yonder`, which are updated by hand. Merging it is
+  still a manual step.
+  Reason: the lock went a month without an update (nixpkgs pinned at October 7), so the lab
+  boxes stayed on kernel 6.18.55 after its fix shipped. CI has no Rex login and no access to
+  the private yonder repo.
 - **topgrade updates what Nix does not pin. Run it by hand about once a week, after the Nix
   update.** Steps are in [Update everything](changes.md#update-everything).
   Reason: the Mac keeps its sudo password, so a scheduled run cannot finish. A run by hand

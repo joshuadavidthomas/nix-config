@@ -136,4 +136,5 @@ See [Set up the Steam Deck](new-deck.md).
 ## All machines
 
 - [ ] Pin SSH host keys (GitHub, Forgejo, lab boxes) in `modules/known-hosts.nix`
-- [ ] A CI job that opens pull requests for `flake.lock` updates
+- [x] A CI job that opens pull requests for `flake.lock` updates (weekly; every input but
+      `rex` and `yonder`)
