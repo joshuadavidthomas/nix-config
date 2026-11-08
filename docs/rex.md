@@ -76,6 +76,7 @@ file. The token is kept on its own; each place writes the netrc line from it:
 | Mac | The field `password` of the item "Rex packages" in `dotfiles`. opnix writes it to `~/Library/Application Support/opnix/rexToken`. | `~/.config/nix/netrc`, written by the launchd agent `rex-netrc` at login and when the token file changes (`hosts/mac/home.nix`) |
 | Lab boxes | The same field. opnix writes it to `/var/lib/opnix/secrets/rexToken`. | `/var/lib/nix-credentials/netrc`, written by `nix-credentials.service` (`modules/nixos/server.nix`) |
 | Orbs | The Amp project secret `REX_PACKAGE_TOKEN` | `~/.config/nix/netrc`, written by `.agents/resume` |
+| GitHub Actions | The secret `REX_PACKAGE_TOKEN` of the environment `flake-update`, which only `main` can use | A file in the runner's temp directory, written by `.github/workflows/update-flake-lock.yml` |
 
 Each names the file with `netrc-file`: in `~/.config/nix/nix.conf` on the Mac and in orbs, in
 `/etc/nix/nix.conf` on the lab boxes. The line is:
@@ -96,7 +97,8 @@ which nothing here uses.
 ## Update Rex
 
 The input follows the `snapshot` channel, a build of every change. `flake.lock` pins one
-build. To move to the newest:
+build. The weekly pull request moves it to the newest ([Update inputs](changes.md#update-inputs)).
+To move it now:
 
 ```sh
 nix flake update rex
@@ -112,3 +114,8 @@ the Rex flake.
    agent and the boxes' `nix-credentials` rewrite the netrc.
 2. Change the Amp project secret `REX_PACKAGE_TOKEN` of `joshthomas/nix-config`. Orbs that
    start later get it.
+3. Change the GitHub secret, from the Mac:
+
+   ```sh
+   op read "op://dotfiles/Rex packages/password" | gh secret set REX_PACKAGE_TOKEN --env flake-update -R joshuadavidthomas/nix-config
+   ```

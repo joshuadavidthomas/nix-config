@@ -134,8 +134,9 @@ Apply first, so that topgrade updates what the new configuration installs.
 
 1. Every Monday, GitHub Actions opens the pull request "Update flake.lock" on the branch
    `update-flake-lock` (`.github/workflows/update-flake-lock.yml`). It updates every input
-   except `rex` and `yonder`: Rex's input needs a login and yonder is private. Its
-   description lists each input that changed. To open it now:
+   except `yonder`, which is private. Rex's login comes from the repo's `flake-update`
+   environment ([Rex](rex.md#the-package-login)). Its description lists each input that
+   changed. To open it now:
 
    ```sh
    gh workflow run update-flake-lock.yml
@@ -149,11 +150,10 @@ Apply first, so that topgrade updates what the new configuration installs.
 
    Then squash and merge it. GitHub signs the squashed commit.
 
-2. Update `rex` and `yonder` by hand, on the Mac or in an orb, which have their logins
-   ([Rex](rex.md#the-package-login)):
+2. Update `yonder` by hand, on the Mac or in an orb, which have a GitHub login:
 
    ```sh
-   nix flake update rex yonder
+   nix flake update yonder
    ```
 
    To update one input: `nix flake update nixpkgs`. To update all of them: `nix flake update`.

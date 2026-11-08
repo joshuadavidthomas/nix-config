@@ -1,6 +1,6 @@
 # Opens a pull request each week that updates flake.lock (docs/changes.md#update-inputs).
-# It updates every input except rex and yonder: Rex's needs a login and yonder is private,
-# so they are updated by hand.
+# It updates every input except yonder, which is private and updated by hand. Rex's input
+# needs its package login, from the flake-update environment (docs/rex.md).
 name: update-flake-lock
 
 on:
@@ -15,11 +15,20 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    environment: flake-update
     steps:
       - uses: actions/checkout@v7
+      - name: Rex's package login
+        env:
+          REX_PACKAGE_TOKEN: ${{ secrets.REX_PACKAGE_TOKEN }}
+        run: |
+          umask 077
+          echo "machine pkgs.superlogical.com login rex password $REX_PACKAGE_TOKEN" > "$RUNNER_TEMP/netrc"
       - uses: DeterminateSystems/determinate-nix-action@v3
+        with:
+          extra-conf: netrc-file = ${{ runner.temp }}/netrc
       - id: inputs
-        run: echo "names=$(jq -r '.nodes.root.inputs | keys - ["rex", "yonder"] | join(" ")' flake.lock)" >> "$GITHUB_OUTPUT"
+        run: echo "names=$(jq -r '.nodes.root.inputs | keys - ["yonder"] | join(" ")' flake.lock)" >> "$GITHUB_OUTPUT"
       - uses: DeterminateSystems/update-flake-lock@v29
         with:
           inputs: ${{ steps.inputs.outputs.names }}
