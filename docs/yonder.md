@@ -57,6 +57,14 @@ Canary VMs survived the service restarts, and fresh VMs booted with the guest fr
 service active. The production coordinator was already on the verified build and was
 not redeployed during this rollout.
 
+The 2026-11-08 pin (a35357d) runs each VM's Firecracker under AWS's jailer, in a network
+namespace of its own. The module's `services.yonder.firecracker` is now AWS's static
+Firecracker 1.16.2 with `jailer` beside it, which fixes CVE-2026-122192. yonderd refuses to
+start with a dynamically linked Firecracker or one without a jailer next to it, so nix-config
+must not set that option to nixpkgs' `firecracker`. A rebuild restarts only yonderd: a running
+VM keeps its old unit until it next starts. Until yonder's `tests/lab/deploy.sh revert`, lab-3
+runs a wrapper from `/var/lib/yonder-bin` that starts the same jailer build.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
