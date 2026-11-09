@@ -260,12 +260,11 @@ in {
         };
 
         # Sunshine (docs/sunshine.md): the stream host as a repo service, where the decky
-        # plugin and the system Flatpak it launched were. Runs as deck — the devices capture
-        # needs carry deck-write ACLs (/dev/dri/card0, /dev/uinput, checked 2026-11-09), and
-        # the capability the KMS capture path wants comes with
-        # AmbientCapabilities=CAP_SYS_ADMIN on the unit, Sunshine dropping the elevated set
-        # itself after capture is set up. The Flatpak's answer was a root sandbox; this is
-        # the narrower one.
+        # plugin and the system Flatpak it launched were. Runs as root, because Sunshine's
+        # privilege model re-escalates at every stream start (a capability-only run cannot
+        # do that) — its config, state and credentials stay deck-Home through
+        # XDG_CONFIG_HOME (/home/deck/.config), and the devices it touches already carry
+        # deck-write ACLs. The capture method is the conf's capture = portal.
         # The web UI's login is not this unit's business: it is provisioned once by hand
         # from the 1Password item (docs/sunshine.md#provision), the way atuin's login was.
         # Ports to arrive later: the system Flatpak still holds 47984-48010 until it is
@@ -279,15 +278,18 @@ in {
           };
           Service = {
             Type = "simple";
-            User = "deck";
-            # Sunshine's Wayland capture is KMS grab over /dev/dri, which needs
-            # CAP_SYS_ADMIN — the exact finding the first apply made (2026-11-09:
-            # "Encoder [vaapi] failed ... Failed to gain CAP_SYS_ADMIN", ports up,
-            # web UI answering, nothing to grab). The decky plugin answered by running
-            # everything as root; this hands the one capability to the exec'd process
-            # and lets Sunshine do what it already does: set up capture, then drop the
-            # elevated set itself ("drop_elevated_privileges succeeded" in the journal).
-            AmbientCapabilities = [ "CAP_SYS_ADMIN" ];
+            # Sunshine's privilege model is "elevated at boot, drop after it, re-escalate at
+            # every stream start" (has_elevated_privileges gates the portal's probe with a
+            # dummy, and re-enumeration happens after the encoder test). AmbientCapabilities
+            # served the boot probe and broke every post-boot stream: a dropped ambient cap
+            # cannot be re-acquired, so stream starts died with "Failed to gain
+            # CAP_SYS_ADMIN" under every encoder (2026-11-09, 15:52). So the process runs as
+            # root, and everything it keeps lives in the deck's home through XDG_CONFIG_HOME
+            # and the runtime of deck's session (docs/sunshine.md).
+            Environment = [
+              "XDG_CONFIG_HOME=/home/deck/.config"
+              "XDG_RUNTIME_DIR=/run/user/1000"
+            ];
             ExecStartPre = "${sunshineWait}";
             ExecStart = "${sunshineLaunch}";
             Restart = "on-failure";

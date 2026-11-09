@@ -60,10 +60,10 @@ One thing stayed open until the first apply, and it is now a finding: **Sunshine
 capture is KMS over `/dev/dri`, which wants `CAP_SYS_ADMIN`.** The first apply (2026-11-09)
 brought the ports up with the web UI answering and then failed to find any encoder —
 `Encoder [vaapi] failed … Failed to gain CAP_SYS_ADMIN`, the precise line the tests were
-looking for, and the reason the plugin ran everything as root. The unit answers with
-`AmbientCapabilities = [ "CAP_SYS_ADMIN" ]`: the capability rides the exec, Sunshine sets up
-capture, and its own `drop_elevated_privileges` lets go afterwards. Narrower than the root
-fallback this doc carried until then.
+looking for, and the reason the plugin ran everything as root. The unit first answered with
+`AmbientCapabilities = [ "CAP_SYS_ADMIN" ]` — and it *worked*: H.264 and HEVC Vulkan encoders
+of the Deck's VCN answered, at `drop_elevated_privileges`'s own hand. It was the second
+finding that made it wrong.
 
 The second apply brought the encoder stack's own finding, and it is not Sunshine's: with
 capture working, `Encoder [vaapi]` still failed, next to `MESA-LOADER: failed to open
@@ -85,6 +85,17 @@ same start that found the GBM device.
 Both helpers are store paths the unit file names — they persist through Valve's updates exactly
 like the Rex unit's binary path already does. The key stays snake-case like the other
 steamos-etc units, because the keep-list names it.
+
+The third finding is privilege, not capture: **Sunshine re-escalates at every stream start.**
+`has_elevated_privileges` gates the portal's probe behind a dummy screen, and re-enumeration
+follows the encoder test — a unit with an ambient capability can serve the boot test and
+nothing else, because a dropped environment capability cannot come back; a stream start after
+boot died with `Failed to gain CAP_SYS_ADMIN` under every encoder (2026-11-09, 15:52), and
+with that, the "runs as deck" shape retires. The unit now runs as root, with
+`XDG_CONFIG_HOME=/home/deck/.config` so everything Sunshine keeps — config, state, credentials
+— stays in the deck's home, and deck's session runtime carried to the process. Root for one
+process holding its own data is the trade the Flatpak's sandbox was making all along; the
+other side is same-shape, but repo-owned.
 
 ## What the plugin death costs, and what replaces it
 
