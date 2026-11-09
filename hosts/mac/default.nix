@@ -53,6 +53,7 @@
       "karabiner-elements"
       "linearmouse"
       "monitorcontrol"
+      "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
       "omniwm"
       "orbstack"
       "steipete/tap/codexbar"
