@@ -131,6 +131,16 @@ See [Set up the Steam Deck](new-deck.md).
       (applied in the console; recorded for the next install in the runbook)
 - [ ] Stage 2: A recovery runbook for a SteamOS update, proven from the console with the
       docked keyboard, and a cold-reboot test where the units come up with no session
+- [ ] Sunshine from the repo: the nixpkgs package, a keep-listed `deck-sunshine` unit through
+      steamos-etc, and 1Password's credential; the decky-sunshine plugin and its system
+      Flatpak retired after Game Mode streams. The tests and the unit sketch are in
+      [Sunshine on the Deck](sunshine.md)
+- [ ] The Deck's Flatpaks in the repo, the Mac's Homebrew pattern: declared apps on
+      `hosts/deck/default.nix` with nix-flatpak's home-manager module at user scope, the only
+      scope home-manager can own without root; `uninstallUnmanaged` takes the Mac's
+      `cleanup = "uninstall"` role once the declared list matches what is installed. Sunshine's
+      move to nixpkgs (above) removes the one app that needed system scope, so the scope
+      question left is zero
 - [ ] Stage 3: Apply over the tailnet, and monitoring
 
 ## All machines

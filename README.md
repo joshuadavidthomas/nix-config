@@ -44,6 +44,7 @@ Docs:
 - [Set up NixOS-WSL](docs/new-wsl.md)
 - [Set up a lab box](docs/new-lab-box.md)
 - [Set up the Steam Deck](docs/new-deck.md)
+- [Sunshine on the Deck](docs/sunshine.md)
 - [yonder on the lab boxes](docs/yonder.md)
 - [Rex on the lab boxes](docs/rex.md)
 - [Make a change](docs/changes.md)

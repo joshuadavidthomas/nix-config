@@ -20,6 +20,41 @@
   # /opt/tailscale, on the home partition); the CLI that talks to it is that daemon's own
   # build, so the two cannot drift.
   tailscale = "/opt/tailscale/tailscale";
+
+  # Sunshine's two helpers (docs/sunshine.md). Both run as deck, in the runtime dir
+  # systemd gives the unit; they discover the compositor socket by name because the two
+  # sessions name it differently — Plasma is wayland-0, the gamescope Game Mode session is
+  # gamescope-0 — and sunshine needs WAYLAND_DISPLAY named, not guessed.
+  sunshineWait = pkgs.writeShellScript "deck-sunshine-wait" ''
+    # The plugin waited for a display (drm_info), a connected screen. This waits one step
+    # further, for the screen a capture can hold: an existing compositor socket in the
+    # runtime dir. A boot with no session — cold start, suspended before resume — fails
+    # here at 60s and the unit retries on-failure, so it settles as soon as the first
+    # session opens. That is the cold-reboot shape groundbreaking happens in at test time.
+    runtime="''${XDG_RUNTIME_DIR:-/run/user/1000}"
+    shopt -s nullglob
+    for i in $(seq 1 60); do
+      for s in "$runtime"/wayland-* "$runtime"/gamescope-0; do
+        [ -S "$s" ] && exit 0
+      done
+      sleep 1
+    done
+    echo "no compositor socket in $runtime after 60s" >&2
+    exit 1
+  '';
+  sunshineLaunch = pkgs.writeShellScript "deck-sunshine-launch" ''
+    runtime=''${XDG_RUNTIME_DIR:-/run/user/1000}
+    export XDG_RUNTIME_DIR="$runtime"
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus"
+    shopt -s nullglob
+    # wayland-* first: Plasma holds the session when both could exist at a switch-over;
+    # in Game Mode alone, only gamescope-0 carries the session.
+    for s in "$runtime"/wayland-* "$runtime"/gamescope-0; do
+      export WAYLAND_DISPLAY="$(basename "$s")"
+      break
+    done
+    exec ${pkgs.sunshine}/bin/sunshine
+  '';
 in {
   home.username = "deck";
   home.homeDirectory = "/home/deck";
@@ -27,6 +62,13 @@ in {
   # home-manager's own module for a machine where Nix does not manage the OS: it fills in
   # XDG paths and such, the same way it does on WSL.
   targets.genericLinux.enable = true;
+
+  # Sunshine (docs/sunshine.md): the stream host as a repo-owned package, in place of the
+  # decky-sunshine plugin and the system Flatpak it launched. The launch is the
+  # deck-sunshine unit below; the web UI's login is provisioned by hand once the 1Password
+  # item exists (docs/sunshine.md#provision), and its capture finding gets written into
+  # ~/.config/sunshine only after the first run proves the defaults.
+  home.packages = [ pkgs.sunshine ];
 
   imports = [
     # Secrets, read with the service account's token. On the machines NixOS and macOS
@@ -207,6 +249,34 @@ in {
             RestartSec = 5;
           };
           Install.WantedBy = [ "multi-user.target" ];
+        };
+
+        # Sunshine (docs/sunshine.md): the stream host as a repo service, where the decky
+        # plugin and the system Flatpak it launched were. Runs as deck: the devices capture
+        # needs already carry deck-write ACLs (/dev/dri/card0, /dev/uinput, checked
+        # 2026-11-09 on this image), so no group work is needed, and if Game Mode capture
+        # still refuses a user process, the fallback is User root with
+        # XDG_CONFIG_HOME=/home/deck/.config — decision in the test, not assumed.
+        # The web UI's login is not this unit's business: it is provisioned once by hand
+        # from the 1Password item (docs/sunshine.md#provision), the way atuin's login was.
+        # Ports to arrive later: the system Flatpak still holds 47984-48010 until it is
+        # retired, so this unit and it cannot run at the same time.
+        "deck-sunshine" = {
+          Unit = {
+            Description = "Sunshine game stream host";
+            Documentation = [ "https://docs.lizardbyte.dev/projects/sunshine" ];
+            Wants = [ "graphical.target" ];
+            After = [ "graphical.target" ];
+          };
+          Service = {
+            Type = "simple";
+            User = "deck";
+            ExecStartPre = "${sunshineWait}";
+            ExecStart = "${sunshineLaunch}";
+            Restart = "on-failure";
+            RestartSec = 5;
+          };
+          Install.WantedBy = [ "graphical.target" ];
         };
 
         # SteamOS issue #2957: an update freezes /var, then blocks forever on its first
