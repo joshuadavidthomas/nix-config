@@ -53,6 +53,7 @@
       "karabiner-elements"
       "linearmouse"
       "monitorcontrol"
+      "microsoft-teams"
       "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
       "omniwm"
       "orbstack"
