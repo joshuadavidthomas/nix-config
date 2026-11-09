@@ -56,6 +56,15 @@ compositor socket is `gamescope-0`, and Plasma's is `wayland-0`. So:
   preferred, so a switch-over home lands on the live Plasma), plus the runtime dir and the
   session bus, which a system unit does not inherit on its own.
 
+One thing stayed open until the first apply, and it is now a finding: **Sunshine's Wayland
+capture is KMS over `/dev/dri`, which wants `CAP_SYS_ADMIN`.** The first apply (2026-11-09)
+brought the ports up with the web UI answering and then failed to find any encoder —
+`Encoder [vaapi] failed … Failed to gain CAP_SYS_ADMIN`, the precise line the tests were
+looking for, and the reason the plugin ran everything as root. The unit answers with
+`AmbientCapabilities = [ "CAP_SYS_ADMIN" ]`: the capability rides the exec, Sunshine sets up
+capture, and its own `drop_elevated_privileges` lets go afterwards. Narrower than the root
+fallback this doc carried until then.
+
 Both helpers are store paths the unit file names — they persist through Valve's updates exactly
 like the Rex unit's binary path already does. The key stays snake-case like the other
 steamos-etc units, because the keep-list names it.

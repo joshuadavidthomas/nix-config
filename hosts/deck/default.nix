@@ -252,11 +252,12 @@ in {
         };
 
         # Sunshine (docs/sunshine.md): the stream host as a repo service, where the decky
-        # plugin and the system Flatpak it launched were. Runs as deck: the devices capture
-        # needs already carry deck-write ACLs (/dev/dri/card0, /dev/uinput, checked
-        # 2026-11-09 on this image), so no group work is needed, and if Game Mode capture
-        # still refuses a user process, the fallback is User root with
-        # XDG_CONFIG_HOME=/home/deck/.config — decision in the test, not assumed.
+        # plugin and the system Flatpak it launched were. Runs as deck — the devices capture
+        # needs carry deck-write ACLs (/dev/dri/card0, /dev/uinput, checked 2026-11-09), and
+        # the capability the KMS capture path wants comes with
+        # AmbientCapabilities=CAP_SYS_ADMIN on the unit, Sunshine dropping the elevated set
+        # itself after capture is set up. The Flatpak's answer was a root sandbox; this is
+        # the narrower one.
         # The web UI's login is not this unit's business: it is provisioned once by hand
         # from the 1Password item (docs/sunshine.md#provision), the way atuin's login was.
         # Ports to arrive later: the system Flatpak still holds 47984-48010 until it is
@@ -271,6 +272,14 @@ in {
           Service = {
             Type = "simple";
             User = "deck";
+            # Sunshine's Wayland capture is KMS grab over /dev/dri, which needs
+            # CAP_SYS_ADMIN — the exact finding the first apply made (2026-11-09:
+            # "Encoder [vaapi] failed ... Failed to gain CAP_SYS_ADMIN", ports up,
+            # web UI answering, nothing to grab). The decky plugin answered by running
+            # everything as root; this hands the one capability to the exec'd process
+            # and lets Sunshine do what it already does: set up capture, then drop the
+            # elevated set itself ("drop_elevated_privileges succeeded" in the journal).
+            AmbientCapabilities = [ "CAP_SYS_ADMIN" ];
             ExecStartPre = "${sunshineWait}";
             ExecStart = "${sunshineLaunch}";
             Restart = "on-failure";
