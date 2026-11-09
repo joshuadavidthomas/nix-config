@@ -65,6 +65,23 @@ looking for, and the reason the plugin ran everything as root. The unit answers 
 capture, and its own `drop_elevated_privileges` lets go afterwards. Narrower than the root
 fallback this doc carried until then.
 
+The second apply brought the encoder stack's own finding, and it is not Sunshine's: with
+capture working, `Encoder [vaapi]` still failed, next to `MESA-LOADER: failed to open
+/run/opengl-driver/lib/gbm/dri_gbm.so` — no GBM device at all. That is the generic gate for
+every Nix-built GL/Vulkan program on a foreign OS, not something Sunshine-shaped: Nixpkgs
+injects `/run/opengl-driver` into its search paths, and a SteamOS machine does not have it.
+
+Home Manager owns this since 25.11 (`targets.genericLinux` builds the GPU-drivers derivation
+and, at every apply, checks it against `/run/opengl-driver`), and the pinned steamos-etc module
+owns the arrangement better than its own sudo command does:
+`programs.steamos-etc.gpuDrivers = true` writes `/etc/tmpfiles.d/non-nixos-gpu.conf` from
+`${config.targets.genericLinux.gpu.drivers}` — derived at every apply, so a nixpkgs bump
+carries the right frame — keeps it through SteamOS updates, and creates the link at every boot
+even while `/nix` is not yet mounted. HM's absorbed check gets a `mkForce` empty, so the
+applies stop asking for `non-nixos-gpu-setup` forever. The sudo setup that proved this out ran
+once, on 2026-11-09, and the Vulkan H.264 and HEVC encoders of the Deck's VCN answered on the
+same start that found the GBM device.
+
 Both helpers are store paths the unit file names — they persist through Valve's updates exactly
 like the Rex unit's binary path already does. The key stays snake-case like the other
 steamos-etc units, because the keep-list names it.

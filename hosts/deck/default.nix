@@ -146,6 +146,14 @@ in {
       # Hold the user session until /nix is mounted, so home-manager's links resolve at login
       waitForNix = true;
 
+      # Sunshine needs a GL/Vulkan stack that Nix-built programs can find, the way NixOS
+      # mounts its own: /run/opengl-driver with GBM, the radeonsi VA-API driver and Vulkan
+      # ICDs, built from this repo's pinned nixpkgs (docs/sunshine.md, finding two). The
+      # module's own option owns the tmpfiles rule and its keep-list entry; without it,
+      # HM's absorbed targets.genericLinux check nags for a sudo non-nixos-gpu-setup at
+      # every nixpkgs bump, and the file's role in /etc would die with the next update.
+      gpuDrivers = true;
+
       # The login server's policy, the same file the lab boxes build in the Rex module
       # (services.rex.loginServer on lab-1): the owner's Tailscale login acts as the deck
       # account, which the Steam session and Valve's tooling own.
