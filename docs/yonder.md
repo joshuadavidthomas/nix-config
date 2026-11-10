@@ -75,6 +75,13 @@ reboot keeps every write; after an unclean one a root disk rolls back to its las
 and volumes are the durable storage. This build applies host database migrations 0017 and
 0018, which older builds refuse, so going back past it needs the database from before.
 
+The 2026-11-10 pin (4a655a2) closes yonder's local write path milestone on the same module and
+schema (no new migration, so going back to 5c27e42 is safe). A storage stop now disconnects a
+dead worker's export before it kills the VM, clone regions are 4 KiB, a close whose flush of the
+era device fails puts the disk back to its last checkpoint, and `machine inspect` says a write
+did not reach the disk rather than an unclean host boot. lab-3's `/var/lib/yonder-bin` was
+emptied before this pin's rebuild, so its wrapper runs the pinned package like the other boxes.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
