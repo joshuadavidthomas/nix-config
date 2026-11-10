@@ -65,6 +65,16 @@ must not set that option to nixpkgs' `firecracker`. A rebuild restarts only yond
 VM keeps its old unit until it next starts. Until yonder's `tests/lab/deploy.sh revert`, lab-3
 runs a wrapper from `/var/lib/yonder-bin` that starts the same jailer build.
 
+The 2026-11-10 pin (5c27e42) gives every machine a local root disk: the guest writes to
+dm-era over dm-clone over files in its machine's directory, and the NBD worker only serves the
+image's or checkpoint's base for blocks not yet copied. The served directory is no longer
+optional (`services.yonder.servedDir` defaults to `/var/lib/yonder-served`), and the module puts
+lvm2's `dmsetup` and thin-provisioning-tools' `era_invalidate` on yonderd's PATH. It adds
+`yonder-clean`, a oneshot unit whose stop runs `yonderd close-disks` at shutdown, so a clean
+reboot keeps every write; after an unclean one a root disk rolls back to its last checkpoint,
+and volumes are the durable storage. This build applies host database migrations 0017 and
+0018, which older builds refuse, so going back past it needs the database from before.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
