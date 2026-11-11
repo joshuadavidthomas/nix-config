@@ -62,8 +62,8 @@ namespace of its own. The module's `services.yonder.firecracker` is now AWS's st
 Firecracker 1.16.2 with `jailer` beside it, which fixes CVE-2026-122192. yonderd refuses to
 start with a dynamically linked Firecracker or one without a jailer next to it, so nix-config
 must not set that option to nixpkgs' `firecracker`. A rebuild restarts only yonderd: a running
-VM keeps its old unit until it next starts. Until yonder's `tests/lab/deploy.sh revert`, lab-3
-runs a wrapper from `/var/lib/yonder-bin` that starts the same jailer build.
+VM keeps its old unit until it next starts. lab-3 ran a wrapper from `/var/lib/yonder-bin` for a
+while; it was removed before the 4a655a2 pin, and no box runs anything from there.
 
 The 2026-11-10 pin (5c27e42) gives every machine a local root disk: the guest writes to
 dm-era over dm-clone over files in its machine's directory, and the NBD worker only serves the
@@ -81,6 +81,15 @@ dead worker's export before it kills the VM, clone regions are 4 KiB, a close wh
 era device fails puts the disk back to its last checkpoint, and `machine inspect` says a write
 did not reach the disk rather than an unclean host boot. lab-3's `/var/lib/yonder-bin` was
 emptied before this pin's rebuild, so its wrapper runs the pinned package like the other boxes.
+
+From 2026-11-11 the input names a release tag, not a branch: `yonder.url =
+"github:joshuadavidthomas/yonder.dev/v0.1.0-rc1"`, yonder's first cut release
+(`wiki/designs/releases.md`). The lab runs only cut releases; a new one moves the tag in
+`flake.nix` and `nix flake update yonder` locks its commit (e62d44a for v0.1.0-rc1). The fetch is
+the same `github` fetcher with the boxes' existing GitHub token, so a tag needs no other
+credential. v0.1.0-rc1 is 4a655a2's module and schema plus the release identity: a box reports
+its release, and the coordinator (deployed from the same tag on 2026-11-11) refuses a box on a
+newer release than its own. The boxes moved one at a time, lab-3, lab-2, lab-1.
 
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
