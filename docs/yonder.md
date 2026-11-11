@@ -96,6 +96,13 @@ that tag with orbs on. For a box rc2 is rc1 with a new release string: yonderd, 
 the schema are unchanged; the orb controller now calls the fleet as the operator with no orbs
 token. Same fetcher, same token, same order: lab-3, lab-2, lab-1.
 
+The pin moved to `v0.1.0-rc3` (a9c4efe) on 2026-11-11, right after the coordinator was
+deployed from that tag. rc3 adds suspend with memory: a box reports `suspend=yes`, and warm
+slots stay off (`slots=no`) because no box sets `-slot-cap-gib`. The host ledger gains
+migrations 0019 and 0020, and rc2's yonderd refuses to start on the result, so
+`nixos-rebuild switch --rollback` alone does not take a box back to rc2; yonder's
+`wiki/plans/release-rc3.md` ("Backing a box out") gives the back-out.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
