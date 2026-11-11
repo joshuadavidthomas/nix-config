@@ -34,7 +34,7 @@
     # yonder, the machines platform the lab boxes run (hosts/lab-1). Its own nixpkgs: it
     # needs Go 1.27 and pins its Firecracker. Pinned to a cut release's tag from v0.1.0-rc1 on
     # (yonder's wiki/designs/releases.md); the lock records the tag's commit.
-    yonder.url = "github:joshuadavidthomas/yonder.dev/v0.1.0-rc1";
+    yonder.url = "github:joshuadavidthomas/yonder.dev/v0.1.0-rc2";
 
     # Rex's server, on the lab boxes (modules/nixos/server.nix). Until Rex's first release,
     # pkgs.superlogical.com asks for a login, so whatever evaluates the lab boxes needs its

@@ -91,6 +91,11 @@ credential. v0.1.0-rc1 is 4a655a2's module and schema plus the release identity:
 its release, and the coordinator (deployed from the same tag on 2026-11-11) refuses a box on a
 newer release than its own. The boxes moved one at a time, lab-3, lab-2, lab-1.
 
+The pin moved to `v0.1.0-rc2` (ea18cf5) the same day, after the coordinator was deployed from
+that tag with orbs on. For a box rc2 is rc1 with a new release string: yonderd, the module and
+the schema are unchanged; the orb controller now calls the fleet as the operator with no orbs
+token. Same fetcher, same token, same order: lab-3, lab-2, lab-1.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
