@@ -108,6 +108,14 @@ lab-3"), in its `extraFlags`, for step 2's kill tests: it reports `slots=yes`, a
 an orb there keeps up to 18 GiB of guest memory on its disk for a resume. lab-1 and lab-2
 still set no cap and report `slots=no`.
 
+The pin moved to `v0.1.0-rc4` (a884cc7) on 2026-11-12, right after the coordinator was
+deployed from that tag. rc4 carries suspend step 2's kill-test fixes and a static modprobe on
+the platform's modules drive, so each box's platform store path changes: warm slots and
+in-place suspends taken on rc3 boot cold after the rebuild, and lab-3's slots are dropped when
+yonderd starts. The host ledger does not migrate (it stays at version 20), so `nixos-rebuild
+switch --rollback` takes a box back to rc3. lab-3 keeps `-slot-cap-gib 18`. Order: lab-3,
+lab-1, lab-2 (yonder's `wiki/plans/release-rc4.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
