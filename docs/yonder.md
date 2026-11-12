@@ -103,6 +103,11 @@ migrations 0019 and 0020, and rc2's yonderd refuses to start on the result, so
 `nixos-rebuild switch --rollback` alone does not take a box back to rc2; yonder's
 `wiki/plans/release-rc3.md` ("Backing a box out") gives the back-out.
 
+On 2026-11-12 lab-3 alone turned warm slots on with `-slot-cap-gib 18` (Josh: "18 GiB on
+lab-3"), in its `extraFlags`, for step 2's kill tests: it reports `slots=yes`, and a pause of
+an orb there keeps up to 18 GiB of guest memory on its disk for a resume. lab-1 and lab-2
+still set no cap and report `slots=no`.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
