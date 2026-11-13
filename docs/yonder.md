@@ -116,10 +116,23 @@ yonderd starts. The host ledger does not migrate (it stays at version 20), so `n
 switch --rollback` takes a box back to rc3. lab-3 keeps `-slot-cap-gib 18`. Order: lab-3,
 lab-1, lab-2 (yonder's `wiki/plans/release-rc4.md`).
 
+The pin moved to `v0.1.0-rc5` on 2026-11-13, right after the coordinator was deployed from
+that tag. rc5 turns warm slots on by default (`services.yonder.slots`, true unless set to
+false, which passes `-no-slots`; `-slot-cap-gib 0` is now no cap): lab-1 and lab-2 start
+keeping slots with no cap, and lab-3 keeps `-slot-cap-gib 18`. Kept memory is restored when
+the guest kernel release and the hash of `modules.ext4` match, so it survives a release that
+changes only yonderd; records written by rc4 are dropped once. The image cache with no
+`-image-cache-gib` is half the disk headroom (lab-1: about 22.9 GiB). yonderd refuses to start
+without nbd, with zero intervals, or with a coordinator URL and no token on a box that has not
+enrolled. The coordinator now updates a box's detected labels (`arch`, `os`, `kvm`, `suspend`,
+`slots`) at each registration. No ledger migration, so `nixos-rebuild switch --rollback` takes
+a box back to rc4. Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc5.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
-`services.yonder.extraFlags = [ "-image-cache-gib" "20" ]`; lab-1 keeps the default 32 GiB.
+`services.yonder.extraFlags = [ "-image-cache-gib" "20" ]`; lab-1 sets none, which is half
+the headroom since rc5 (32 GiB before).
 Orbs place only on boxes labelled `disks=served` (`yonder node label <box> disks=served`):
 all three, lab-1 from 2026-11-06.
 
