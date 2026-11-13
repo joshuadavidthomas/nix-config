@@ -128,6 +128,16 @@ enrolled. The coordinator now updates a box's detected labels (`arch`, `os`, `kv
 `slots`) at each registration. No ledger migration, so `nixos-rebuild switch --rollback` takes
 a box back to rc4. Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc5.md`).
 
+The pin moved to `v0.1.0-rc6` on 2026-11-13, right after the coordinator was deployed from
+that tag. rc6 lets an orb's pause keep its memory when the guest has used all its RAM: for the
+memory snapshot alone yonderd lifts the VM unit's `MemoryMax` and `MemoryHigh` at runtime
+(`systemctl set-property --runtime`) so the memory file's page cache fits, and puts the ledger's
+limits back once the files are synced. One machine's running checkpoint no longer fails the
+host's reconcile pass. The coordinator now also follows a box's detected labels from each
+report, so `suspend` and `slots` show without a re-registration. No ledger migration, so
+`nixos-rebuild switch --rollback` takes a box back to rc5. Order: lab-3, lab-1, lab-2 (yonder's
+`wiki/plans/release-rc6.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
