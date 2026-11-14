@@ -1,4 +1,4 @@
-{ inputs, ... }: {
+{ inputs, pkgs, ... }: {
   imports = [
     ../../modules/nixos/server.nix
     ../../modules/nixos/single-disk.nix
@@ -12,6 +12,8 @@
   # tests/lab/deploy.sh puts in /var/lib/yonder-bin, with the version pinned in flake.lock
   # as the fallback.
   services.yonder.enable = true;
+  # the release flake.lock pins, named (overlay.nix)
+  services.yonder.package = pkgs.yonder;
   services.yonder.localBinaries = true;
   # A member of the yonder fabric, coordinated by yonder's coordinator on Cloudflare, with
   # this box's own tokens in a file placed by hand (see hosts/lab-1 and docs/yonder.md).

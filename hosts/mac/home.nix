@@ -3,9 +3,9 @@
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
   # (modules/secrets.nix).
   home.packages = [
-    # the yonder CLI, the build the lab boxes run (flake.lock); reads the fabric's coordinator
-    # from ~/.config/yonder/config (docs/yonder.md)
-    inputs.yonder.packages.${pkgs.stdenv.hostPlatform.system}.yonder
+    # the yonder CLI, the release the lab boxes run (flake.lock, named in overlay.nix); reads
+    # the fabric's coordinator from ~/.config/yonder/config (docs/yonder.md)
+    pkgs.yonder
     pkgs.xcodegen # generates .xcodeproj files for iOS apps
     (pkgs.writeShellScriptBin "rebuild" ''
       if ! sudo test -s /etc/opnix-token; then

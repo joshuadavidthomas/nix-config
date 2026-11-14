@@ -1,4 +1,4 @@
-{ inputs, ... }: {
+{ inputs, pkgs, ... }: {
   imports = [
     ../../modules/nixos/server.nix
     ../../modules/nixos/single-disk.nix
@@ -18,6 +18,8 @@
   # open. The daemon advertises its own guest routes; tag:lab's are approved by the tailnet
   # policy (tailscale-acls).
   services.yonder.enable = true;
+  # the release flake.lock pins, named (overlay.nix)
+  services.yonder.package = pkgs.yonder;
   # lab-1 is where yonder is developed: its yonderd runs what yonder's tests/lab/deploy.sh
   # puts in /var/lib/yonder-bin, and the version pinned in flake.lock when nothing is there
   # (`deploy.sh revert`). So shipping yonder work in progress needs no change here; bump

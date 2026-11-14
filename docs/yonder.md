@@ -157,6 +157,14 @@ the drive and builds it again keeps memory. No ledger migration, so `nixos-rebui
 --rollback --no-reexec` takes a box back to rc7 (`--no-reexec`: a flake-built box has no
 `<nixos-config>`). Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc8.md`).
 
+From v0.1.0-rc9 a yonder release is an annotated tag on a commit of yonder's `main`, with no
+`VERSION` file, so a Nix build of the tag learns its commit but not its name. `overlay.nix` reads
+the name from `flake.lock` (`nodes.yonder.original.ref`, written by `nix flake lock` from the
+tag in `flake.nix`) and passes it to yonder's package, `pkgs.yonder`; each lab box sets
+`services.yonder.package = pkgs.yonder`, and the Mac's CLI is the same package. A release before
+rc9 takes no name and is used as it is, so this changes nothing the boxes build until the pin
+moves to rc9. Moving the pin stays one line in `flake.nix` and `nix flake update yonder`.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
