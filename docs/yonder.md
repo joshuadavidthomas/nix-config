@@ -148,6 +148,15 @@ it is hydrated or stops. No ledger migration, so `nixos-rebuild switch --rollbac
 back to rc6, and rc6 adopts a machine rc7 started. Order: lab-3, lab-1, lab-2 (yonder's
 `wiki/plans/release-rc7.md`).
 
+The pin moved to `v0.1.0-rc8` on 2026-11-14, right after the coordinator was deployed from
+that tag. rc8 builds the platform's modules drive (`modules.ext4`) to the same bytes on any
+builder: mke2fs's directory hash seed is fixed to the image's UUID. Kept memory is restored only
+onto the same drive bytes, so this rebuild changes each box's drive once and drops every warm
+slot and every machine suspended in place, which then boot cold; after it, a box that collects
+the drive and builds it again keeps memory. No ledger migration, so `nixos-rebuild switch
+--rollback --no-reexec` takes a box back to rc7 (`--no-reexec`: a flake-built box has no
+`<nixos-config>`). Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc8.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
