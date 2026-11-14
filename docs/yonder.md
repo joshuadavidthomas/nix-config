@@ -138,6 +138,16 @@ report, so `suspend` and `slots` show without a re-registration. No ledger migra
 `nixos-rebuild switch --rollback` takes a box back to rc5. Order: lab-3, lab-1, lab-2 (yonder's
 `wiki/plans/release-rc6.md`).
 
+The pin moved to `v0.1.0-rc7` on 2026-11-14, right after the coordinator was deployed from
+that tag. rc7 changes how a served disk hydrates: the disk worker answers NBD reads
+concurrently, and dm-clone keeps 4,096 regions (16 MiB) in flight in copies of 512, against 32
+and 16, which took a fork's hydration from R2 from about 11 to about 74 MiB/s on lab-3. The
+worker marks dm-clone's copy as background hydration, so the host's fetch queue serves a guest's
+own reads first. A machine running at the rebuild keeps its worker and its dm-clone table until
+it is hydrated or stops. No ledger migration, so `nixos-rebuild switch --rollback` takes a box
+back to rc6, and rc6 adopts a machine rc7 started. Order: lab-3, lab-1, lab-2 (yonder's
+`wiki/plans/release-rc7.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
