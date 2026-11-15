@@ -165,6 +165,15 @@ tag in `flake.nix`) and passes it to yonder's package, `pkgs.yonder`; each lab b
 rc9 takes no name and is used as it is, so this changes nothing the boxes build until the pin
 moves to rc9. Moving the pin stays one line in `flake.nix` and `nix flake update yonder`.
 
+The pin moved to `v0.1.0-rc9` on 2026-11-15, right after the coordinator was deployed from
+that tag, the first release cut as a tag on yonder's `main`; the boxes report it by the name
+`overlay.nix` reads from `flake.lock`. rc9's disk worker records only a guest's own boot reads
+and prefetches that order on the first boot of a fork of a checkpoint that carries one. The
+platform and its modules drive do not change, so a rebuild keeps every warm slot and every
+machine suspended in place. A machine running at the rebuild keeps its old worker until it is
+hydrated or stops. No ledger migration, so `nixos-rebuild switch --rollback --no-reexec` takes a
+box back to rc8. Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc9.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
