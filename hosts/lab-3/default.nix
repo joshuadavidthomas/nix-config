@@ -26,9 +26,9 @@
   # udev rules. Outside yonder's state and run directories, which VMs mount read-only.
   services.yonder.servedDir = "/var/lib/yonder-served";
   # The OCI image cache is capped at 10% of the state filesystem (yonderd's
-  # -disk-headroom-percent); this box's is 234 GiB, so the default 32 GiB is refused.
+  # --disk-headroom-percent); this box's is 234 GiB, so the default 32 GiB is refused.
   # Warm slots (yonder wiki/designs/suspend-with-memory.md, step 2): an orb's memory, saved at
   # a pause and kept past its destroy for a resume here, takes at most 18 GiB of host disk,
   # evicted oldest first before anything is refused. lab-3 only, for step 2's kill tests.
-  services.yonder.extraFlags = [ "-image-cache-gib" "20" "-slot-cap-gib" "18" ];
+  services.yonder.extraFlags = [ "--image-cache-gib" "20" "--slot-cap-gib" "18" ];
 }

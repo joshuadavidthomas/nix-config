@@ -13,14 +13,14 @@ capabilities. It reads only the names file that yonderd writes in `/run/yonder/r
 guest's query for a name outside `.internal` it forwards to 1.1.1.1, then 9.9.9.9 (the module's
 `services.yonder.dns`), the only addresses its unit may send to; the host and tailnet devices
 are refused such names. Before 2026-10-27 it refused them for guests too, and pnpm 12, which does
-not move on to the guest's next server, could not install anything in an orb. yonderd runs with `-resolver-listen none -resolver-group
+not move on to the guest's next server, could not install anything in an orb. yonderd runs with `--resolver-listen none --resolver-group
 yonder-resolver`, flags that an older yonderd does not have, so the module and the package
 come from the same yonder commit: one bump of the `yonder` input moves both.
 
 Guests' calls to their host are not in yonderd either. `yonder-connect.service`, from the
 same module, runs `yonderd connect` as the system user `yonder-connect`, with no capabilities
 and no address of a box, a guest, the tailnet or the LAN. It dials yonderd's control socket in
-`/run/yonder/connect`, and yonderd runs with `-connect-group yonder-connect`. A yonderd in
+`/run/yonder/connect`, and yonderd runs with `--connect-group yonder-connect`. A yonderd in
 `/var/lib/yonder-bin` older than that flag stops yonderd from starting (see
 [If it stops](#if-it-stops)).
 
@@ -98,12 +98,12 @@ token. Same fetcher, same token, same order: lab-3, lab-2, lab-1.
 
 The pin moved to `v0.1.0-rc3` (a9c4efe) on 2026-11-11, right after the coordinator was
 deployed from that tag. rc3 adds suspend with memory: a box reports `suspend=yes`, and warm
-slots stay off (`slots=no`) because no box sets `-slot-cap-gib`. The host ledger gains
+slots stay off (`slots=no`) because no box sets `--slot-cap-gib`. The host ledger gains
 migrations 0019 and 0020, and rc2's yonderd refuses to start on the result, so
 `nixos-rebuild switch --rollback` alone does not take a box back to rc2; yonder's
 `wiki/plans/release-rc3.md` ("Backing a box out") gives the back-out.
 
-On 2026-11-12 lab-3 alone turned warm slots on with `-slot-cap-gib 18` (Josh: "18 GiB on
+On 2026-11-12 lab-3 alone turned warm slots on with `--slot-cap-gib 18` (Josh: "18 GiB on
 lab-3"), in its `extraFlags`, for step 2's kill tests: it reports `slots=yes`, and a pause of
 an orb there keeps up to 18 GiB of guest memory on its disk for a resume. lab-1 and lab-2
 still set no cap and report `slots=no`.
@@ -113,16 +113,16 @@ deployed from that tag. rc4 carries suspend step 2's kill-test fixes and a stati
 the platform's modules drive, so each box's platform store path changes: warm slots and
 in-place suspends taken on rc3 boot cold after the rebuild, and lab-3's slots are dropped when
 yonderd starts. The host ledger does not migrate (it stays at version 20), so `nixos-rebuild
-switch --rollback` takes a box back to rc3. lab-3 keeps `-slot-cap-gib 18`. Order: lab-3,
+switch --rollback` takes a box back to rc3. lab-3 keeps `--slot-cap-gib 18`. Order: lab-3,
 lab-1, lab-2 (yonder's `wiki/plans/release-rc4.md`).
 
 The pin moved to `v0.1.0-rc5` on 2026-11-13, right after the coordinator was deployed from
 that tag. rc5 turns warm slots on by default (`services.yonder.slots`, true unless set to
-false, which passes `-no-slots`; `-slot-cap-gib 0` is now no cap): lab-1 and lab-2 start
-keeping slots with no cap, and lab-3 keeps `-slot-cap-gib 18`. Kept memory is restored when
+false, which passes `--no-slots`; `--slot-cap-gib 0` is now no cap): lab-1 and lab-2 start
+keeping slots with no cap, and lab-3 keeps `--slot-cap-gib 18`. Kept memory is restored when
 the guest kernel release and the hash of `modules.ext4` match, so it survives a release that
 changes only yonderd; records written by rc4 are dropped once. The image cache with no
-`-image-cache-gib` is half the disk headroom (lab-1: about 22.9 GiB). yonderd refuses to start
+`--image-cache-gib` is half the disk headroom (lab-1: about 22.9 GiB). yonderd refuses to start
 without nbd, with zero intervals, or with a coordinator URL and no token on a box that has not
 enrolled. The coordinator now updates a box's detected labels (`arch`, `os`, `kvm`, `suspend`,
 `slots`) at each registration. No ledger migration, so `nixos-rebuild switch --rollback` takes
@@ -174,10 +174,19 @@ machine suspended in place. A machine running at the rebuild keeps its old worke
 hydrated or stops. No ledger migration, so `nixos-rebuild switch --rollback --no-reexec` takes a
 box back to rc8. Order: lab-3, lab-1, lab-2 (yonder's `wiki/plans/release-rc9.md`).
 
+The pin moved to `v0.1.0-rc10` on 2026-11-16, right after the coordinator was deployed from
+that tag. rc10 moves yonderd and the `yonder` CLI to GNU-style flags: they take `--long` flags
+only, and a single-dash one such as `-vmm` exits 2. The module passes its flags with two dashes,
+and lab-2's and lab-3's `extraFlags` changed to two dashes in the same commit as the pin. rc9's
+yonderd takes both forms, so `nixos-rebuild switch --rollback --no-reexec` still takes a box
+back to rc9 with these flags. No ledger migration. The platform's modules drive does not
+change, so a rebuild keeps warm slots and machines suspended in place. Order: lab-3, lab-1,
+lab-2 (yonder's `wiki/plans/release-rc10.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
-`services.yonder.extraFlags = [ "-image-cache-gib" "20" ]`; lab-1 sets none, which is half
+`services.yonder.extraFlags = [ "--image-cache-gib" "20" ]`; lab-1 sets none, which is half
 the headroom since rc5 (32 GiB before).
 Orbs place only on boxes labelled `disks=served` (`yonder node label <box> disks=served`):
 all three, lab-1 from 2026-11-06.
@@ -229,7 +238,7 @@ YONDER_ACCESS_CLIENT_ID=...
 YONDER_ACCESS_CLIENT_SECRET=...
 ```
 
-Without it, `yonder -ssh lab-1 machine list` works one box over SSH, through the box's socket.
+Without it, `yonder --ssh lab-1 machine list` works one box over SSH, through the box's socket.
 That needs `josh` in the box's `yonder` group, which nix-config does not add.
 
 ## Moving a box to the resolver's own units (once)
@@ -269,6 +278,7 @@ Then `sudo rm -rf /var/lib/yonder/bin`, which nothing reads now.
 | --- | --- | --- |
 | `Failed to load environment files` (systemd) | No `/etc/yonder/coordinator.env` | [The files on each box](#the-files-on-each-box) |
 | `flag provided but not defined: -coordinator-url`, `-resolver-listen` or `-connect-group` | `deploy.sh` put a yonderd older than the module in `/var/lib/yonder-bin` | Ship a newer one with yonder's `deploy.sh`, or go back to the pinned one with `deploy.sh revert` |
+| `unknown shorthand flag: 'v' in -vmm`, or another single-dash flag | A yonderd from after the move to Cobra (`--long` flags only) runs under a module or `extraFlags` that still pass `-flag`s, as when `deploy.sh` puts a new yonderd under an older pin | Pin a release whose module passes `--flags`, with `--flags` in `extraFlags`; or take the binaries out of `/var/lib/yonder-bin` |
 | `database schema version N is newer than this binary (M)` | A newer yonderd (a later pin, or `deploy.sh`) migrated `/var/lib/yonder/host.db`; host migrations only go forward | Run a yonderd at least that new: bump the pin, or ship one with `deploy.sh`. Going back to an older pin needs the database from before the migration |
 
 | What you see | Cause | Action |

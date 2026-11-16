@@ -159,7 +159,7 @@ Alertmanager, Tailscale's client metrics (`100.100.100.100/metrics`), and the Fl
 Explore, with the data source VictoriaLogs, or the Logs dashboard. For example
 `host:lab-2 _SYSTEMD_UNIT:sshd.service`.
 
-yonderd serves its own metrics on 127.0.0.1:9466 (its `-metrics-listen`), and Vector on a yonder
+yonderd serves its own metrics on 127.0.0.1:9466 (its `--metrics-listen`), and Vector on a yonder
 host scrapes them every 10 s with `job` `yonder` (`modules/nixos/server.nix`): what the host admits
 and what its machines reserve, its machines by state, its operations, and each VM as the host sees
 it from outside (its unit's CPU and memory, its TAP, Firecracker's disk, console and vCPU

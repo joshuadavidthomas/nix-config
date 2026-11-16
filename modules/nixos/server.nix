@@ -202,7 +202,7 @@ in
       # reserve), its machines by state, its operations, and each machine's VM as the host sees
       # it from outside (CPU and memory of its unit, its TAP, its disk and console counters from
       # Firecracker), labelled by the machine's ID and name. yonderd serves them on 127.0.0.1
-      # only (its -metrics-listen), as node_exporter does. Only on a yonder host.
+      # only (its --metrics-listen), as node_exporter does. Only on a yonder host.
       sources.yonder = lib.mkIf config.services.yonder.enable {
         type = "prometheus_scrape";
         endpoints = [ "http://127.0.0.1:9466/metrics" ];
