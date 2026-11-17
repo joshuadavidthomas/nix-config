@@ -150,11 +150,21 @@ Apply first, so that topgrade updates what the new configuration installs.
 
    Then squash and merge it. GitHub signs the squashed commit.
 
-2. Update `yonder` by hand, on the Mac or in an orb, which have a GitHub login:
+2. `yonder` moves to a release, not with the other inputs. Once the release is published,
+   `scripts/bump-yonder.sh <tag>`, on the Mac or in an orb with a GitHub login, makes the
+   commit on a new branch `yonder-<tag>`: it names the tag in `flake.nix`, runs
+   `nix flake update yonder`, checks that the package a lab box builds says it is that release,
+   runs `nix flake check`, and adds the pin's line to [yonder](yonder.md).
 
    ```sh
-   nix flake update yonder
+   scripts/bump-yonder.sh v0.1.0-rc12
+   git push origin yonder-v0.1.0-rc12
+   gh pr create --head yonder-v0.1.0-rc12 --title "yonder: pin v0.1.0-rc12" --body ""
    ```
+
+   Then `rebuild dry-activate yonder-<tag>` on each lab box, squash and merge it, and `rebuild`
+   the boxes one at a time, in the order the release's notes give. yonder's deploying-yonder
+   skill has the steps.
 
    To update one input: `nix flake update nixpkgs`. To update all of them: `nix flake update`.
 

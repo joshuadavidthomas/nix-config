@@ -199,12 +199,18 @@ Design: [Homelab monitoring](research/homelab-monitoring.md).
 - **Tools that release faster than nixpkgs update themselves.** The coding agents and cf are
   installed with their own installers or npm, not packaged in Nix.
 - **A weekly GitHub Actions workflow opens a pull request that updates `flake.lock`.** It
-  updates every input except `yonder`, which is updated by hand. Rex's package token is a
+  updates every input except `yonder`, which moves only to a release. Rex's package token is a
   secret of the `flake-update` environment, which only `main` can use. Merging the pull
   request is still a manual step.
   Reason: the lock went a month without an update (nixpkgs pinned at October 7), so the lab
-  boxes stayed on kernel 6.18.55 after its fix shipped. CI has no access to the private
-  yonder repo.
+  boxes stayed on kernel 6.18.55 after its fix shipped.
+- **`yonder` is pinned to a release by a script, not a workflow** (`scripts/bump-yonder.sh`),
+  run with the person's or the orb's own GitHub login, then a pull request. GitHub signs the
+  squash-merge, so the lab key does not sign a pin. The dry-activate on each box, the merge and
+  the rebuilds stay manual.
+  Reason: the pin moved eleven times in seven days, each time seven steps by hand. A workflow
+  would need a token in this repo that reads the private yonder repo, one more credential
+  between the two, for a step that is one command.
 - **topgrade updates what Nix does not pin. Run it by hand about once a week, after the Nix
   update.** Steps are in [Update everything](changes.md#update-everything).
   Reason: the Mac keeps its sudo password, so a scheduled run cannot finish. A run by hand

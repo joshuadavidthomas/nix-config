@@ -1,5 +1,5 @@
 # Opens a pull request each week that updates flake.lock (docs/changes.md#update-inputs).
-# It updates every input except yonder, which is private and updated by hand. Rex's input
+# It updates every input except yonder, which moves only to a release (scripts/bump-yonder.sh). Rex's input
 # needs its package login, from the flake-update environment (docs/rex.md).
 name: update-flake-lock
 
