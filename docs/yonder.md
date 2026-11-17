@@ -183,6 +183,16 @@ back to rc9 with these flags. No ledger migration. The platform's modules drive 
 change, so a rebuild keeps warm slots and machines suspended in place. Order: lab-3, lab-1,
 lab-2 (yonder's `wiki/plans/release-rc10.md`).
 
+The pin moved to `v0.1.0-rc11` on 2026-11-17, right after the coordinator was deployed from
+that tag. rc11 moves a box's capacity in its report under a `capacity` key, and the
+coordinator drops a warm slot whose checkpoint row it deleted, through a new host route
+(`DELETE /v1/host/slots/{name}/{checkpoint}`). The coordinator moves first: it still reads an
+rc10 box's report for one release, and an rc10 box answers the new route with a 404 and keeps
+its slots. An rc11 box's report is dropped by an rc10 coordinator, so once a box has moved, back
+the box out before the coordinator. No ledger migration, so `nixos-rebuild switch --rollback
+--no-reexec` takes a box back to rc10. Order: lab-3, lab-1, lab-2 (yonder's
+`wiki/plans/release-rc11.md`).
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
