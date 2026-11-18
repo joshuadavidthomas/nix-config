@@ -15,7 +15,7 @@
   # The Rex package the flake input pins (the same build the lab boxes run, from the
   # snapshot pinned in flake.lock). Evaluating this fetches pkgs.superlogical.com with the
   # netrc below, so an apply after a token change needs the fetch to succeed.
-  rex = inputs.rex.packages.${pkgs.system}.rex;
+  rex = inputs.rex.packages.${pkgs.stdenv.hostPlatform.system}.rex;
   # The tailnet side uses the deck's own tailscaled (SteamOS keeps its binary under
   # /opt/tailscale, on the home partition); the CLI that talks to it is that daemon's own
   # build, so the two cannot drift.
@@ -152,11 +152,9 @@ in {
     fi
   '';
 
-  # Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md). home/nix.nix owns the
-  # base of this file on every machine and home-manager merges the texts.
-  xdg.configFile."nix/nix.conf".text = ''
-    netrc-file = ${config.xdg.configHome}/nix/netrc
-  '';
+  # Standalone home-manager prints a count of unread news items at every switch; the deck is
+  # the one machine that runs it standalone.
+  news.display = "silent";
 
   # Commits sign with the key opnix wrote (home/git.nix sets its default). Signing's own
   # config lives in 1Password for the Mac; the Deck names the file opnix wrote.
@@ -191,6 +189,17 @@ in {
       # HM's absorbed targets.genericLinux check nags for a sudo non-nixos-gpu-setup at
       # every nixpkgs bump, and the file's role in /etc would die with the next update.
       gpuDrivers = true;
+
+      # Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md), and Nix finds it
+      # through netrc-file. The line lives here, in the file the installer's nix.conf
+      # includes, not in ~/.config/nix/nix.conf: the client sends a user-level setting on to
+      # the daemon, which refuses a restricted one from a user it does not trust and warns
+      # at every command. A system-level one stays with the client. The daemon reads it too
+      # and needs nothing from it: only the flake input is behind the login. The deck is not
+      # a trusted user, so the daemon stays out of its reach without sudo's password.
+      files."nix/nix.custom.conf" = ''
+        netrc-file = ${config.xdg.configHome}/nix/netrc
+      '';
 
       # The login server's policy, the same file the lab boxes build in the Rex module
       # (services.rex.loginServer on lab-1): the owner's Tailscale login acts as the deck

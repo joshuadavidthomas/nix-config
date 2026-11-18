@@ -75,11 +75,15 @@ file. The token is kept on its own; each place writes the netrc line from it:
 | --- | --- | --- |
 | Mac | The field `password` of the item "Rex packages" in `dotfiles`. opnix writes it to `~/Library/Application Support/opnix/rexToken`. | `~/.config/nix/netrc`, written by the launchd agent `rex-netrc` at login and when the token file changes (`hosts/mac/home.nix`) |
 | Lab boxes | The same field. opnix writes it to `/var/lib/opnix/secrets/rexToken`. | `/var/lib/nix-credentials/netrc`, written by `nix-credentials.service` (`modules/nixos/server.nix`) |
+| Steam Deck | The same field. opnix's home-manager module writes it to `~/.config/opnix/rexToken`. | `~/.config/nix/netrc`, written by the activation step `rexNetrc` at each apply (`hosts/deck/default.nix`) |
 | Orbs | The Amp project secret `REX_PACKAGE_TOKEN` | `~/.config/nix/netrc`, written by `.agents/resume` |
 | GitHub Actions | The secret `REX_PACKAGE_TOKEN` of the environment `flake-update`, which only `main` can use | A file in the runner's temp directory, written by `.github/workflows/update-flake-lock.yml` |
 
 Each names the file with `netrc-file`: in `~/.config/nix/nix.conf` on the Mac and in orbs, in
-`/etc/nix/nix.conf` on the lab boxes. The line is:
+`/etc/nix/nix.conf` on the lab boxes, and in `/etc/nix/nix.custom.conf` on the Steam Deck,
+written by steamos-etc. The Deck's `deck` is not a trusted user, and the daemon refuses a
+user-level `netrc-file` from an untrusted user with a warning at every command; a
+system-level one stays with the client, which does the fetch. The line is:
 
 ```text
 machine pkgs.superlogical.com login rex password TOKEN

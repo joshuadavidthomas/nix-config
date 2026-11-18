@@ -25,7 +25,7 @@ in
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nvim "$HOME/.config/nvim"
     fi
     # every switch: a no-op when the venv is current, and it repairs one that a failed run left
-    run ${lib.getExe pkgs.uv} sync --project "$HOME/.config/nvim" --locked \
+    run ${lib.getExe pkgs.uv} sync --quiet --project "$HOME/.config/nvim" --locked \
       || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
   '';
 }

@@ -123,11 +123,16 @@ configuration plus one privileged apply. It happens in this order, once:
    ```
 
 3. Apply. Always with `--refresh`: a branch moves, and a cached evaluation has the inputs of
-   an older commit:
+   an older commit. Nix finds the netrc through `/etc/nix/nix.custom.conf`, which only the
+   privileged apply in step 4 writes, so this first apply names it on the command line.
+   Nix warns once that the daemon ignores the setting; the fetch does not need the daemon:
 
    ```sh
-   home-manager switch --refresh --flake github:joshuadavidthomas/nix-config#deck
+   home-manager switch --refresh --option netrc-file ~/.config/nix/netrc \
+     --flake github:joshuadavidthomas/nix-config#deck
    ```
+
+   Later applies leave out `--option`.
 
 4. Privileged apply. `steamos-etc` writes the `/etc` files home-manager declares, carries
    them over SteamOS updates with its keep-list, and starts the units it keeps:
@@ -140,7 +145,8 @@ configuration plus one privileged apply. It happens in this order, once:
    `/etc up to date`. After an apply, `steamos-etc --check` without sudo reports what still
    differs. What it manages: `/etc/rex/accounts.jsonc`, the units `rex-login-server` and
    `rex-tailscale-serve`, the every-boot lookup that keeps a SteamOS update from hanging on
-   `/etc/atomic-update.conf.d`, and home-manager's `user@.service` drop-in.
+   `/etc/atomic-update.conf.d`, home-manager's `user@.service` drop-in, and
+   `/etc/nix/nix.custom.conf`, the installer's include file, which names the netrc.
 
 5. Check. Rex's login server and the Serve mapping answer like the lab boxes:
 
