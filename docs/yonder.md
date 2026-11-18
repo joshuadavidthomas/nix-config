@@ -197,6 +197,11 @@ The pin moved to `v0.1.0-rc12` on 2026-11-18: placement by offers, and a balloon
 VM. What it changes, and the order its deploy takes, are in its release notes:
 <https://github.com/joshuadavidthomas/yonder.dev/releases/tag/v0.1.0-rc12>.
 
+The pin moved to `v0.1.0-rc13` on 2026-11-18: the boot's reads recorded as runs, and a warm
+resume that keeps its drives and clock. What it changes, and the order its deploy takes, are
+in its release notes:
+<https://github.com/joshuadavidthomas/yonder.dev/releases/tag/v0.1.0-rc13>.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
