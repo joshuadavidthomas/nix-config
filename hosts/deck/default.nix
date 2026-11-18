@@ -89,7 +89,25 @@ in {
   # deck-sunshine unit below; the web UI's login is provisioned by hand once the 1Password
   # item exists (docs/sunshine.md#provision), and its capture finding gets written into
   # ~/.config/sunshine only after the first run proves the defaults.
-  home.packages = [ pkgs.sunshine ];
+  home.packages = [
+    pkgs.sunshine
+    # The Deck builds and applies itself from GitHub, like a lab box (docs/changes.md): one
+    # command for both halves of an apply. Only commits reach it.
+    (pkgs.writeShellScriptBin "rebuild" ''
+      # rebuild [ACTION [REF]]: ACTION is home-manager's (switch, build...), REF a branch, tag
+      # or commit of the repo on GitHub. --refresh: a branch moves, so don't use a cached copy.
+      set -e
+      action=''${1:-switch}
+      home-manager "$action" --refresh \
+        --flake "github:joshuadavidthomas/nix-config?ref=''${2:-main}#deck"
+      # After a switch, the half home-manager cannot do: steamos-etc installs /etc and its
+      # units, and asks for sudo only when /etc changed. The profile's copy is the new
+      # generation's; this script's own store path belongs to the old one.
+      if [ "$action" = switch ]; then
+        exec "$HOME/.nix-profile/bin/steamos-etc"
+      fi
+    '')
+  ];
 
   imports = [
     # Secrets, read with the service account's token. On the machines NixOS and macOS

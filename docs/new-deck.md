@@ -79,15 +79,25 @@ identity into it.
      --flake github:joshuadavidthomas/nix-config#deck -b backup
    ```
 
-   Then install the CLI once, and later applies are the plain command:
+   Then install the CLI once:
 
    ```sh
    nix profile install nixpkgs#home-manager
-   home-manager switch --flake github:joshuadavidthomas/nix-config#deck
    ```
 
-2. Apply again after a change you want on it, as on any machine: the latest `main`, one
-   command. What runs on the Deck is always a commit, as on the others.
+2. Apply again after a change you want on it with `rebuild`, as on any machine: the latest
+   `main`, one command. It runs `home-manager switch` and then `steamos-etc`, which asks for
+   the `deck` password only when `/etc` changed. What runs on the Deck is always a commit, as
+   on the others. Over SSH, give it a terminal for the password prompt, and a login shell:
+   a command over SSH gets only `/usr/local/bin:/usr/bin:/bin`, and SteamOS's bash reads no
+   startup file for it, so only `/etc/profile` puts Nix and the home's profile on `PATH`:
+
+   ```sh
+   ssh -t deck bash -lc rebuild
+   ```
+
+   `rebuild build` builds without switching, and `rebuild switch my-branch` applies a pushed
+   branch, as on a lab box.
 3. `home-manager switch` writes user files that SteamOS update images own with a `.bak`
    next to them. When a SteamOS update put an image version of one of those files back,
    the `.bak` is the rollback.
@@ -132,7 +142,7 @@ configuration plus one privileged apply. It happens in this order, once:
      --flake github:joshuadavidthomas/nix-config#deck
    ```
 
-   Later applies leave out `--option`.
+   Later applies are `rebuild`, which runs both this and step 4.
 
 4. Privileged apply. `steamos-etc` writes the `/etc` files home-manager declares, carries
    them over SteamOS updates with its keep-list, and starts the units it keeps:

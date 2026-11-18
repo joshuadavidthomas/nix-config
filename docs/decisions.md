@@ -13,7 +13,14 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   SteamOS's read-only root does not allow (nix-installer issue #1285).
   Reason: keeping SteamOS keeps the gaming environment and Valve's hardware support, which is
   the machine's job, and the installer's `/home/nix` store survives SteamOS updates. The lab
-  machines' model (`rebuild`, system modules, monitoring) stays theirs for now.
+  machines' system modules and monitoring stay theirs for now.
+- **The Deck applies with `rebuild`, like every other machine, and keeps its sudo password.**
+  `rebuild` runs `home-manager switch` from GitHub, then `steamos-etc`, which asks for the
+  password only when `/etc` changed.
+  Reason: home-manager runs as `deck` and cannot write `/etc`, and steamos-etc does not run
+  sudo from activation, so an apply has two halves; one command runs both. A passwordless
+  sudo rule for `steamos-etc` would make `deck` root: whatever applies the configuration
+  decides what it writes into `/etc`, as with the Mac's `rebuild`.
 - **The Deck's login shell stays `bash`; `fish` starts by hand.**
   Reason: a SteamOS update resets `/etc/shells`, and a login shell that is not in it keeps
   both the desktop and SSH from logging in, an outage that looks like a dead machine

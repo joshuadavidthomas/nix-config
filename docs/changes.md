@@ -32,9 +32,10 @@
    | Work laptop (WSL) | `rebuild` |
    | One lab box | Push, then `ssh lab-2 rebuild`, from any machine on the tailnet |
    | All lab boxes | Push, then `for box in lab-1 lab-2 lab-3; do ssh $box rebuild; done` |
+   | Steam Deck | Push, then `ssh -t deck bash -lc rebuild`, or `rebuild` on the Deck ([why the login shell](new-deck.md#apply)) |
 
-A lab box builds itself from the repo on GitHub, not from your checkout, so only pushed
-commits reach it. Orbs connect as `orb`: `ssh orb@lab-2 rebuild`.
+A lab box and the Deck build themselves from the repo on GitHub, not from your checkout, so
+only pushed commits reach them. Orbs connect as `orb`: `ssh orb@lab-2 rebuild`.
 
 To try a change on a lab box before it is on `main`, push a branch and apply it with `test`:
 

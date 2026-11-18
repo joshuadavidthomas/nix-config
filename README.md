@@ -36,7 +36,7 @@ Then apply changes with:
 | Mac | `rebuild` |
 | Work laptop | `rebuild` |
 | Homelab | Push, then `ssh lab-1 rebuild`, from any machine on the tailnet |
-| Steam Deck | On the Deck: `home-manager switch --flake github:joshuadavidthomas/nix-config#deck` |
+| Steam Deck | Push, then `ssh -t deck bash -lc rebuild` |
 
 Docs:
 
