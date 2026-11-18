@@ -55,6 +55,27 @@
     done
     exec ${pkgs.sunshine}/bin/sunshine
   '';
+
+  # Steam's idle suspend on AC power, set to Never before Steam starts (docs/new-deck.md,
+  # Staying on while docked). 0 is the value Steam itself writes for Never. Steam keeps its
+  # settings in memory and rewrites config.vdf while it runs, so only a write before the
+  # start holds. A missing file or a key that is not there exactly once fails the unit:
+  # Steam then starts with its own value, and the Deck suspends on its own timeout.
+  steamAcSuspend = pkgs.writeShellScript "steam-ac-suspend" ''
+    set -euo pipefail
+    vdf=${lib.escapeShellArg "${config.xdg.dataHome}/Steam/config/config.vdf"}
+    key='"IdleSuspendACSeconds"'
+    if [ ! -f "$vdf" ]; then
+      echo "no $vdf yet; Steam writes it on its first save" >&2
+      exit 1
+    fi
+    count=$(${pkgs.gnugrep}/bin/grep -c "^[[:space:]]*$key[[:space:]]" "$vdf" || true)
+    if [ "$count" != 1 ]; then
+      echo "$key is in $vdf $count times, not once; Steam's config has changed shape" >&2
+      exit 1
+    fi
+    ${pkgs.gnused}/bin/sed -i -E "s/^([[:space:]]*$key[[:space:]]+)\"[^\"]*\"/\1\"0\"/" "$vdf"
+  '';
 in {
   home.username = "deck";
   home.homeDirectory = "/home/deck";
@@ -140,6 +161,23 @@ in {
   # Commits sign with the key opnix wrote (home/git.nix sets its default). Signing's own
   # config lives in 1Password for the Mac; the Deck names the file opnix wrote.
   programs.git.signing.key = config.programs.onepassword-secrets.secretPaths.gitSigningKey;
+
+  # The docked Deck stays awake because Steam never starts an idle suspend on AC power
+  # (docs/decisions.md). A user unit, because Steam is one: SteamOS starts it as
+  # steam-launcher.service in the deck's session. Oneshot without RemainAfterExit, so it
+  # runs again before every Steam start, and Wants (not Requires), so a failure here never
+  # keeps Game Mode from coming up.
+  systemd.user.services.steam-ac-suspend = {
+    Unit = {
+      Description = "Set Steam's idle suspend on AC power to Never";
+      Before = [ "steam-launcher.service" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${steamAcSuspend}";
+    };
+    Install.WantedBy = [ "steam-launcher.service" ];
+  };
 
   programs.steamos-etc = {
       enable = true;
@@ -229,32 +267,6 @@ in {
             ExecStartPre = lib.escapeShellArgs [ tailscale "wait" ];
             ExecStart = lib.escapeShellArgs [ tailscale "serve" "--bg" "--https=7297" "unix:/run/rex/serve.sock" ];
             ExecStop = lib.escapeShellArgs [ tailscale "serve" "--https=7297" "off" ];
-          };
-          Install.WantedBy = [ "multi-user.target" ];
-        };
-
-        # The Deck is a docked server: a suspend — SteamOS's idle one, a session's, or a lid
-        # event — takes the tailnet with it. This holds a logind inhibitor open while it
-        # runs, which blocks every suspend path that goes through logind. Valve's
-        # auto-suspend and the sessions' own both do, so the screen can still go dark after
-        # its own timeout, with CPU, Wi-Fi and services running behind the blank screen.
-        # Both binaries are SteamOS's own and live on the always-present root, so this unit
-        # does not reach into the store and survives every update by itself.
-        # For a manual suspend, stop this unit first: `sudo systemctl stop deck-always-on`.
-        "deck-always-on" = {
-          Unit = {
-            Description = "Inhibit suspend, so the deck stays reachable while docked";
-            After = [ "multi-user.target" ];
-          };
-          Service = {
-            Type = "simple";
-            ExecStart = lib.escapeShellArgs [
-              "/usr/bin/systemd-inhibit"
-              "--what=sleep" "--who=deck" "--why=docked"
-              "/usr/bin/sleep" "infinity"
-            ];
-            Restart = "on-failure";
-            RestartSec = 5;
           };
           Install.WantedBy = [ "multi-user.target" ];
         };

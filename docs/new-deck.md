@@ -126,7 +126,7 @@ configuration plus one privileged apply. It happens in this order, once:
    an older commit:
 
    ```sh
-   home-manager switch --refresh --flake github:joshuadavirthomas/nix-config#deck
+   home-manager switch --refresh --flake github:joshuadavidthomas/nix-config#deck
    ```
 
 4. Privileged apply. `steamos-etc` writes the `/etc` files home-manager declares, carries
@@ -167,25 +167,33 @@ name.
 
 ## Staying on while docked
 
-The Deck's job when docked is to be reachable, and the thing that undoes that is a suspend —
-SteamOS's idle one, a session's, or a lid event all take the tailnet with it. The repo owns
-one unit for this: `deck-always-on.service`, a logind inhibitor (`systemd-inhibit --what=sleep`)
-that runs from both SteamOS binaries. While it runs, no sleep happens: CPU, Wi-Fi and
-services keep running behind the screen, which still goes dark on its own timeout. The
-`sshd` and `tailscaled` services were enabled once by hand and the SteamOS keep-list keeps
-them across updates, so a restart brings them back by themselves.
+The Deck's job when docked is to be reachable, and a suspend takes the tailnet with it. In
+Game Mode, Steam suspends the Deck after it is idle for a set time, one time on battery and
+one on AC power. The repo turns off the one on AC power: `steam-ac-suspend.service`, a
+home-manager user unit, sets `IdleSuspendACSeconds` to `0` in
+`~/.local/share/Steam/config/config.vdf` before each start of SteamOS's
+`steam-launcher.service`. `0` is the value Steam writes for "Never" in Settings → Power.
+The screen still dims and goes dark on Steam's own timeout, and CPU, Wi-Fi and services
+keep running behind it.
 
-For a deliberate suspend — say, to unplug and walk away — stop the unit first:
+Steam keeps its settings in memory and rewrites `config.vdf` while it runs. A change made in
+the Power screen lasts until the next Steam start, and then the unit sets `0` again. An
+apply also takes effect at the next Steam start: a reboot, or a restart of Steam.
+
+The unit fails when `config.vdf` is missing or does not hold the key exactly once: a fresh
+install before Steam's first save, or a Steam update that renames the key. Steam still
+starts, with its own value, and the Deck suspends after Steam's own timeout. The unit's
+output says which case it found:
 
 ```sh
-sudo systemctl stop deck-always-on
+systemctl --user status steam-ac-suspend
 ```
 
-and start it again when it goes back on the dock:
+The power button and the lid suspend the Deck as usual. In desktop mode, Plasma's own
+power settings apply.
 
-```sh
-sudo systemctl start deck-always-on
-```
+The `sshd` and `tailscaled` services were enabled once by hand and the SteamOS keep-list
+keeps them across updates, so a restart brings them back by themselves.
 
 Atuin syncs from the first apply; commits sign with the lab boxes' shared key, as on a lab
 box. The tailnet side itself — SteamOS's own tailscaled under `/opt/tailscale` and its

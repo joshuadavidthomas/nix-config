@@ -43,13 +43,16 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   Reason: the HM module carries its own way of applying the secrets, so atuin's login and
   the signing key land without a system unit that SteamOS would drop on the next update. opnix
   does fail clean on a missing token.
-- **The Deck's suspend is blocked by a system unit, not by a SteamOS setting.** While the
-  Deck is docked, `deck-always-on` holds a logind inhibitor open, which every sleep path
-  honors; the screen still goes dark, and CPU, Wi-Fi and services run behind it. A deliberate
-  suspend means stopping the unit first, on purpose
+- **Steam's idle suspend on AC power is off, and a repo unit sets it.** Before each Steam
+  start, the home-manager user unit `steam-ac-suspend` sets `IdleSuspendACSeconds` to `0`
+  ("Never") in Steam's `config.vdf`. The docked Deck stays awake; the screen still goes dark
+  on Steam's own timeout, and the power button and the lid still suspend it
   ([Set up the Steam Deck](new-deck.md#staying-on-while-docked)).
-  Reason: a setting in Valve's own screens would be unowned and unrecorded, and Valve moves
-  them; one keep-listed unit in the repo is the machine's own record.
+  Reason: a value set by hand in Steam's screens is unrecorded, and a reset of Steam's data
+  loses it. The unit writes before Steam starts because Steam rewrites the file from memory
+  while it runs. A logind inhibitor, `deck-always-on`, came first (2026-11-07 to 2026-11-18)
+  and broke Game Mode: Steam starts its suspend screen before it asks logind, does not
+  handle the refusal, and stays on that screen until a reboot.
 - **Rex runs on the Deck like the lab boxes.** The login server as a system unit through
   steamos-etc, identified against the deck's own tailscaled, reachable through Tailscale
   Serve on 7297, and a single policy file `/etc/rex/accounts.jsonc` mapping the owner's
