@@ -202,6 +202,10 @@ resume that keeps its drives and clock. What it changes, and the order its deplo
 in its release notes:
 <https://github.com/joshuadavidthomas/yonder.dev/releases/tag/v0.1.0-rc13>.
 
+The pin moved to `v0.1.0-rc14` on 2026-11-19: capacity read live from the host, and the boot's
+read waits counted. What it changes, and the order its deploy takes, are in its release notes:
+<https://github.com/joshuadavidthomas/yonder.dev/releases/tag/v0.1.0-rc14>.
+
 From 2026-11-06 a box pulls machine images from public registries by digest (anonymous HTTPS)
 and caches them under `/var/lib/yonder/images/oci`. yonderd caps that cache at 10% of the state
 filesystem, and lab-2's and lab-3's are 234 GiB, so both set
