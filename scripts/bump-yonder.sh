@@ -50,20 +50,14 @@ echo "flake.lock: $lock"
 }
 
 # The package a box builds, named from the lock by the overlay, says it is the tag at its
-# commit, for its CLI and its yonderd (run here with the in-memory VMM), and `yonder version`
-# exits 0, as yonder's tests/release/release-name.sh checks before the tag.
+# commit, for its CLI and its yonderd, and `yonderd version` exits 0 (a release, clean), as
+# yonder's tests/release/release-name.sh checks before the tag. Neither starts a daemon: since
+# v0.1.0-rc14 `yonderd version` reads its own binary, and a release's yonderd has no --vmm.
 pkg=$(nix build --no-link --print-out-paths .#nixosConfigurations.lab-3.config.services.yonder.package)
-dir=$(mktemp -d)
-"$pkg/bin/yonderd" --vmm fake --state-dir "$dir/state" --run-dir "$dir/run" --resolver-listen 127.0.0.1:5398 >"$dir/yonderd.log" 2>&1 &
-yonderd=$!
-for _ in $(seq 60); do
-	[[ -S $dir/run/yonderd.sock ]] && break
-	sleep 1
-done
-version=$("$pkg/bin/yonder" --socket "$dir/run/yonderd.sock" version) || version="$version (exit $?)"
-kill "$yonderd"
-printf 'yonder version: %s\n' "$version" | sed '2,$s/^/yonder version: /'
-[[ $(grep -cF "$tag  ${commit:0:12}" <<<"$version") -eq 2 && $version != *"(exit "* ]] || {
+daemon=$("$pkg/bin/yonderd" version) || daemon="$daemon (exit $?)"
+cli=$("$pkg/bin/yonder" --socket /nonexistent/yonderd.sock version 2>/dev/null | grep '^cli' || true)
+printf 'yonder version: %s\n' "$cli" "$daemon"
+[[ $daemon == "yonderd  $tag  ${commit:0:12}" && $cli == "cli  $tag  ${commit:0:12}" ]] || {
 	echo "the package lab-3 builds does not say it is $tag at $commit, clean" >&2
 	exit 1
 }
