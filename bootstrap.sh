@@ -116,9 +116,11 @@ fi
 # /Applications are Homebrew's own.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   say "Looking for apps that are already on this Mac"
-  # brew info sees a third-party tap's casks only once it is tapped
+  # brew info sees a third-party tap's casks only once it is tapped and trusted. The
+  # configuration trusts every tap it declares (modules/darwin), so this does the same.
   for tap in $(nix eval --raw "$dir#darwinConfigurations.$name.config.homebrew.taps" --apply 'ts: toString (map (t: t.name) ts)'); do
     /opt/homebrew/bin/brew tap "$tap" >/dev/null
+    /opt/homebrew/bin/brew trust --tap "$tap" >/dev/null
   done
   casks=$(nix eval --raw "$dir#darwinConfigurations.$name.config.homebrew.casks" --apply 'cs: toString (map (c: c.name) cs)')
   ours=$(/opt/homebrew/bin/brew list --cask -1 2>/dev/null || true)
