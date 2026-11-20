@@ -796,6 +796,59 @@ def sync_userdata(userdata_dir: Path, apps: list[dict], fetch_art: bool) -> None
     if not state_path.is_file() or state_path.read_bytes() != new_state_bytes:
         atomic_write(state_path, new_state_bytes)
 
+    sync_localconfig_resolutions(config_dir, apps, desired_managed, removed_appids)
+
+
+def sync_localconfig_resolutions(
+    config_dir: Path,
+    apps: list[dict],
+    desired_managed: dict[str, int],
+    removed_appids: set[int],
+) -> None:
+    """Set ResolutionOverride in localconfig.vdf for managed shortcuts when not user-customized."""
+    localconfig_path = config_dir / "localconfig.vdf"
+    if not localconfig_path.is_file():
+        return
+
+    text = localconfig_path.read_text(encoding="utf-8", errors="surrogateescape")
+    parsed = parse_text_vdf(text)
+    root = parsed.get("UserLocalConfigStore")
+    if not isinstance(root, dict):
+        return
+    steam = root.setdefault("Software", {}).setdefault("Valve", {}).setdefault("Steam", {})
+    shortcuts = steam.setdefault("shortcuts", {})
+    if not isinstance(shortcuts, dict):
+        return
+
+    changed = False
+    for app in apps:
+        res = app.get("resolutionOverride")
+        if not res:
+            continue
+        signed_id = desired_managed[app["name"]]
+        uid = str(signed_id & 0xFFFFFFFF)
+        entry = shortcuts.get(uid)
+        if not isinstance(entry, dict):
+            shortcuts[uid] = {
+                "ResolutionOverride": str(res),
+                "ResolutionOverrideInternalDisplay": "0",
+            }
+            changed = True
+        elif entry.get("ResolutionOverride") in (None, "", "Default"):
+            entry["ResolutionOverride"] = str(res)
+            entry.setdefault("ResolutionOverrideInternalDisplay", "0")
+            changed = True
+
+    for signed_id in removed_appids:
+        uid = str(signed_id & 0xFFFFFFFF)
+        if uid in shortcuts:
+            del shortcuts[uid]
+            changed = True
+
+    if changed:
+        new_text = dump_text_vdf(parsed) + "\n"
+        atomic_write(localconfig_path, new_text.encode("utf-8", errors="surrogateescape"))
+
 
 def main() -> int:
     if len(sys.argv) < 2:

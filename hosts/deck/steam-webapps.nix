@@ -33,9 +33,9 @@ let
           "com.google.Chrome"
           "@@u"
           "@@"
-          "--window-size=1280,800"
           "--force-device-scale-factor=1.00"
           "--device-scale-factor=1.00"
+          "--start-maximized"
           "--no-first-run"
           "--enable-features=OverlayScrollbar"
         ]
@@ -49,11 +49,14 @@ let
       exe = ''"/usr/bin/flatpak"'';
       startDir = ''"/usr/bin/"'';
       launchOptions = lib.concatStringsSep " " chromeFlags;
+      # Ask Steam/Gamescope to run the app at the connected display's native resolution
+      # (instead of Steam's 1280x720 non-Steam default).
+      resolutionOverride = "Native";
     };
 
-  # Smart TV user agent so youtube.com/tv serves the controller-friendly 10-foot TVHTML5 UI
-  # (navigated via Arrow keys / Enter / Escape, mapped by the "tv" Steam Input template below).
-  smartTvUserAgent = "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/5.0 Chrome/94.0.4606.31 TV Safari/537.36";
+  # Modern TV/console user agent so youtube.com/tv serves the 10-foot TVHTML5 UI without
+  # triggering YouTube's deprecated-browser banner (older Tizen/SamsungBrowser UAs do).
+  smartTvUserAgent = "Mozilla/5.0 (PlayStation 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Cobalt/25.lts.1";
 
   webApps = map mkWebApp [
     {

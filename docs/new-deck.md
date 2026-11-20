@@ -217,10 +217,11 @@ mode (YouTube uses `youtube.com/tv` with a Smart TV user agent for its 10-foot U
 `steam-ac-suspend.service`), merges only the Nix-managed entries into
 `~/.local/share/Steam/userdata/<id>/config/shortcuts.vdf` (tracked in
 `nix-managed-webapps.json`), fetches missing grid, hero, logo, and icon artwork from
-SteamGridDB into `config/grid/`, and installs per-controller-type Steam Input templates
-(`nix_webapp_tv_*.vdf` for YouTube TV's arrow/Enter/Escape controls, `nix_webapp_browser_*.vdf`
-for Twitch and Disney+, leaving Xbox Cloud Gaming on Gamepad) wired into
-`Steam Controller Configs/<id>/config/configset_*.vdf`.
+SteamGridDB into `config/grid/`, sets `"ResolutionOverride" = "Native"` in `localconfig.vdf`
+so Gamescope renders at the display's native resolution instead of 720p, and installs
+per-controller-type Steam Input templates (`nix_webapp_tv_*.vdf` for YouTube TV's
+arrow/Enter/Escape controls, `nix_webapp_browser_*.vdf` for Twitch and Disney+, leaving Xbox
+Cloud Gaming on Gamepad) wired into `Steam Controller Configs/<id>/config/configset_*.vdf`.
 
 - Existing unmanaged shortcuts (EmuDeck, Heroic, Battle.net, etc.) are left untouched.
 - Removing an app from `hosts/deck/steam-webapps.nix` removes its shortcut and its
