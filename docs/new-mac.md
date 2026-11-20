@@ -15,8 +15,8 @@ the Mac to the repo and pushes the change.
 ## 1. Prepare macOS
 
 Do [A new Mac](#a-new-mac) or [A Mac that is already set up](#a-mac-that-is-already-set-up).
-Both do the same things in the same order: the account, its password, the Apple Account,
-FileVault, Touch ID, and software updates.
+Both give you the account, its password and Touch ID, the Apple Account, FileVault, and the
+software updates.
 
 ### A new Mac
 
@@ -50,24 +50,26 @@ Setup Assistant starts when you turn on the Mac.
 
 2. Make sure that the account is an administrator. The bootstrap uses `sudo`. If the account
    is a standard user, ask IT for administrator access.
-3. If IT set the password, change it to your own. Find out first if the company login owns
-   the password:
+3. Open System Settings > Touch ID & Password, and do both of these:
+   - If IT set the password, change it to your own. Find out first if the company login
+     owns the password:
 
-   ```sh
-   app-sso platform -s | grep '"loginType"'
-   ```
+     ```sh
+     app-sso platform -s | grep '"loginType"'
+     ```
 
-   It shows one line for the device and one for the user, with the same value.
+     It shows one line for the device and one for the user, with the same value.
 
-   - `"loginType" : "POLoginTypePassword …"`: Platform SSO syncs the login password with
-     your company password. Change the company password in the company's account portal. At
-     the next login, macOS asks for the new password and updates the Mac. Do not change the
-     password in System Settings: the next sync replaces it.
-   - `"loginType" : "POLoginTypeUserSecureEnclaveKey …"`, or no output: the login password
-     is the Mac's own. Platform SSO uses a key in the Secure Enclave, not the password. Open
-     System Settings > Users & Groups, select **i** next to your account, and select
-     **Change Password**. macOS also changes the login keychain and FileVault password.
-
+     - `"loginType" : "POLoginTypeUserSecureEnclaveKey …"`, or no output: the login
+       password is the Mac's own. Platform SSO uses a key in the Secure Enclave, not the
+       password. Next to **Password**, select **Change**. macOS also changes the login
+       keychain and FileVault password.
+     - `"loginType" : "POLoginTypePassword …"`: Platform SSO syncs the login password with
+       your company password. Change the company password in the company's account portal.
+       At the next login, macOS asks for the new password and updates the Mac. Do not change
+       the password here: the next sync replaces it.
+   - If the Mac has Touch ID and no fingerprint, select **Add Fingerprint**. 1Password uses
+     Touch ID to approve the CLI and the SSH agent.
 4. Sign in with your Apple Account, if it is not signed in. The configuration does not need
    it, so select one of these:
    - App Store only: open the App Store, then select Store > Sign In. No iCloud data comes
@@ -85,9 +87,7 @@ Setup Assistant starts when you turn on the Mac.
 
 5. Make sure that FileVault is on, in System Settings > Privacy & Security > FileVault. On a
    Mac that an employer manages, it usually is.
-6. If the Mac has Touch ID and no fingerprint, add one in System Settings > Touch ID &
-   Password.
-7. Install all software updates.
+6. Install all software updates.
 
 Apps that IT installed stay IT's. The bootstrap finds them, and Homebrew does not install,
 adopt, update or remove them on this Mac.
