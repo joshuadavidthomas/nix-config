@@ -69,8 +69,10 @@ an employer, go to [Use a Mac that is already set up](#use-a-mac-that-is-already
    owns it:
 
    ```sh
-   app-sso platform -s | grep -i logintype
+   app-sso platform -s | grep '"loginType"'
    ```
+
+   It shows one line for the device and one for the user, with the same value.
 
    - `"loginType" : "POLoginTypePassword …"`: Platform SSO syncs the login password with
      your company password. Change the company password in the company's account portal. At
