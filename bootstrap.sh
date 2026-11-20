@@ -40,7 +40,9 @@ main() {
   token=/etc/opnix-token
   # the first secret that modules/secrets.nix writes on a Mac
   secret="$HOME/Library/Application Support/opnix/atuinPassword"
-  agent="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  # 1Password's data, where op reads the app's settings, and its SSH agent
+  opData="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password"
+  agent="$opData/t/agent.sock"
 
   # op with no terminal. Without an account, op asks on the terminal to add one, whatever its
   # input and output are, and the wait for 1Password would ask every 5 seconds. With no
@@ -214,6 +216,14 @@ main() {
     until value=$(op item get "Service Account Auth Token: dotfiles" --vault Private --fields credential --reveal 2>"$err"); do
       echo "1Password did not give the token. op says:" >&2
       sed 's/^/  /' "$err" >&2
+      # macOS keeps an app out of another app's data without permission, and op gets the
+      # terminal's. Then op cannot read 1Password's settings and reports no accounts.
+      if [ -d "$opData" ] && ! ls "$opData" >/dev/null 2>&1; then
+        echo "macOS does not let this terminal read 1Password's data, so op cannot find the app."
+        echo "Turn on System Settings > Privacy & Security > Full Disk Access for this terminal app,"
+        echo "quit the terminal (Cmd-Q), open it again, and run the bootstrap again."
+        exit 1
+      fi
       open -a 1Password || true
       echo "In the 1Password app:"
       echo "  1. Sign in to your own account. If a company account is there, add yours."

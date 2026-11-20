@@ -101,30 +101,34 @@ adopt, update or remove them on this Mac.
      that have a `mac.json`, for example `mac-mini` and `work-macbook`.
    - A new Mac: select a new name, of lowercase letters, digits and `-`, such as
      `macbook-air`. The bootstrap adds the Mac to the repo with this name.
-2. Open Terminal, and run the bootstrap with the name in place of `<name>`:
+2. Give your terminal app Full Disk Access: open System Settings > Privacy & Security >
+   Full Disk Access, and turn it on for the terminal, such as Terminal in Applications >
+   Utilities. Quit the terminal (Cmd-Q) and open it again. Without this, macOS keeps the
+   terminal out of 1Password's data, and the bootstrap cannot read the opnix token.
+3. Open Terminal, and run the bootstrap with the name in place of `<name>`:
 
    ```sh
    curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <name>
    ```
 
-3. Enter your login password each time the bootstrap asks. It installs Nix and Homebrew.
-4. When the bootstrap asks you to log in to GitHub, press Enter and approve the code in the
+4. Enter your login password each time the bootstrap asks. It installs Nix and Homebrew.
+5. When the bootstrap asks you to log in to GitHub, press Enter and approve the code in the
    browser.
-5. Wait. The bootstrap clones the repo to `~/.nix-config`. For a new name, it adds the Mac to
+6. Wait. The bootstrap clones the repo to `~/.nix-config`. For a new name, it adds the Mac to
    the repo, with your account. Then it finds the apps that are already on the Mac and does
    the first switch. On a Mac with Microsoft Defender, the first switch can be slow:
    Defender scans each file that Nix writes to `/nix/store`.
-6. When the bootstrap shows `In the 1Password app:`, it opens 1Password and waits. In the
+7. When the bootstrap shows `In the 1Password app:`, it opens 1Password and waits. In the
    app, sign in to your own account. If the app is already signed in to a company account,
    add yours.
-7. In 1Password, turn on Settings > Developer > Integrate with 1Password CLI.
-8. Press Enter in Terminal, then approve the prompt with Touch ID, or with your password on a
+8. In 1Password, turn on Settings > Developer > Integrate with 1Password CLI.
+9. Press Enter in Terminal, then approve the prompt with Touch ID, or with your password on a
    Mac without Touch ID. The bootstrap copies the opnix token from 1Password and switches
    again. If 1Password still does not give the token, the bootstrap shows the error and
    asks again.
-9. When the bootstrap asks, turn on Settings > Developer > Use the SSH agent in 1Password.
+10. When the bootstrap asks, turn on Settings > Developer > Use the SSH agent in 1Password.
    Then, if the bootstrap changed `hosts/<name>`, it commits and pushes the change.
-10. Open a new terminal. From now on, `rebuild` applies changes.
+11. Open a new terminal. From now on, `rebuild` applies changes.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.
@@ -155,7 +159,8 @@ To change what the bootstrap recorded, edit `hosts/<name>/mac.json`, then `rebui
 | --- | --- | --- |
 | `hosts/… is for the account …, but you are logged in as …` | The name is a Mac with another account | Log in to that account, or give this Mac another name |
 | `hosts/… is not a Mac` | The name is a machine that is not a Mac, such as `lab-1` | Give this Mac another name |
-| `In the 1Password app:` comes back after you press Enter | 1Password is locked, signed out, or the CLI integration is off, or you did not approve the prompt | Do steps 6 to 8 of [Run the bootstrap](#2-run-the-bootstrap) |
+| `macOS does not let this terminal read 1Password's data` | The terminal has no Full Disk Access | Do step 2 of [Run the bootstrap](#2-run-the-bootstrap) |
+| `In the 1Password app:` comes back after you press Enter | 1Password is locked, signed out, or the CLI integration is off, or you did not approve the prompt | Do steps 7 to 9 of [Run the bootstrap](#2-run-the-bootstrap) |
 | `1Password did not give the token:` | 1Password is ready, but the item is not there | Read the error. The token is the item "Service Account Auth Token: dotfiles" in the Private vault of your account. |
 | `The bootstrap stopped at: …` | A step failed | Read the error above it. Fix it and run the bootstrap again. |
 | `HTTP error 404` for a `github.com/…/archive/…` URL | The GitHub login is missing or expired | Run `gh auth login`, then the bootstrap again |
