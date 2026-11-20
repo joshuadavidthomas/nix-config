@@ -70,7 +70,19 @@
         inherit (import nixpkgs { inherit system; config.allowUnfree = true; overlays = [ self.overlays.default ]; })
           atuin lisette llm;
       });
-      checks = self.packages;
+      checks = nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-linux" ] (system:
+        let pkgs = nixpkgs.legacyPackages.${system}; in
+        self.packages.${system} // {
+          # every shell script in the repo, found by its #! line, so a new one needs no entry
+          shellcheck = pkgs.runCommand "shellcheck" { nativeBuildInputs = [ pkgs.shellcheck ]; } ''
+            cd ${self}
+            scripts=$(find . -type f ! -path './.git/*' \
+              -exec awk 'FNR == 1 && /^#!.*(\/|env )(ba)?sh( |$)/ { print FILENAME } { nextfile }' {} +)
+            echo "shellcheck:" $scripts
+            shellcheck $scripts
+            touch $out
+          '';
+        });
 
       # the Macs: each hosts/<name> with a mac.json, which bootstrap.sh writes for a new Mac.
       # It has the account name and the apps that were on the Mac before Homebrew

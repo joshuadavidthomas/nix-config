@@ -25,7 +25,8 @@
 
 ## Apply a change
 
-1. Run `nix flake check`.
+1. Run `nix flake check`. It builds the packages in `pkgs/` and runs ShellCheck on every
+   shell script in the repo, found by its `#!` line.
 2. Apply:
 
    | Machine | Command |

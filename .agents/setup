@@ -61,7 +61,7 @@ warm_store() {
   local system checks
   system=$(nix eval --impure --raw --expr builtins.currentSystem)
   checks=$(nix eval --json ".#checks.$system" --apply builtins.attrNames | jq -r '.[]')
-  # shellcheck disable=SC2086 # one installable per check
+  # shellcheck disable=SC2046,SC2086 # one installable per check
   nix build --no-link $(printf ".#checks.$system.%s " $checks)
 }
 
