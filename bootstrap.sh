@@ -22,7 +22,10 @@
 #  10. Switch again, so that the steps that use the secrets (atuin's login) run.
 #  11. Wait for you to turn on 1Password's SSH agent. If steps 5 or 6 changed hosts/<name>,
 #      commit it (signed, as every commit is) and push.
-set -eu
+# pipefail: a pipe fails when any of its commands fails, not only its last one. macOS's
+# /bin/sh is bash, which has it, and this script runs only on macOS.
+# shellcheck disable=SC3040
+set -eu -o pipefail
 
 repo=https://github.com/joshuadavidthomas/nix-config
 flake=github:joshuadavidthomas/nix-config
@@ -137,7 +140,9 @@ if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
     ([.artifacts[] | .app? // empty | .[] | strings | split("/") | last] | join("|")),
     ([.artifacts[] | .uninstall? // empty | .[] | .pkgutil? // empty] | flatten | join("|"))] | join(";")' \
     < "$info" > "$list"
-  if [ "$(wc -l < "$list")" -ne "$(printf '%s\n' $casks | wc -l)" ]; then
+  # shellcheck disable=SC2086 # one word per cask
+  set -- $casks
+  if [ "$(wc -l < "$list")" -ne "$#" ]; then
     echo "brew info did not describe every cask; stopping before the first switch." >&2
     exit 1
   fi
