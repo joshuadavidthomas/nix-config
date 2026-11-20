@@ -65,7 +65,23 @@ an employer, go to [Use a Mac that is already set up](#use-a-mac-that-is-already
    Mac. Data that iCloud syncs to the Mac is on a computer that IT controls. IT can also
    block iCloud with a profile: `sudo profiles show | grep -i -E 'icloud|allowCloud'` shows
    no lines when there is no such profile.
-5. Install all software updates.
+5. Set your own login password, if IT gave you one. Find out first if the company login
+   owns it:
+
+   ```sh
+   app-sso platform -s | grep -i logintype
+   ```
+
+   - `POLoginTypePassword`: Platform SSO syncs the login password with your company
+     password. Change the company password in the company's account portal. At the next
+     login, macOS asks for the new password and updates the Mac. Do not change the password
+     in System Settings: the next sync replaces it.
+   - Any other result, or no output: open System Settings > Users & Groups, select **i**
+     next to your account, and select **Change Password**. macOS also changes the login
+     keychain and FileVault password.
+
+   The bootstrap uses this password for `sudo`.
+6. Install all software updates.
 
 Apps that IT installed stay IT's. The bootstrap finds them and records them in
 `preinstalledCasks`, so Homebrew does not install, adopt, update or remove them on this Mac.
