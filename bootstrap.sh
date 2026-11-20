@@ -212,12 +212,8 @@ main() {
     err=$(mktemp)
     # vars.opnixTokenArgs
     until value=$(op item get "Service Account Auth Token: dotfiles" --vault Private --fields credential --reveal 2>"$err"); do
-      # op lists the app's accounts once the integration is on; before that, its error only
-      # says that it has none, which the steps below cover
-      if [ -n "$(op account list 2>/dev/null)" ]; then
-        echo "1Password did not give the token:" >&2
-        sed 's/^/  /' "$err" >&2
-      fi
+      echo "1Password did not give the token. op says:" >&2
+      sed 's/^/  /' "$err" >&2
       open -a 1Password || true
       echo "In the 1Password app:"
       echo "  1. Sign in to your own account. If a company account is there, add yours."
