@@ -10,6 +10,7 @@
 | A tool that releases too often to pin, such as cf | The npm installs in `home/agents.nix` |
 | A tool or setting on every Mac | `modules/darwin/home.nix` |
 | Something that only one Mac has, such as a service | `hosts/<name>/default.nix` |
+| A Mac's account, or the apps that Homebrew leaves alone on it | `hosts/<name>/mac.json` |
 | A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |
 | A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `modules/darwin/default.nix` |
 | A macOS setting | `system.defaults` in `modules/darwin/default.nix` |

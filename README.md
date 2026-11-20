@@ -23,7 +23,7 @@ up each machine by hand.
 
 ## Getting started
 
-Set up a new Mac, after you [add it to the repo](docs/new-mac.md#add-the-mac-to-the-repo):
+Set up a Mac. A name that is not in `hosts/` yet adds the Mac to the repo:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <name>
@@ -60,8 +60,8 @@ Research:
 
 ## How it works
 
-`flake.nix` has one configuration for each machine: `mac-mini` and `work-macbook`,
-`work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds each of them the same
+`flake.nix` has one configuration for each machine: one for each Mac in `hosts/` that has a
+`mac.json`, such as `mac-mini`, then `work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds each of them the same
 way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/` for
 the user. So every machine has the same shells, tools, languages and coding agents. The Steam
 Deck is not one of these: it runs Valve's SteamOS, so `homeConfigurations.deck` applies the
@@ -70,7 +70,8 @@ same `home/` to its `deck` user as a standalone home-manager (`lib/mkhome.nix`,
 machine can have, such as the Mac mini's micro-hunter services, WSL interop, or the Deck's
 `steamos-etc` services and declarative Steam web-app shortcuts. The Macs share
 `modules/darwin`, which has the Mac apps from Homebrew, Mole's `mo` CLI and the Hex app
-included. A Mac can have an account name other than `josh` (`user` in `flake.nix`).
+included. A Mac's `mac.json` has its account name, which can be other than `josh`, and the
+apps that were on it before Homebrew, which Homebrew leaves alone there.
 The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
 the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
 the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine

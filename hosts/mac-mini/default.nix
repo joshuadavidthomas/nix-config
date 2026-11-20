@@ -1,4 +1,4 @@
-# The Mac mini: the account vars.user, and micro-hunter's services.
+# The Mac mini: micro-hunter's services. Its account is in mac.json.
 { config, pkgs, vars, ... }: {
   # micro-hunter's Reddit proxy and the Cloudflare Tunnel that the Worker reaches it through.
   # Boot services that run as vars.user, so a restart brings them back without a login. node

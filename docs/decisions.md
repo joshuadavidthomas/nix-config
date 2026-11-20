@@ -6,15 +6,29 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 ## Machines
 
 - **One user, `josh`, on every machine, except a Mac with another account name.** The lab
-  boxes add `orb`, for Amp orbs. A Mac's configuration in `flake.nix` can name its own
-  account (`user`). On the lab boxes, every Mac logs in as `josh`.
+  boxes add `orb`, for Amp orbs. A Mac's `mac.json` names its account. On the lab boxes,
+  every Mac logs in as `josh`.
   Reason: the work MacBook's account is `joshthomas`, and the employer's single sign-on
   (Platform SSO) is tied to it. A rename to `josh` can stop the company login.
 - **Each Mac has its own configuration, like the lab boxes.** `modules/darwin` is what every
-  Mac has; `hosts/<name>/` adds what only that Mac has, such as micro-hunter's services on
-  the Mac mini. The bootstrap takes the name.
+  Mac has; `hosts/<name>/default.nix` adds what only that Mac has, such as micro-hunter's
+  services on the Mac mini. The bootstrap takes the name.
   Reason: one configuration for all Macs ran one Mac's services on every Mac. Every Mac,
   the work MacBook included, gets the same tools, apps, secrets and homelab access.
+- **Homebrew leaves alone the apps that were on a Mac before the bootstrap.** The bootstrap
+  finds them before the first switch: it compares `/Applications` and the installer receipts
+  with the casks. It records them in `preinstalledCasks` in the Mac's `mac.json`, and
+  `modules/darwin` leaves them out on that Mac.
+  Reason: on the work MacBook, IT installs and updates these apps. A cask installs over the
+  app or adopts it, then updates it, and removes it when the cask goes. The list goes in the
+  repo, not in a scan at every switch: a build cannot read `/Applications`, and after the
+  first switch, the apps there are Homebrew's own.
+- **The bootstrap needs only the new Mac.** It clones the repo, adds a new Mac to it, switches
+  from the clone, and at the end commits and pushes what it wrote. A Mac's facts are in
+  `hosts/<name>/mac.json`, a file that a script can write, and `flake.nix` finds the Macs
+  from these files.
+  Reason: a step on another Mac first, to add the new one to the repo, made a second Mac a
+  requirement for setting up a Mac.
 - **The Steam Deck keeps Valve's SteamOS and Valve's own `deck` user.** It is not a NixOS
   machine. `homeConfigurations.deck` applies the shared `home/` to it with standalone
   home-manager, over the official Nix installer with its Steam Deck mode. Determinate Nix

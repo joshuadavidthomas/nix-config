@@ -72,12 +72,16 @@
       });
       checks = self.packages;
 
-      # the Macs, each with a hosts/<name>; bootstrap.sh takes the name
-      darwinConfigurations = {
-        mac-mini = mkSystem "mac-mini" { system = "aarch64-darwin"; };
-        # the employer's single sign-on (Platform SSO) is tied to this account name
-        work-macbook = mkSystem "work-macbook" { system = "aarch64-darwin"; user = "joshthomas"; };
-      };
+      # the Macs: each hosts/<name> with a mac.json, which bootstrap.sh writes for a new Mac.
+      # It has the account name and the apps that were on the Mac before Homebrew
+      # (modules/darwin).
+      darwinConfigurations = nixpkgs.lib.mapAttrs
+        (name: _: mkSystem name {
+          system = "aarch64-darwin";
+          user = (nixpkgs.lib.importJSON ./hosts/${name}/mac.json).user;
+        })
+        (nixpkgs.lib.filterAttrs (name: type: type == "directory" && builtins.pathExists ./hosts/${name}/mac.json)
+          (builtins.readDir ./hosts));
 
       nixosConfigurations = {
         work-wsl = mkSystem "work-wsl" { system = "x86_64-linux"; };

@@ -1,6 +1,45 @@
-# Every Mac: the account, the apps and the secrets. hosts/<name> adds what only that Mac has,
-# and names its account if it is not vars.user (flake.nix).
-{ config, lib, pkgs, vars, ... }: {
+# Every Mac: the account, the apps and the secrets. hosts/<name>/mac.json has the Mac's
+# account and the apps that were on it before Homebrew; hosts/<name>/default.nix, if there is
+# one, adds what only that Mac has.
+{ config, lib, pkgs, vars, configName, ... }:
+let
+  mac = lib.importJSON ../../hosts/${configName}/mac.json;
+  # Apps that were on this Mac before the bootstrap, such as the ones an employer's IT installs
+  # and manages. bootstrap.sh finds them. Homebrew leaves these casks out on this Mac, so it
+  # does not install, adopt, update or remove the apps; the other Macs get them as usual.
+  preinstalled = mac.preinstalledCasks or [ ];
+
+  # the Mac apps, as Homebrew casks (homebrew below)
+  casks = [
+    "1password" # updates itself; the first switch on a new Mac installs it
+    "abue-ammar/tinycast/tinycast"
+    "alt-tab"
+    "anomalyco/tap/hex"
+    "ghostty"
+    "jordanbaird-ice@beta" # until Thaw has replaced it
+    "karabiner-elements"
+    "linearmouse"
+    "monitorcontrol"
+    "microsoft-teams"
+    "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
+    "omniwm"
+    "orbstack"
+    "steipete/tap/codexbar"
+    "t3-code@nightly"
+    "thaw" # replaces Ice
+    "wezterm"
+    "zed"
+  ];
+in
+{
+  # a name that is not in casks is a typo, and Homebrew would still manage that app
+  assertions = map
+    (name: {
+      assertion = lib.elem name casks;
+      message = "hosts/${configName}/mac.json: preinstalledCasks: ${name} is not a cask in modules/darwin/default.nix";
+    })
+    preinstalled;
+
   nix.enable = false; # Determinate Nix manages the daemon; nix-darwin must not
   system.primaryUser = vars.user; # required for user-level options (Homebrew, defaults)
   programs.fish.enable = true;
@@ -58,26 +97,7 @@
       "summarize"
       "yakitrak/yakitrak/notesmd-cli" # Obsidian; renamed from obsidian-cli upstream
     ];
-    casks = [
-      "1password" # updates itself; the first switch on a new Mac installs it
-      "abue-ammar/tinycast/tinycast"
-      "alt-tab"
-      "anomalyco/tap/hex"
-      "ghostty"
-      "jordanbaird-ice@beta" # until Thaw has replaced it
-      "karabiner-elements"
-      "linearmouse"
-      "monitorcontrol"
-      "microsoft-teams"
-      "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
-      "omniwm"
-      "orbstack"
-      "steipete/tap/codexbar"
-      "t3-code@nightly"
-      "thaw" # replaces Ice
-      "wezterm"
-      "zed"
-    ];
+    casks = lib.subtractLists preinstalled casks;
   };
 
   # Xcode asks again after every major update, and Homebrew refuses to run until it's

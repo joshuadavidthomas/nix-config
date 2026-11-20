@@ -7,8 +7,8 @@ let
   tokensFile = "${config.xdg.configHome}/nix/access-tokens.conf";
 in
 {
-  # The config itself, checked out where you edit it and switch from. The first switch on a
-  # new machine runs straight from GitHub and leaves this clone behind.
+  # The config itself, checked out where you edit it and switch from. On a Mac, bootstrap.sh
+  # clones it before the first switch; a machine without it gets it here.
   home.activation.nixConfigCheckout = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.nix-config" ]; then
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nix-config "$HOME/.nix-config"
