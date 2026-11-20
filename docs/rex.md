@@ -10,10 +10,27 @@ Every Mac gets Rex for Mac. It is a beta, with no Homebrew cask and no Nix packa
 download it after a Discord login, and the app then updates itself from Superlogical's Sparkle
 feed. When the app is missing, the switch installs it from that feed: the newest DMG, only if
 the app's signature is valid and from Superlogical's Developer ID team (`AG92C3PT77`). The
-step is `rexApp` in `modules/darwin/home.nix`. It installs `/Applications/Rex.app`; an older
+step is `rexApp` in `modules/darwin/rex.nix`. It installs `/Applications/Rex.app`; an older
 copy named `Rex Beta.app` also counts, and the `rex` command uses whichever is there.
 
 If the install fails, the switch warns and continues. Apply again to retry.
+
+`modules/darwin/rex.nix` also sets the app's settings, in its defaults domain
+`com.superlogical.rex`:
+
+- The appearance, the font and the local server's settings, with `targets.darwin.defaults`.
+  A switch writes only these keys, so the app's own state stays.
+- The servers: lab-1, lab-2, lab-3 and the Steam Deck, at `<name>.<tailnet>:7297`, and the
+  custom themes, `tokyonight_night` and `tokyonight_day` (`rex-themes.json`). The app keeps
+  these as JSON data, so `rex-settings.py` writes them, and keeps the fields that the app
+  learns when it connects.
+- The Mac's name in Rex and its server's name on the tailnet: the configuration's name, such
+  as `work-macbook` and `work-macbook-rex`. The Mac mini keeps `macmini` and `macmini-rex`
+  (`hosts/mac-mini/default.nix`).
+
+The configuration owns these settings: a change in the app to one of them goes back at the
+next switch. Change them in `modules/darwin/rex.nix`. Quit Rex before you apply a change to
+the servers or themes, because a running app can write its own copy back when it quits.
 
 ## What each box runs
 
