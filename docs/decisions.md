@@ -60,6 +60,15 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
   while it runs. A logind inhibitor, `deck-always-on`, came first (2026-11-07 to 2026-11-18)
   and broke Game Mode: Steam starts its suspend screen before it asks logind, does not
   handle the refusal, and stays on that screen until a reboot.
+- **Steam web-app shortcuts come from Nix, not NonSteamLaunchers.** `hosts/deck/steam-webapps.nix`
+  declares browser-backed Game Mode shortcuts (YouTube, Twitch, Disney+, Xbox Cloud Gaming)
+  launching Flatpak Chrome in kiosk mode. A home-manager user unit (`steam-webapps.service`)
+  merges only the shortcuts Nix owns into `shortcuts.vdf` before each Steam start and fetches
+  missing SteamGridDB artwork into `config/grid/` without overwriting custom images.
+  Reason: NonSteamLaunchers' desktop script and background scanner left untracked files and
+  vendored Python modules in `~/.config/systemd/user/` just to write a few Chrome shortcuts.
+  Tracking them in Nix matches `steam-ac-suspend`'s pre-start pattern, leaves all other
+  non-Steam shortcuts (EmuDeck, Heroic, Battle.net) untouched, and survives a Deck wipe.
 - **Rex runs on the Deck like the lab boxes.** The login server as a system unit through
   steamos-etc, identified against the deck's own tailscaled, reachable through Tailscale
   Serve on 7297, and a single policy file `/etc/rex/accounts.jsonc` mapping the owner's

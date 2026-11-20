@@ -208,6 +208,32 @@ systemctl --user status steam-ac-suspend
 The power button and the lid suspend the Deck as usual. In desktop mode, Plasma's own
 power settings apply.
 
+## Web-app shortcuts
+
+`hosts/deck/steam-webapps.nix` declares browser-backed non-Steam shortcuts for Game Mode
+(YouTube, Twitch, Disney+, Xbox Cloud Gaming), launching Flatpak `com.google.Chrome` in kiosk
+mode. `steam-webapps.service` runs before `steam-launcher.service` (the same pre-start hook as
+`steam-ac-suspend.service`), merges only the Nix-managed entries into
+`~/.local/share/Steam/userdata/<id>/config/shortcuts.vdf` (tracked in
+`nix-managed-webapps.json`), and fetches missing grid, hero, logo, and icon artwork from
+SteamGridDB into `config/grid/`.
+
+- Existing unmanaged shortcuts (EmuDeck, Heroic, Battle.net, etc.) are left untouched.
+- Removing an app from `hosts/deck/steam-webapps.nix` removes its shortcut on the next Steam
+  start.
+- Artwork is only downloaded for empty slots, so replacing any image in Game Mode (for example
+  with `decky-steamgriddb`) persists across rebuilds and reboots.
+- Network errors during artwork fetches warn and exit cleanly so an offline boot never delays
+  Game Mode.
+
+To check the last run:
+
+```sh
+systemctl --user status steam-webapps
+```
+
+Changes take effect at the next Steam start (a reboot, or a restart of Steam).
+
 The `sshd` and `tailscaled` services were enabled once by hand and the SteamOS keep-list
 keeps them across updates, so a restart brings them back by themselves.
 

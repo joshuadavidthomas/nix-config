@@ -67,7 +67,8 @@ the user. So every machine has the same shells, tools, languages and coding agen
 Deck is not one of these: it runs Valve's SteamOS, so `homeConfigurations.deck` applies the
 same `home/` to its `deck` user as a standalone home-manager (`lib/mkhome.nix`,
 [Set up the Steam Deck](docs/new-deck.md)). `hosts/<name>/` adds what only that machine or
-platform can have, such as Mac apps or WSL interop. The Mac also gets Mole's `mo` CLI and the
+platform can have, such as Mac apps, WSL interop, or the Deck's `steamos-etc` services and
+declarative Steam web-app shortcuts. The Mac also gets Mole's `mo` CLI and the
 Hex app through Homebrew.
 The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
 the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to

@@ -118,6 +118,8 @@ in {
     # Declarative /etc files and system services, for the keep-list, Rex's login server and
     # the SteamOS update-hang workaround (Stage 2, docs/new-deck.md).
     inputs.steamos-etc.homeManagerModules.default
+    # Declarative web-app shortcuts in Steam Game Mode (YouTube, Twitch, Disney+, Xbox Cloud Gaming).
+    ./steam-webapps.nix
   ];
 
   programs.onepassword-secrets = {
