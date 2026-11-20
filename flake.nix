@@ -72,7 +72,12 @@
       });
       checks = self.packages;
 
-      darwinConfigurations.mac = mkSystem "mac" { system = "aarch64-darwin"; };
+      # the Macs, each with a hosts/<name>; bootstrap.sh takes the name
+      darwinConfigurations = {
+        mac-mini = mkSystem "mac-mini" { system = "aarch64-darwin"; };
+        # the employer's single sign-on (Platform SSO) is tied to this account name
+        work-macbook = mkSystem "work-macbook" { system = "aarch64-darwin"; user = "joshthomas"; };
+      };
 
       nixosConfigurations = {
         work-wsl = mkSystem "work-wsl" { system = "x86_64-linux"; };

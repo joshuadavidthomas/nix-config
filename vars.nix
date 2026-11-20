@@ -1,7 +1,7 @@
 # Values that more than one machine uses. lib/mksystem.nix passes them to every module as
 # `vars`.
 {
-  user = "josh";
+  user = "josh"; # every machine's account; a Mac can name another (`user` in flake.nix)
   name = "Josh Thomas";
   email = "josh@joshthomas.dev";
 

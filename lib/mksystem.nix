@@ -1,16 +1,18 @@
 # Builds every machine in flake.nix: NixOS (WSL, the lab boxes, VMs) or nix-darwin (the Mac).
 # Each gets the overlay, the base module for its OS in modules/, the secrets from 1Password,
 # and home-manager for vars.user with home/. hosts/<name> adds the rest, including its own
-# home.nix.
+# home.nix. `user` replaces vars.user for one machine: a Mac whose account has another name.
+# Modules get the configuration's name as `configName`, for `rebuild`.
 { self, inputs, vars }:
-name: { system }:
+name: { system, user ? vars.user }:
 let
   inherit (inputs.nixpkgs) lib;
+  vars' = vars // { inherit user; };
   os = if lib.hasSuffix "-darwin" system then "darwin" else "nixos";
   systemFunc = if os == "darwin" then inputs.nix-darwin.lib.darwinSystem else lib.nixosSystem;
 in
 systemFunc {
-  specialArgs = { inherit inputs vars; };
+  specialArgs = { inherit inputs; vars = vars'; configName = name; };
   modules = [
     {
       nixpkgs.hostPlatform = system;
@@ -29,8 +31,8 @@ systemFunc {
       home-manager.useGlobalPkgs = true; # reuse the system's pkgs
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "bak";
-      home-manager.extraSpecialArgs = { inherit inputs vars; };
-      home-manager.users.${vars.user}.imports = [ ../home ];
+      home-manager.extraSpecialArgs = { inherit inputs; vars = vars'; configName = name; };
+      home-manager.users.${user}.imports = [ ../home ];
     }
   ];
 }

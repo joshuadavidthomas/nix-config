@@ -1,4 +1,4 @@
--- Mirrors the ghostty keybinds in hosts/mac/home.nix. Every machine gets this file, because
+-- Mirrors the ghostty keybinds in modules/darwin/home.nix. Every machine gets this file, because
 -- each Rex server reads its own: a session on a lab box uses the box's copy. Apply with
 -- `rex config reload`, on the machine that runs the server.
 

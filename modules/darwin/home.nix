@@ -1,5 +1,5 @@
-{ config, osConfig, lib, pkgs, inputs, vars, ... }: {
-  # Apply ~/.nix-config, whatever this Mac is called; extra arguments pass through
+{ config, osConfig, lib, pkgs, inputs, vars, configName, ... }: {
+  # Apply this Mac's configuration from ~/.nix-config, whatever macOS calls the Mac; extra arguments pass through
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
   # (modules/secrets.nix).
   home.packages = [
@@ -20,7 +20,7 @@
       # the token to fetch private inputs (yonder)
       tokens=${lib.escapeShellArg "${config.xdg.configHome}/nix/access-tokens.conf"}
       if [ -r "$tokens" ]; then export NIX_CONFIG="$(cat "$tokens")"; fi
-      exec sudo --preserve-env=NIX_CONFIG /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#mac" "$@"
+      exec sudo --preserve-env=NIX_CONFIG /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.nix-config#${configName}" "$@"
     '')
     # Rex's own terminals get `rex` on PATH; this puts it everywhere else
     (pkgs.writeShellScriptBin "rex" ''
@@ -29,7 +29,7 @@
   ];
 
   # Rex's flake input needs pkgs.superlogical.com's login (docs/rex.md). opnix writes only the
-  # token (hosts/mac/default.nix), so this agent writes the netrc line from it, at login and
+  # token (modules/darwin/default.nix), so this agent writes the netrc line from it, at login and
   # each time opnix changes the token. Nix reads the netrc that netrc-file names, and
   # Determinate Nix names its own; this one, for you only, has no FlakeHub login, which nothing
   # here uses.
@@ -72,7 +72,8 @@
     # The agent holds more keys than sshd's MaxAuthTries (6), so name the one the lab
     # trusts (modules/nixos/server.nix) instead of letting ssh offer them all.
     settings."lab-*" = {
-      User = vars.user;
+      # the lab boxes' account, which can differ from this Mac's (flake.nix)
+      User = (import ../../vars.nix).user;
       IdentityFile = "~/.ssh/lab.pub";
       IdentitiesOnly = "yes";
     };

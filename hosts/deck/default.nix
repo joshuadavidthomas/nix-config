@@ -157,7 +157,7 @@ in {
 
   home.activation.rexNetrc = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     # Nix reads this netrc when it fetches the rex flake input (docs/rex.md). Same file and
-    # same line as the Mac's (hosts/mac/home.nix) and a lab box's (nix-credentials in
+    # same line as the Mac's (modules/darwin/home.nix) and a lab box's (nix-credentials in
     # modules/nixos/server.nix); never in the store, never in the repo. Without it, the next
     # home-manager switch fails at evaluation, before this runs, so the first one after a
     # fresh install needs the token placed first (docs/new-deck.md).

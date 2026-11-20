@@ -73,7 +73,7 @@ file. The token is kept on its own; each place writes the netrc line from it:
 
 | Where | Token | Netrc |
 | --- | --- | --- |
-| Mac | The field `password` of the item "Rex packages" in `dotfiles`. opnix writes it to `~/Library/Application Support/opnix/rexToken`. | `~/.config/nix/netrc`, written by the launchd agent `rex-netrc` at login and when the token file changes (`hosts/mac/home.nix`) |
+| Mac | The field `password` of the item "Rex packages" in `dotfiles`. opnix writes it to `~/Library/Application Support/opnix/rexToken`. | `~/.config/nix/netrc`, written by the launchd agent `rex-netrc` at login and when the token file changes (`modules/darwin/home.nix`) |
 | Lab boxes | The same field. opnix writes it to `/var/lib/opnix/secrets/rexToken`. | `/var/lib/nix-credentials/netrc`, written by `nix-credentials.service` (`modules/nixos/server.nix`) |
 | Steam Deck | The same field. opnix's home-manager module writes it to `~/.config/opnix/rexToken`. | `~/.config/nix/netrc`, written by the activation step `rexNetrc` at each apply (`hosts/deck/default.nix`) |
 | Orbs | The Amp project secret `REX_PACKAGE_TOKEN` | `~/.config/nix/netrc`, written by `.agents/resume` |

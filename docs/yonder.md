@@ -250,7 +250,7 @@ the git history).
 
 ## The CLI on the Mac
 
-The Mac gets the `yonder` CLI from the same pinned input as the boxes (`hosts/mac/home.nix`),
+The Mac gets the `yonder` CLI from the same pinned input as the boxes (`modules/darwin/home.nix`),
 so `rebuild` after a bump of `yonder` moves it too. To work the whole fabric, it reads the
 coordinator from `~/.config/yonder/config`, mode 0600, placed by hand like the boxes' files:
 

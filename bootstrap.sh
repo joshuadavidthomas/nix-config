@@ -1,10 +1,10 @@
 #!/bin/sh
-# Fresh Mac to fully configured, no arguments:
+# Fresh Mac to fully configured. The argument is the Mac's configuration in flake.nix
+# (darwinConfigurations), such as mac-mini:
 #
-#   curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- mac-mini
 #
-# Any Apple Silicon Mac gets the same `mac` configuration. Safe to rerun; each step skips
-# what's already done.
+# Safe to rerun; each step skips what's already done.
 #
 #   1. Install Determinate Nix.
 #   2. Install Homebrew with its own installer; after that it updates itself.
@@ -19,7 +19,7 @@
 set -eu
 
 flake=github:joshuadavidthomas/nix-config
-config=mac
+config=${1:-}
 op=/usr/local/bin/op
 token=/etc/opnix-token
 # the first secret that modules/secrets.nix writes on a Mac
@@ -27,6 +27,11 @@ secret="$HOME/Library/Application Support/opnix/atuinPassword"
 
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 
+if [ -z "$config" ]; then
+  echo "Name the Mac's configuration in flake.nix (darwinConfigurations):" >&2
+  echo "  curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <name>" >&2
+  exit 1
+fi
 if [ "$(uname -s)" != Darwin ]; then
   echo "bootstrap.sh handles Macs; Linux machines are installed from a Mac with nixos-anywhere." >&2
   exit 1
@@ -63,6 +68,21 @@ if ! gh auth token >/dev/null 2>&1; then
 fi
 NIX_CONFIG="access-tokens = github.com=$(gh auth token)"
 export NIX_CONFIG
+
+# The configuration must be in flake.nix on GitHub, for this account.
+names=$(nix eval --raw "$flake#darwinConfigurations" --apply 'c: toString (builtins.attrNames c)')
+case " $names " in
+  *" $config "*) ;;
+  *)
+    echo "flake.nix on GitHub has no Mac configuration $config. It has: $names" >&2
+    exit 1
+    ;;
+esac
+user=$(nix eval --raw "$flake#darwinConfigurations.$config.config.system.primaryUser")
+if [ "$user" != "$(id -un)" ]; then
+  echo "$config is for the account $user, but you are logged in as $(id -un)." >&2
+  exit 1
+fi
 
 # 4. First switch, from GitHub. darwin-rebuild comes from the nix-darwin this repo pins.
 if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then

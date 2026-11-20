@@ -23,7 +23,7 @@ The service account can read `dotfiles` and nothing else. It cannot write.
 
 ## How the secrets get to a machine
 
-`modules/secrets.nix` declares the secrets that every machine gets. `hosts/mac/default.nix`
+`modules/secrets.nix` declares the secrets that every machine gets. `modules/darwin/default.nix`
 adds the fonts and Rex's package login. `modules/nixos/server.nix` adds the signing key, the Tailscale client, the GitHub token and Rex's token of the lab boxes.
 
 opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret

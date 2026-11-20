@@ -23,10 +23,10 @@ up each machine by hand.
 
 ## Getting started
 
-Set up a new Mac:
+Set up a new Mac, after you [add it to the repo](docs/new-mac.md#add-the-mac-to-the-repo):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh
+curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <name>
 ```
 
 Then apply changes with:
@@ -60,16 +60,17 @@ Research:
 
 ## How it works
 
-`flake.nix` has one configuration for each kind of machine: `mac` for all Apple Silicon Macs,
+`flake.nix` has one configuration for each machine: `mac-mini` and `work-macbook`,
 `work-wsl`, and `lab-1`, `lab-2` and so on. `lib/mksystem.nix` builds each of them the same
 way: the overlay, the base module for the OS in `modules/`, and home-manager with `home/` for
 the user. So every machine has the same shells, tools, languages and coding agents. The Steam
 Deck is not one of these: it runs Valve's SteamOS, so `homeConfigurations.deck` applies the
 same `home/` to its `deck` user as a standalone home-manager (`lib/mkhome.nix`,
 [Set up the Steam Deck](docs/new-deck.md)). `hosts/<name>/` adds what only that machine or
-platform can have, such as Mac apps, WSL interop, or the Deck's `steamos-etc` services and
-declarative Steam web-app shortcuts. The Mac also gets Mole's `mo` CLI and the
-Hex app through Homebrew.
+machine can have, such as the Mac mini's micro-hunter services, WSL interop, or the Deck's
+`steamos-etc` services and declarative Steam web-app shortcuts. The Macs share
+`modules/darwin`, which has the Mac apps from Homebrew, Mole's `mo` CLI and the Hex app
+included. A Mac can have an account name other than `josh` (`user` in `flake.nix`).
 The lab boxes share `modules/nixos/server.nix`, which also sets up their monitoring:
 the exporters, and Vector, which reads them and tailscaled's metrics ([Homelab monitoring](docs/research/homelab-monitoring.md)). They send to
 the monitor, a Fly machine whose containers are declared in `monitor/` ([The monitor](docs/monitor.md)). Values that more than one machine

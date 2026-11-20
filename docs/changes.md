@@ -8,10 +8,11 @@
 | A tool that is already configured | The file in `home/` that configures it |
 | A coding agent, or its settings and hooks | `home/agents.nix` |
 | A tool that releases too often to pin, such as cf | The npm installs in `home/agents.nix` |
-| A tool or setting on the Mac only | `hosts/mac/home.nix` |
-| A Mac app | `homebrew.casks` in `hosts/mac/default.nix` |
-| A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `hosts/mac/default.nix` |
-| A macOS setting | `system.defaults` in `hosts/mac/default.nix` |
+| A tool or setting on every Mac | `modules/darwin/home.nix` |
+| Something that only one Mac has, such as a service | `hosts/<name>/default.nix` |
+| A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |
+| A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `modules/darwin/default.nix` |
+| A macOS setting | `system.defaults` in `modules/darwin/default.nix` |
 | A work setting | `hosts/work-wsl/home.nix`. A system setting goes in `hosts/work-wsl/default.nix`. |
 | A system setting on all NixOS machines | `modules/nixos/default.nix` |
 | A setting on all lab boxes | `modules/nixos/server.nix` |
@@ -49,11 +50,11 @@ works, merge the branch and run `ssh lab-2 rebuild`. To undo a `switch`, run
 a box shows the commit it runs.
 
 To see a value before you apply, run `nix repl`, then `:lf .`, then the option path. For
-example: `darwinConfigurations.mac.config.home-manager.users.josh.programs.git.settings`.
+example: `darwinConfigurations.mac-mini.config.home-manager.users.josh.programs.git.settings`.
 
 ### Sentry CLI on the Mac
 
-`hosts/mac/default.nix` declares the trusted `getsentry/tools` tap and
+`modules/darwin/default.nix` declares the trusted `getsentry/tools` tap and
 `getsentry/tools/sentry-cli` formula. Both pinned nixpkgs inputs have 2.58.2; Homebrew supplies
 the 3.x CLI used for app dSYM uploads. Rebuild cleanup removes undeclared Brew packages, so
 keep the formula declared rather than installing it by hand.
@@ -172,7 +173,7 @@ Apply first, so that topgrade updates what the new configuration installs.
 3. Optional: compare the new Mac configuration with the current one:
 
    ```sh
-   nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac.system)
+   nix store diff-closures /run/current-system $(nix build --no-link --print-out-paths .#darwinConfigurations.mac-mini.system)
    ```
 
 4. Apply it on each machine.

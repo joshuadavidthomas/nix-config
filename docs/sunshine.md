@@ -164,7 +164,7 @@ The two questions this plan does not pre-answer — what Game Mode capture needs
    `ExecStartPre` wait, then fail after timeout until the first session opens — that is
    correct behavior for a display-less boot, and it is the cold-reboot record this doc makes.
 6. **The Moonlight client itself** lands on the Mac in the same repo change if not installed:
-   add `moonlight` to `hosts/mac/default.nix`'s `casks`, in the same commit, so the client is
+   add `moonlight` to `modules/darwin/default.nix`'s `casks`, in the same commit, so the client is
    one `rebuild` away on whatever machine tests it.
 
 ## Apply

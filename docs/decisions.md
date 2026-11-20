@@ -5,7 +5,16 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 
 ## Machines
 
-- **One user, `josh`, on every machine.** The lab boxes add `orb`, for Amp orbs.
+- **One user, `josh`, on every machine, except a Mac with another account name.** The lab
+  boxes add `orb`, for Amp orbs. A Mac's configuration in `flake.nix` can name its own
+  account (`user`). On the lab boxes, every Mac logs in as `josh`.
+  Reason: the work MacBook's account is `joshthomas`, and the employer's single sign-on
+  (Platform SSO) is tied to it. A rename to `josh` can stop the company login.
+- **Each Mac has its own configuration, like the lab boxes.** `modules/darwin` is what every
+  Mac has; `hosts/<name>/` adds what only that Mac has, such as micro-hunter's services on
+  the Mac mini. The bootstrap takes the name.
+  Reason: one configuration for all Macs ran one Mac's services on every Mac. Every Mac,
+  the work MacBook included, gets the same tools, apps, secrets and homelab access.
 - **The Steam Deck keeps Valve's SteamOS and Valve's own `deck` user.** It is not a NixOS
   machine. `homeConfigurations.deck` applies the shared `home/` to it with standalone
   home-manager, over the official Nix installer with its Steam Deck mode. Determinate Nix
