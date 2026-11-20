@@ -16,9 +16,9 @@
 #      them alone on this Mac (modules/darwin).
 #   7. First switch, from the clone. That installs every app (1Password included) and tool.
 #      Secret-backed steps wait.
-#   8. Wait for you to sign in to 1Password and turn on its CLI integration.
-#   9. Copy the opnix token from 1Password to /etc/opnix-token, and wait for opnix to fetch
-#      the secrets (atuin, fonts, ...).
+#   8. Copy the opnix token from 1Password to /etc/opnix-token. If 1Password is not ready,
+#      say what to do in the app and wait for Enter.
+#   9. Wait for opnix to fetch the secrets (atuin, fonts, ...).
 #  10. Switch again, so that the steps that use the secrets (atuin's login) run.
 #  11. Wait for you to turn on 1Password's SSH agent. If steps 5 or 6 changed hosts/<name>,
 #      commit it (signed, as every commit is) and push.
@@ -36,11 +36,16 @@ main() {
   flake=github:joshuadavidthomas/nix-config
   dir=$HOME/.nix-config
   name=${1:-}
-  op=/usr/local/bin/op
+  opPath=/usr/local/bin/op
   token=/etc/opnix-token
   # the first secret that modules/secrets.nix writes on a Mac
   secret="$HOME/Library/Application Support/opnix/atuinPassword"
   agent="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+  # op with no terminal. Without an account, op asks on the terminal to add one, whatever its
+  # input and output are, and the wait for 1Password would ask every 5 seconds. With no
+  # terminal it fails instead. 1Password's approval is the app's window, so it still comes.
+  op() { /usr/bin/perl -MPOSIX -e 'POSIX::setsid(); exec @ARGV' "$opPath" "$@" </dev/null; }
 
   say() {
     step=$*
@@ -198,26 +203,33 @@ main() {
     sudo -H --preserve-env=NIX_CONFIG nix run --inputs-from "$flake" nix-darwin#darwin-rebuild -- switch --flake "$dir#$name" </dev/null
   fi
 
-  # 8. 1Password. `op whoami` only reports state; listing vaults is what makes 1Password ask
-  # you to approve the CLI (Touch ID), so wait on that.
-  if ! sudo test -s "$token" && ! "$op" vault list >/dev/null 2>&1; then
-    say "Sign in to 1Password, turn on Settings > Developer > Integrate with 1Password CLI, then approve the prompt"
-    open -a 1Password || true
-    printf 'Waiting for 1Password'
-    until "$op" vault list >/dev/null 2>&1; do
-      printf '.'
-      sleep 5
-    done
-    echo
-  fi
-
-  # 9. The opnix token. opnix runs as a launchd service, beside the switch, so wait for it.
+  # 8. The opnix token, from 1Password. Reading it needs three things from you: your account
+  # in the 1Password app, the app's CLI integration, and your approval (Touch ID). The read
+  # is tried first, since on a Mac where all three are done it just works; when it fails,
+  # the bootstrap says what to do and waits for Enter, then tries again.
   if ! sudo test -s "$token"; then
     say "Copying the opnix token from 1Password"
+    err=$(mktemp)
     # vars.opnixTokenArgs
-    value=$("$op" item get "Service Account Auth Token: dotfiles" --vault Private --fields credential --reveal)
+    until value=$(op item get "Service Account Auth Token: dotfiles" --vault Private --fields credential --reveal 2>"$err"); do
+      # op lists the app's accounts once the integration is on; before that, its error only
+      # says that it has none, which the steps below cover
+      if [ -n "$(op account list 2>/dev/null)" ]; then
+        echo "1Password did not give the token:" >&2
+        sed 's/^/  /' "$err" >&2
+      fi
+      open -a 1Password || true
+      echo "In the 1Password app:"
+      echo "  1. Sign in to your own account. If a company account is there, add yours."
+      echo "  2. Turn on Settings > Developer > Integrate with 1Password CLI."
+      printf 'Then press Enter here, and approve the prompt with Touch ID or your password. '
+      read -r _ </dev/tty
+    done
+    rm -f "$err"
     printf '%s\n' "$value" | sudo sh -c "umask 077; cat > $token"
   fi
+
+  # 9. The secrets. opnix runs as a launchd service, beside the switch, so wait for it.
   if [ ! -e "$secret" ]; then
     say "Waiting for opnix to fetch the secrets from 1Password"
     sudo launchctl kickstart -k system/org.nixos.opnix-secrets 2>/dev/null || true
