@@ -212,18 +212,22 @@ power settings apply.
 
 `hosts/deck/steam-webapps.nix` declares browser-backed non-Steam shortcuts for Game Mode
 (YouTube, Twitch, Disney+, Xbox Cloud Gaming), launching Flatpak `com.google.Chrome` in kiosk
-mode (YouTube uses `youtube.com/tv` with a Smart TV user agent for native controller
-navigation). `steam-webapps.service` runs before `steam-launcher.service` (the same pre-start hook as
+mode (YouTube uses `youtube.com/tv` with a Smart TV user agent for its 10-foot UI).
+`steam-webapps.service` runs before `steam-launcher.service` (the same pre-start hook as
 `steam-ac-suspend.service`), merges only the Nix-managed entries into
 `~/.local/share/Steam/userdata/<id>/config/shortcuts.vdf` (tracked in
-`nix-managed-webapps.json`), and fetches missing grid, hero, logo, and icon artwork from
-SteamGridDB into `config/grid/`.
+`nix-managed-webapps.json`), fetches missing grid, hero, logo, and icon artwork from
+SteamGridDB into `config/grid/`, and installs per-controller-type Steam Input templates
+(`nix_webapp_tv_*.vdf` for YouTube TV's arrow/Enter/Escape controls, `nix_webapp_browser_*.vdf`
+for Twitch and Disney+, leaving Xbox Cloud Gaming on Gamepad) wired into
+`Steam Controller Configs/<id>/config/configset_*.vdf`.
 
 - Existing unmanaged shortcuts (EmuDeck, Heroic, Battle.net, etc.) are left untouched.
-- Removing an app from `hosts/deck/steam-webapps.nix` removes its shortcut on the next Steam
-  start.
-- Artwork is only downloaded for empty slots, so replacing any image in Game Mode (for example
-  with `decky-steamgriddb`) persists across rebuilds and reboots.
+- Removing an app from `hosts/deck/steam-webapps.nix` removes its shortcut and its
+  `nix_webapp_*` controller configset entries on the next Steam start.
+- Artwork is only downloaded for empty slots, and controller configset entries are only written
+  when missing or already managed by `nix_webapp_*`, so any custom art or manual layout tweaks
+  made in Game Mode persist across rebuilds and reboots.
 - Network errors during artwork fetches warn and exit cleanly so an offline boot never delays
   Game Mode.
 

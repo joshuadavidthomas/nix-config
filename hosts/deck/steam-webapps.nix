@@ -18,6 +18,7 @@ let
       name,
       url,
       steamGridDbId ? null,
+      controllerLayout ? null, # "tv" (arrow keys/Enter/Esc), "browser" (mouse/scroll), or null (Gamepad)
       kiosk ? true,
       extraArgs ? [ ],
     }:
@@ -43,7 +44,7 @@ let
         ++ [ ''"${url}"'' ];
     in
     {
-      inherit name steamGridDbId;
+      inherit name steamGridDbId controllerLayout;
       # No --system/--user flag so `flatpak run` finds com.google.Chrome in either scope.
       exe = ''"/usr/bin/flatpak"'';
       startDir = ''"/usr/bin/"'';
@@ -51,7 +52,7 @@ let
     };
 
   # Smart TV user agent so youtube.com/tv serves the controller-friendly 10-foot TVHTML5 UI
-  # (native D-pad/stick + A/B navigation via Gamepad API) instead of redirecting desktop Chrome.
+  # (navigated via Arrow keys / Enter / Escape, mapped by the "tv" Steam Input template below).
   smartTvUserAgent = "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/5.0 Chrome/94.0.4606.31 TV Safari/537.36";
 
   webApps = map mkWebApp [
@@ -59,23 +60,28 @@ let
       name = "YouTube";
       url = "https://www.youtube.com/tv";
       extraArgs = [ ''"--user-agent=${smartTvUserAgent}"'' ];
+      controllerLayout = "tv";
       # SteamGridDB's autocomplete puts "YouTube VR" first; pin "YouTube (Website)".
       steamGridDbId = 36663;
     }
     {
       name = "Twitch";
       url = "https://www.twitch.tv";
+      controllerLayout = "browser";
       steamGridDbId = 5248358;
     }
     {
       name = "Disney+";
       url = "https://www.disneyplus.com";
+      controllerLayout = "browser";
       # Autocomplete drops '+' and returns Disney games; pin the streaming app entry.
       steamGridDbId = 5260961;
     }
     {
       name = "Xbox Cloud Gaming";
       url = "https://www.xbox.com/play";
+      # Leaves Steam's default Gamepad layout untouched for xCloud games.
+      controllerLayout = null;
       steamGridDbId = 5302079;
     }
   ];

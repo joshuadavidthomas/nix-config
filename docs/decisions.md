@@ -63,8 +63,11 @@ The owner made these decisions. Each one has its reason. Progress on them is in 
 - **Steam web-app shortcuts come from Nix, not NonSteamLaunchers.** `hosts/deck/steam-webapps.nix`
   declares browser-backed Game Mode shortcuts (YouTube, Twitch, Disney+, Xbox Cloud Gaming)
   launching Flatpak Chrome in kiosk mode. A home-manager user unit (`steam-webapps.service`)
-  merges only the shortcuts Nix owns into `shortcuts.vdf` before each Steam start and fetches
-  missing SteamGridDB artwork into `config/grid/` without overwriting custom images.
+  merges only the shortcuts Nix owns into `shortcuts.vdf` before each Steam start, fetches
+  missing SteamGridDB artwork into `config/grid/` without overwriting custom images, and
+  installs deterministic Steam Input controller templates (`tv` arrow/Enter/Escape for YouTube
+  TV, `browser` mouse/scroll for Twitch and Disney+) across all controller types in Steam's
+  `configset_*.vdf` files without clobbering manual layout edits.
   Reason: NonSteamLaunchers' desktop script and background scanner left untracked files and
   vendored Python modules in `~/.config/systemd/user/` just to write a few Chrome shortcuts.
   Tracking them in Nix matches `steam-ac-suspend`'s pre-start pattern, leaves all other
