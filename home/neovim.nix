@@ -22,10 +22,18 @@ in
 
   home.activation.nvimConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -e "$HOME/.config/nvim" ]; then
+      noteEcho "Cloning the Neovim config"
       run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nvim "$HOME/.config/nvim"
     fi
-    # every switch: a no-op when the venv is current, and it repairs one that a failed run left
-    run ${lib.getExe pkgs.uv} sync --quiet --project "$HOME/.config/nvim" --locked \
+    # every switch: a no-op when the venv is current, and it repairs one that a failed run left.
+    # The first one builds the venv, which takes a while, so it shows uv's progress.
+    if [ -d "$HOME/.config/nvim/.venv" ]; then
+      quiet=--quiet
+    else
+      noteEcho "Building the Neovim Python environment"
+      quiet=
+    fi
+    run ${lib.getExe pkgs.uv} sync $quiet --project "$HOME/.config/nvim" --locked \
       || warnEcho "nvim: python provider venv failed; run 'uv sync' in ~/.config/nvim"
   '';
 }

@@ -141,7 +141,8 @@ in
   home.sessionVariables.NPM_CONFIG_PREFIX = npmPrefix;
 
   # Install each agent only if it's missing; afterwards it updates itself (or T3 Code does).
-  # A failed download warns instead of failing the switch.
+  # A failed download warns instead of failing the switch. Each install says what it does
+  # first: the installers print little, and npm nothing until it is done.
   home.activation.codingAgents = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     (
       # installers check PATH for their bin dir; without it Codex's tries to edit
@@ -150,23 +151,27 @@ in
       export NPM_CONFIG_PREFIX="${npmPrefix}"
 
       if [ ! -x "$HOME/.local/bin/claude" ]; then
+        noteEcho "Installing Claude Code"
         run ${pkgs.bash}/bin/bash -c 'curl -fsSL https://claude.ai/install.sh | bash' \
           || warnEcho "Claude Code install failed; rerun the switch to retry"
       fi
 
       # binary in ~/.amp/bin, symlinked into ~/.local/bin
       if [ ! -x "$HOME/.local/bin/amp" ]; then
+        noteEcho "Installing Amp"
         run ${pkgs.bash}/bin/bash -c 'curl -fsSL https://ampcode.com/install.sh | bash' \
           || warnEcho "Amp install failed; rerun the switch to retry"
       fi
 
       if [ ! -x "$HOME/.local/bin/codex" ]; then
+        noteEcho "Installing Codex"
         CODEX_NON_INTERACTIVE=1 run ${pkgs.bash}/bin/bash -c 'curl -fsSL https://chatgpt.com/codex/install.sh | sh' \
           || warnEcho "Codex install failed; rerun the switch to retry"
       fi
 
       for pkg in @opencode/cli @earendil-works/pi-coding-agent cf; do
         if [ ! -d "$NPM_CONFIG_PREFIX/lib/node_modules/$pkg" ]; then
+          noteEcho "Installing $pkg with npm"
           run npm install -g --prefix "$NPM_CONFIG_PREFIX" --allow-scripts="$pkg" "$pkg" \
             || warnEcho "$pkg install failed; rerun the switch to retry"
         fi
