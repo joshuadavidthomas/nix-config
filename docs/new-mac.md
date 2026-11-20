@@ -96,15 +96,9 @@ configuration does not touch them.
 2. Compare the list with `brews` and `casks` in `modules/darwin/default.nix`. The first switch
    removes each item that is not declared there. If the employer needs one of them, ask IT
    before you continue.
-3. Find the apps in `/Applications` that a cask in `casks` also installs, for example
-   1Password or Microsoft Teams. Homebrew does not install a cask over an app that is
-   already there, and the switch stops. For each of these apps, let Homebrew take it over:
-
-   ```sh
-   brew install --cask --adopt microsoft-teams
-   ```
-
-   If IT manages the app, ask IT before Homebrew takes it over.
+3. Apps in `/Applications` that a cask in `casks` also installs, for example 1Password or
+   Microsoft Teams, need no action. The switch adopts them: Homebrew takes over the app that
+   is there. If IT manages one of these apps, ask IT before the first switch.
 
 ### Then
 
@@ -151,7 +145,7 @@ The Mac also installs Hex from the `anomalyco/tap` Homebrew tap.
 | `$HOME ('/Users/josh') is not owned by you` | `sudo` without `-H` | Use `sudo -H` |
 | `No "base" settings found` from xcodegen | The user profile does not link `share/xcodegen` | Add it to `environment.pathsToLink` in `modules/darwin/default.nix`. Apply again. |
 | `reddit-proxy.joshthomas.dev` returns 530 | The `micro-hunter-tunnel` daemon on the Mac mini is down | `sudo launchctl print system/org.nixos.micro-hunter-tunnel`, and `~/Library/Application Support/micro-hunter/tunnel.log` |
-| `It seems there is already an App at '/Applications/…'` | The app was installed outside Homebrew | `brew install --cask --adopt <cask>`, then apply again |
+| `The bundle version of … is … but is … for /Applications/…` | An app that was installed outside Homebrew has a different version from the cask, and the cask does not update itself, so Homebrew does not adopt it | Delete the app from `/Applications`, then apply again |
 | `flake.nix on GitHub has no Mac configuration …` | The Mac is not in `flake.nix` on GitHub | [Add the Mac to the repo](#add-the-mac-to-the-repo), push, and run the bootstrap again |
 | `… is for the account …, but you are logged in as …` | The `user` of the configuration is not this account | Log in to the right account, or correct `user` in `flake.nix` |
 | `existing user '…' has unexpected uid` | The account is not uid 501 | No action. The login shell stays as it was. See [Check the account](#check-the-account). |
