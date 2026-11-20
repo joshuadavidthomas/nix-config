@@ -51,8 +51,10 @@ Setup Assistant starts when you turn on the Mac.
 2. Make sure that the account is an administrator. The bootstrap uses `sudo`. If the account
    is a standard user, ask IT for administrator access.
 3. Open System Settings > Touch ID & Password, and do both of these:
-   - If IT set the password, change it to your own. Find out first if the company login
-     owns the password:
+   - If IT set the password, change it to your own. Do this before you sign in to iCloud:
+     iCloud uses the login password to protect saved passwords and other encrypted data.
+     After a later change, macOS asks once for the old password. Find out first if the
+     company login owns the password:
 
      ```sh
      app-sso platform -s | grep '"loginType"'
