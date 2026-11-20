@@ -1,11 +1,14 @@
-# Declarative web-app shortcuts in Steam Game Mode (YouTube, Twitch, Disney+, Xbox Cloud Gaming).
-# Replaces NonSteamLaunchers' browser-shortcut flow without a Decky plugin or a background scanner:
+# Declarative streaming/web-app shortcuts in Steam Game Mode (YouTube via VacuumTube, plus
+# Twitch, Disney+, and Xbox Cloud Gaming via Flatpak Chrome).
+# Replaces NonSteamLaunchers' shortcut flow without a Decky plugin or a background scanner:
 # a oneshot user unit merges only the shortcuts declared here into Steam's shortcuts.vdf before
-# steam-launcher.service starts, and fetches any missing SteamGridDB artwork into config/grid/.
+# steam-launcher.service starts, fetches missing SteamGridDB artwork into config/grid/, sets
+# ResolutionOverride = Native in localconfig.vdf, and wires Steam Input templates for browser
+# apps across all controller types.
 #
-# Artwork is only downloaded for empty slots, so replacing an image in Game Mode (e.g. with
-# decky-steamgriddb) sticks across rebuilds and reboots. Changes take effect at the next Steam
-# start (reboot or restart Steam), matching steam-ac-suspend.service.
+# Artwork is only downloaded for empty slots, and controller/resolution overrides are only
+# written when unset or Nix-managed, so customizations made in Game Mode stick across rebuilds
+# and reboots. Changes take effect at the next Steam start (reboot or restart Steam).
 {
   config,
   lib,
@@ -54,39 +57,71 @@ let
       resolutionOverride = "Native";
     };
 
-  # Modern TV/console user agent so youtube.com/tv serves the 10-foot TVHTML5 UI without
-  # triggering YouTube's deprecated-browser banner (older Tizen/SamsungBrowser UAs do).
-  smartTvUserAgent = "Mozilla/5.0 (PlayStation 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Cobalt/25.lts.1";
-
-  webApps = map mkWebApp [
+  mkFlatpakApp =
     {
+      name,
+      appId,
+      command ? null,
+      steamGridDbId ? null,
+      controllerLayout ? null,
+      extraArgs ? [ ],
+    }:
+    let
+      flags =
+        [
+          "run"
+          "--branch=stable"
+          "--arch=x86_64"
+        ]
+        ++ lib.optionals (command != null) [ "--command=${command}" ]
+        ++ [
+          "--file-forwarding"
+          appId
+          "@@u"
+          "@@"
+        ]
+        ++ extraArgs;
+    in
+    {
+      inherit name steamGridDbId controllerLayout;
+      exe = ''"/usr/bin/flatpak"'';
+      startDir = ''"/usr/bin/"'';
+      launchOptions = lib.concatStringsSep " " flags;
+      resolutionOverride = "Native";
+    };
+
+  webApps = [
+    # VacuumTube wraps YouTube Leanback cleanly (no UA-spoofing deprecation banner or low-res
+    # thumbnails, native gamepad support, built-in adblock/SponsorBlock).
+    (mkFlatpakApp {
       name = "YouTube";
-      url = "https://www.youtube.com/tv";
-      extraArgs = [ ''"--user-agent=${smartTvUserAgent}"'' ];
-      controllerLayout = "tv";
+      appId = "rocks.shy.VacuumTube";
+      command = "startvacuumtube";
+      extraArgs = [ "--fullscreen" ];
+      controllerLayout = null;
       # SteamGridDB's autocomplete puts "YouTube VR" first; pin "YouTube (Website)".
       steamGridDbId = 36663;
-    }
-    {
+    })
+    (mkWebApp {
       name = "Twitch";
       url = "https://www.twitch.tv";
       controllerLayout = "browser";
       steamGridDbId = 5248358;
-    }
-    {
+    })
+    (mkWebApp {
       name = "Disney+";
       url = "https://www.disneyplus.com";
       controllerLayout = "browser";
       # Autocomplete drops '+' and returns Disney games; pin the streaming app entry.
       steamGridDbId = 5260961;
-    }
-    {
+    })
+    (mkWebApp {
       name = "Xbox Cloud Gaming";
       url = "https://www.xbox.com/play";
       # Leaves Steam's default Gamepad layout untouched for xCloud games.
       controllerLayout = null;
       steamGridDbId = 5302079;
-    }
+    })
   ];
 
   appsConfig = pkgs.writeText "steam-webapps.json" (
