@@ -96,9 +96,11 @@ configuration does not touch them.
 2. Compare the list with `brews` and `casks` in `modules/darwin/default.nix`. The first switch
    removes each item that is not declared there. If the employer needs one of them, ask IT
    before you continue.
-3. Apps in `/Applications` that a cask in `casks` also installs, for example 1Password or
-   Microsoft Teams, need no action. The switch adopts them: Homebrew takes over the app that
-   is there. If IT manages one of these apps, ask IT before the first switch.
+3. Apps in `/Applications` that a cask in `casks` also installs, for example 1Password,
+   need no action. The switch adopts them: Homebrew records the app as its own and does not
+   change it. A cask that installs with a `.pkg`, such as `microsoft-teams`, installs over
+   the app. After this, `brew upgrade` updates these apps, and if you remove the cask from
+   `casks`, the next switch uninstalls the app.
 
 ### Then
 
