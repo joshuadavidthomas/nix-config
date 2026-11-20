@@ -38,6 +38,7 @@ SGDB_HEADERS = {
 IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".webp", ".ico")
 
 CONTROLLER_TYPES = (
+    "controller_steamcontroller_gordon",
     "controller_xbox360",
     "controller_xboxone",
     "controller_xboxelite",
@@ -46,8 +47,14 @@ CONTROLLER_TYPES = (
     "controller_ps4",
     "controller_switch_pro",
     "controller_neptune",
+    "controller_generic",
 )
-TRACKPAD_CONTROLLERS = {
+LEFT_TRACKPAD_CONTROLLERS = {
+    "controller_steamcontroller_gordon",
+    "controller_neptune",
+}
+RIGHT_TRACKPAD_CONTROLLERS = {
+    "controller_steamcontroller_gordon",
     "controller_neptune",
     "controller_ps4",
     "controller_ps5",
@@ -240,8 +247,8 @@ def _binding_block(input_name: str, binding: str, extra_settings: dict[str, str]
 
 def render_controller_template(layout: str, controller_type: str) -> str:
     filename = f"nix_webapp_{layout}_{controller_type}.vdf"
-    has_trackpad = controller_type in TRACKPAD_CONTROLLERS
-    rpad_state = "right_trackpad active" if has_trackpad else "right_trackpad inactive"
+    lpad_state = "left_trackpad active" if controller_type in LEFT_TRACKPAD_CONTROLLERS else "left_trackpad inactive"
+    rpad_state = "right_trackpad active" if controller_type in RIGHT_TRACKPAD_CONTROLLERS else "right_trackpad inactive"
 
     if layout == "tv":
         title = "Nix Web App (TV / Remote)"
@@ -311,6 +318,20 @@ def render_controller_template(layout: str, controller_type: str) -> str:
 \t\t"inputs"
 \t\t{{
 {chr(10).join(face)}
+\t\t}}
+\t}}
+\t"group"
+\t{{
+\t\t"id"\t\t"1"
+\t\t"mode"\t\t"dpad"
+\t\t"inputs"
+\t\t{{
+{chr(10).join(dpad)}
+\t\t}}
+\t\t"settings"
+\t\t{{
+\t\t\t"requires_click"\t\t"0"
+\t\t\t"layout"\t\t"0"
 \t\t}}
 \t}}
 \t"group"
@@ -398,6 +419,7 @@ def render_controller_template(layout: str, controller_type: str) -> str:
 \t\t"group_source_bindings"
 \t\t{{
 \t\t\t"0"\t\t"button_diamond active"
+\t\t\t"1"\t\t"{lpad_state}"
 \t\t\t"2"\t\t"{rpad_state}"
 \t\t\t"3"\t\t"joystick active"
 \t\t\t"4"\t\t"left_trigger active"
