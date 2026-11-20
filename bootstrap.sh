@@ -126,14 +126,21 @@ if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
   ours=$(/opt/homebrew/bin/brew list --cask -1 2>/dev/null || true)
   receipts=$(pkgutil --pkgs)
   found=
+  info=$(mktemp)
   list=$(mktemp)
-  # one line per cask: token;app|app;pkg|pkg
+  # Not a pipe: set -e sees only a pipe's last command, and a failed brew info would leave
+  # the list empty, and let the first switch take over the apps.
   # shellcheck disable=SC2086 # one word per cask
-  /opt/homebrew/bin/brew info --cask --json=v2 $casks |
-    jq -r '.casks[] | [.token,
-      ([.artifacts[] | .app? // empty | .[] | strings | split("/") | last] | join("|")),
-      ([.artifacts[] | .uninstall? // empty | .[] | .pkgutil? // empty] | flatten | join("|"))] | join(";")' \
-    > "$list"
+  /opt/homebrew/bin/brew info --cask --json=v2 $casks > "$info"
+  # one line per cask: token;app|app;pkg|pkg
+  jq -r '.casks[] | [.token,
+    ([.artifacts[] | .app? // empty | .[] | strings | split("/") | last] | join("|")),
+    ([.artifacts[] | .uninstall? // empty | .[] | .pkgutil? // empty] | flatten | join("|"))] | join(";")' \
+    < "$info" > "$list"
+  if [ "$(wc -l < "$list")" -ne "$(printf '%s\n' $casks | wc -l)" ]; then
+    echo "brew info did not describe every cask; stopping before the first switch." >&2
+    exit 1
+  fi
   while IFS=';' read -r token apps pkgs; do
     printf '%s\n' "$ours" | grep -qx "$token" && continue
     hit=
@@ -151,7 +158,7 @@ if [ ! -x /run/current-system/sw/bin/darwin-rebuild ]; then
       if [ "${cask##*/}" = "$token" ]; then found="$found $cask"; fi
     done
   done < "$list"
-  rm -f "$list"
+  rm -f "$info" "$list"
   if [ -n "$found" ]; then
     say "Homebrew leaves these apps alone on this Mac:$found"
     # shellcheck disable=SC2086 # one word per cask
