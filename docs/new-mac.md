@@ -53,7 +53,7 @@ Setup Assistant starts when you turn on the Mac.
 3. Open System Settings > Touch ID & Password, and do both of these:
    - If IT set the password, change it to your own. Do this before you sign in to iCloud:
      iCloud uses the login password to protect saved passwords and other encrypted data.
-     After a later change, macOS asks once for the old password. Find out first if the
+     After a later change, macOS can ask for the old password once. Find out first if the
      company login owns the password:
 
      ```sh
