@@ -37,7 +37,21 @@ token=/etc/opnix-token
 secret="$HOME/Library/Application Support/opnix/atuinPassword"
 agent="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
-say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
+say() {
+  step=$*
+  printf '\n\033[1m==> %s\033[0m\n' "$*"
+}
+# set -e ends the script at the first failed command, and under `curl | sh` the terminal then
+# shows only a prompt, which looks like a finished bootstrap. Say where it stopped.
+step="Checking the Mac"
+stopped() {
+  status=$?
+  if [ "$status" -ne 0 ]; then
+    printf '\n\033[1;31m==> The bootstrap stopped at: %s (exit %s)\033[0m\n' "$step" "$status" >&2
+    echo "The error is above. Fix it and run the bootstrap again; it skips what is done." >&2
+  fi
+}
+trap stopped EXIT
 
 case "$name" in
   "" | *[!a-z0-9-]*)
