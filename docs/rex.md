@@ -4,6 +4,17 @@
 Superlogical. Each lab box runs its Linux server, from the Rex flake's NixOS module, so Rex for
 Mac and Rex for iOS can open sessions on the boxes. The reasons are in [Decisions](decisions.md#rex).
 
+## Rex for Mac
+
+Every Mac gets Rex for Mac. It is a beta, with no Homebrew cask and no Nix package: testers
+download it after a Discord login, and the app then updates itself from Superlogical's Sparkle
+feed. When the app is missing, the switch installs it from that feed: the newest DMG, only if
+the app's signature is valid and from Superlogical's Developer ID team (`AG92C3PT77`). The
+step is `rexApp` in `modules/darwin/home.nix`. It installs `/Applications/Rex.app`; an older
+copy named `Rex Beta.app` also counts, and the `rex` command uses whichever is there.
+
+If the install fails, the switch warns and continues. Apply again to retry.
+
 ## What each box runs
 
 `modules/nixos/server.nix` turns on Rex's login server, `rex-login-server.service`:
