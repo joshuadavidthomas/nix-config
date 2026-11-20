@@ -72,13 +72,14 @@ an employer, go to [Use a Mac that is already set up](#use-a-mac-that-is-already
    app-sso platform -s | grep -i logintype
    ```
 
-   - `POLoginTypePassword`: Platform SSO syncs the login password with your company
-     password. Change the company password in the company's account portal. At the next
-     login, macOS asks for the new password and updates the Mac. Do not change the password
-     in System Settings: the next sync replaces it.
-   - Any other result, or no output: open System Settings > Users & Groups, select **i**
-     next to your account, and select **Change Password**. macOS also changes the login
-     keychain and FileVault password.
+   - `"loginType" : "POLoginTypePassword …"`: Platform SSO syncs the login password with
+     your company password. Change the company password in the company's account portal. At
+     the next login, macOS asks for the new password and updates the Mac. Do not change the
+     password in System Settings: the next sync replaces it.
+   - `"loginType" : "POLoginTypeUserSecureEnclaveKey …"`, or no output: the login password
+     is the Mac's own. Platform SSO uses a key in the Secure Enclave, not the password. Open
+     System Settings > Users & Groups, select **i** next to your account, and select
+     **Change Password**. macOS also changes the login keychain and FileVault password.
 
    The bootstrap uses this password for `sudo`.
 6. Install all software updates.
