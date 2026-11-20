@@ -212,7 +212,8 @@ power settings apply.
 
 `hosts/deck/steam-webapps.nix` declares browser-backed non-Steam shortcuts for Game Mode
 (YouTube, Twitch, Disney+, Xbox Cloud Gaming), launching Flatpak `com.google.Chrome` in kiosk
-mode. `steam-webapps.service` runs before `steam-launcher.service` (the same pre-start hook as
+mode (YouTube uses `youtube.com/tv` with a Smart TV user agent for native controller
+navigation). `steam-webapps.service` runs before `steam-launcher.service` (the same pre-start hook as
 `steam-ac-suspend.service`), merges only the Nix-managed entries into
 `~/.local/share/Steam/userdata/<id>/config/shortcuts.vdf` (tracked in
 `nix-managed-webapps.json`), and fetches missing grid, hero, logo, and icon artwork from

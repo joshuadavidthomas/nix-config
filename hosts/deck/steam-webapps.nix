@@ -50,10 +50,15 @@ let
       launchOptions = lib.concatStringsSep " " chromeFlags;
     };
 
+  # Smart TV user agent so youtube.com/tv serves the controller-friendly 10-foot TVHTML5 UI
+  # (native D-pad/stick + A/B navigation via Gamepad API) instead of redirecting desktop Chrome.
+  smartTvUserAgent = "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/5.0 Chrome/94.0.4606.31 TV Safari/537.36";
+
   webApps = map mkWebApp [
     {
       name = "YouTube";
-      url = "https://www.youtube.com";
+      url = "https://www.youtube.com/tv";
+      extraArgs = [ ''"--user-agent=${smartTvUserAgent}"'' ];
       # SteamGridDB's autocomplete puts "YouTube VR" first; pin "YouTube (Website)".
       steamGridDbId = 36663;
     }
