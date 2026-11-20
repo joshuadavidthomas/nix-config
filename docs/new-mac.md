@@ -9,8 +9,6 @@ the Mac to the repo and pushes the change.
 - A Mac with Apple Silicon
 - Your 1Password account
 - Your Apple Account. On a Mac that an employer set up, it is optional.
-- A name for the Mac, of lowercase letters, digits and `-`, such as `mac-mini`. For a Mac
-  that is already in the repo, use its name in `hosts/`.
 
 ## 1. Prepare macOS
 
@@ -96,8 +94,14 @@ adopt, update or remove them on this Mac.
 
 ## 2. Run the bootstrap
 
-1. Open Terminal.
-2. Run the bootstrap with the Mac's name:
+1. Select the Mac's name. The repo knows each Mac by a name, the directory
+   `hosts/<name>/` (see [How the repo knows a Mac](#how-the-repo-knows-a-mac)).
+   - A Mac that is already in the repo, such as the work MacBook: use its name. The Macs are
+     the directories in [`hosts/`](https://github.com/joshuadavidthomas/nix-config/tree/main/hosts)
+     that have a `mac.json`, for example `mac-mini` and `work-macbook`.
+   - A new Mac: select a new name, of lowercase letters, digits and `-`, such as
+     `macbook-air`. The bootstrap adds the Mac to the repo with this name.
+2. Open Terminal, and run the bootstrap with the name in place of `<name>`:
 
    ```sh
    curl -fsSL https://raw.githubusercontent.com/joshuadavidthomas/nix-config/main/bootstrap.sh | sh -s -- <name>
