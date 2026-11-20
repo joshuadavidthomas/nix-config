@@ -54,7 +54,18 @@ an employer, go to [Use a Mac that is already set up](#use-a-mac-that-is-already
    is a standard user, ask IT for administrator access.
 3. If the Mac has Touch ID and no fingerprint, add one in System Settings > Touch ID &
    Password.
-4. Install all software updates.
+4. Sign in with your Apple Account, if it is not signed in. The configuration does not need
+   it, so select one of these:
+   - App Store only: open the App Store, then select Store > Sign In. No iCloud data comes
+     to the Mac.
+   - iCloud: open System Settings and select **Sign in** at the top of the sidebar. `memo`
+     and `remindctl` then work with your Apple Notes and Reminders.
+
+   On a Mac that an employer manages, IT holds the FileVault recovery key and can erase the
+   Mac. Data that iCloud syncs to the Mac is on a computer that IT controls. IT can also
+   block iCloud with a profile: `sudo profiles show | grep -i -E 'icloud|allowCloud'` shows
+   no lines when there is no such profile.
+5. Install all software updates.
 
 Apps that IT installed stay IT's. The bootstrap finds them and records them in
 `preinstalledCasks`, so Homebrew does not install, adopt, update or remove them on this Mac.
