@@ -135,8 +135,8 @@ adopt, update or remove them on this Mac.
 12. Open a new terminal. From now on, `rebuild` applies changes.
 13. Tinycast starts after the second switch. Command-Space opens it; the switch turns off
     Spotlight's shortcut. The switch also installs Tinycast's extensions from the Raycast
-    Store. Complete its onboarding, and give it the access that it asks for. Then sign in to
-    the extensions that ask for it, such as GitHub and Kagi.
+    Store, with their preferences and the GitHub and Kagi tokens from 1Password. Complete its
+    onboarding, and give it the access that it asks for. Sign in to Linear in Tinycast.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.

@@ -1,6 +1,8 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   app = "/Applications/Tinycast.app";
+  # opnix writes these (modules/darwin/default.nix).
+  secret = name: "${config.home.homeDirectory}/Library/Application Support/opnix/${name}";
   extensions = [
     "khasbilegt/1password"
     "josephschmitt/gif-search"
@@ -43,13 +45,26 @@ in
 
   # The extensions, from the Raycast Store, as handle/name: the store's lookup key, the
   # manifest's owner or author. An install downloads the zip that the store built, the same as
-  # Tinycast's own store install (tinycast-extensions.py); Tinycast then updates them. Their
-  # preferences and sign-ins are set in Tinycast.
+  # Tinycast's own store install; Tinycast then updates them. The preferences are the ones that
+  # differ from the extensions' defaults on the Mac mini, and the tokens come from 1Password
+  # through opnix. Linear signs in with OAuth, in Tinycast. See tinycast-extensions.py.
   home.activation.tinycastExtensions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -d ${app} ]; then
       SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
-        run ${lib.getExe pkgs.python3} ${./tinycast-extensions.py} ${lib.escapeShellArgs extensions} \
-        || warnEcho "tinycast: could not install the extensions; run 'rebuild' again"
+        run ${lib.getExe pkgs.python3} ${./tinycast-extensions.py} ${pkgs.writeText "tinycast-extensions.json" (builtins.toJSON {
+          inherit extensions;
+          preferences = {
+            "1password".version.string = "v8";
+            github.application.string = "/Applications/Zed.app";
+            github.baseClonePath.string = "${config.home.homeDirectory}/Code";
+          };
+          secrets = {
+            github.personalAccessToken = secret "tinycastGithubToken";
+            kagi-search.token = secret "tinycastKagiSessionLink";
+            kagi-search.apiKey = secret "tinycastKagiApiKey";
+          };
+        })} \
+        || warnEcho "tinycast: could not set up the extensions; run 'rebuild' again"
     fi
   '';
 

@@ -148,7 +148,20 @@ in
         owner = vars.user;
         group = "staff";
       };
-    };
+    }
+    # The tokens of Tinycast's extensions (modules/darwin/tinycast.nix).
+    // lib.mapAttrs
+      (name: field: {
+        reference = "op://dotfiles/Tinycast extensions/${field}";
+        path = "${config.users.users.${vars.user}.home}/Library/Application Support/opnix/${name}";
+        owner = vars.user;
+        group = "staff";
+      })
+      {
+        tinycastGithubToken = "github-token";
+        tinycastKagiSessionLink = "kagi-session-link";
+        tinycastKagiApiKey = "kagi-api-key";
+      };
 
   home-manager.users.${vars.user}.imports = [ ./home.nix ];
 

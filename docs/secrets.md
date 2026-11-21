@@ -17,6 +17,7 @@ and a 1Password service account. The reasons are in [Decisions](decisions.md#sec
 | The Tailscale OAuth client of the lab boxes | 1Password, the item "Homelab Tailscale OAuth" in `dotfiles` |
 | The GitHub token of the lab boxes, to fetch yonder | 1Password, the field `password` of the item "Lab GitHub token" in `dotfiles`. Each box writes it into `/var/lib/nix-credentials/access-tokens.conf`, which `wheel` can read: `/etc/nix/nix.conf` includes it, and Nix ignores all of `nix.conf` for a user who cannot look inside `/var/lib/nix-credentials`. |
 | Rex's package token | 1Password, the field `password` of the item "Rex packages" in `dotfiles`. The Mac writes it into `~/.config/nix/netrc`, a lab box into `/var/lib/nix-credentials/netrc`. Orbs get it from the Amp project secret `REX_PACKAGE_TOKEN`. See [Rex](rex.md#the-package-login). |
+| The tokens of Tinycast's extensions on the Macs | 1Password, the fields `github-token`, `kagi-session-link` and `kagi-api-key` of the item "Tinycast extensions" in `dotfiles`. `modules/darwin/tinycast.nix` writes them into the extensions' preferences. |
 | yonder's coordinator token and each lab box's Cloudflare Access service token | `/etc/yonder/coordinator.env` on each lab box, placed by hand, not by opnix. See [yonder](yonder.md#the-files-on-each-box). |
 
 The service account can read `dotfiles` and nothing else. It cannot write.
@@ -24,7 +25,7 @@ The service account can read `dotfiles` and nothing else. It cannot write.
 ## How the secrets get to a machine
 
 `modules/secrets.nix` declares the secrets that every machine gets. `modules/darwin/default.nix`
-adds the fonts and Rex's package login. `modules/nixos/server.nix` adds the signing key, the Tailscale client, the GitHub token and Rex's token of the lab boxes.
+adds the fonts, Rex's package login and the tokens of Tinycast's extensions. `modules/nixos/server.nix` adds the signing key, the Tailscale client, the GitHub token and Rex's token of the lab boxes.
 
 opnix runs as a system service: systemd on NixOS, launchd on a Mac. It fetches every secret
 when its list of secrets changes and when the machine starts. An apply does not wait for it,
