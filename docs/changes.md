@@ -26,6 +26,10 @@
 
 ## Apply a change
 
+`~/.nix-config` is a jj repo, colocated with git, on every machine: the switch makes it one
+(`home/nix.nix`). Use jj or git in it. Nix sees only the files that git tracks. jj adds a new
+file to git's index at its next command, such as `jj st`; with git, run `git add`.
+
 1. Run `nix flake check`. It builds the packages in `pkgs/` and runs ShellCheck on every
    shell script in the repo, found by its `#!` line.
 2. Apply:

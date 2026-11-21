@@ -8,10 +8,20 @@ let
 in
 {
   # The config itself, checked out where you edit it and switch from. On a Mac, bootstrap.sh
-  # clones it before the first switch; a machine without it gets it here.
-  home.activation.nixConfigCheckout = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ ! -e "$HOME/.nix-config" ]; then
-      run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nix-config "$HOME/.nix-config"
+  # clones it before the first switch; a machine without it gets it here. It is a jj repo,
+  # colocated with git: jj and git both work in it, and Nix reads git's tracked files. After
+  # linkGeneration, so that jj has its config (home/git.nix).
+  home.activation.nixConfigCheckout = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    dir="$HOME/.nix-config"
+    if [ ! -e "$dir" ]; then
+      noteEcho "Cloning the nix config to ~/.nix-config"
+      run ${lib.getExe pkgs.git} clone https://github.com/joshuadavidthomas/nix-config "$dir"
+    fi
+    if [ -d "$dir/.git" ] && [ ! -d "$dir/.jj" ]; then
+      # init also sets trunk() to main@origin
+      noteEcho "Making ~/.nix-config a jj repo, colocated with git"
+      run ${lib.getExe config.programs.jujutsu.package} git init --colocate "$dir"
+      run ${lib.getExe config.programs.jujutsu.package} -R "$dir" bookmark track main@origin
     fi
   '';
 
