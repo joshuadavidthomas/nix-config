@@ -39,6 +39,16 @@ its own copy back when it quits.
 Rex's own host list, which `rex hosts` and `rex.host` in `init.lua` change, is a different
 list. This version of Rex for Mac does not show it.
 
+## Rex in the coding agents
+
+On every machine that has Rex, the switch runs `rex skill setup`, which is what the Install
+button in Rex for Mac's onboarding does. It installs Rex's skill in `~/.agents/skills/rex`
+and `~/.claude/skills/rex`, and its session hook in `~/.claude/settings.json` and
+`~/.codex/hooks.json`. The skill only tells the agent to run `rex __internal skill`, so an
+update of Rex also updates what the agents are told. The step is `rexSkill` in
+`home/agents.nix`. It runs after the agents and Rex for Mac are installed, and changes nothing
+when all is current.
+
 ## What each box runs
 
 `modules/nixos/server.nix` turns on Rex's login server, `rex-login-server.service`:

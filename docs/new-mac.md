@@ -137,6 +137,8 @@ adopt, update or remove them on this Mac.
     Spotlight's shortcut. The switch also installs Tinycast's extensions from the Raycast
     Store, with their preferences and the GitHub and Kagi tokens from 1Password. Complete its
     onboarding, and give it the access that it asks for. Sign in to Linear in Tinycast.
+14. Open Rex and complete its onboarding. The switch already installed Rex's agent skill.
+    Give Rex the access that it asks for.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.

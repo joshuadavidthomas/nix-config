@@ -187,6 +187,21 @@ in
   home.activation.claudeSettings = mergeAgentJson "ClaudeSettings" "$HOME/.claude/settings.json" claudeSettings;
   home.activation.codexHooks = mergeAgentJson "CodexHooks" "$HOME/.codex/hooks.json" codexHooks;
 
+  # Rex's skill and its session hook in each agent (docs/rex.md): what the Install button in
+  # Rex for Mac's onboarding does. rex adds its hook to the files merged above and keeps the
+  # rest; a run that finds everything current changes nothing. It runs after the agents and
+  # Rex for Mac are installed, so that it finds them. A machine without Rex skips it.
+  home.activation.rexSkill = lib.hm.dag.entryAfter [ "writeBoundary" "codingAgents" "rexApp" "claudeSettings" "codexHooks" ] ''
+    for rex in ${config.home.profileDirectory}/bin/rex /run/current-system/sw/bin/rex; do
+      # on a Mac, the rex wrapper fails when Rex for Mac is not installed
+      if [ -x "$rex" ] && "$rex" version >/dev/null 2>&1; then
+        run --quiet "$rex" skill setup --autostart=false \
+          || warnEcho "rex skill setup failed; rerun the switch to retry"
+        break
+      fi
+    done
+  '';
+
   xdg.configFile."opencode/plugins/atuin.ts".source = ./files/opencode-atuin.ts;
   home.file.".pi/agent/extensions/atuin.ts".source = ./files/pi-atuin.ts;
 }
