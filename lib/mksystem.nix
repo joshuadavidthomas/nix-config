@@ -3,9 +3,10 @@
 # and home-manager for vars.user with home/. hosts/<name>/default.nix adds the rest, including
 # its own home.nix; a Mac can do without one. `user` replaces vars.user for one machine: a Mac
 # whose account has another name.
-# Modules get the configuration's name as `configName`, for `rebuild`.
+# Modules get the configuration's name as `configName`, for `rebuild`, and the machine's name
+# on the tailnet as `tailnetName`: the configuration's name, unless the machine sets another.
 { self, inputs, vars }:
-name: { system, user ? vars.user }:
+name: { system, user ? vars.user, tailnetName ? name }:
 let
   inherit (inputs.nixpkgs) lib;
   vars' = vars // { inherit user; };
@@ -13,7 +14,7 @@ let
   systemFunc = if os == "darwin" then inputs.nix-darwin.lib.darwinSystem else lib.nixosSystem;
 in
 systemFunc {
-  specialArgs = { inherit inputs; vars = vars'; configName = name; };
+  specialArgs = { inherit inputs tailnetName; vars = vars'; configName = name; };
   modules = [
     {
       nixpkgs.hostPlatform = system;
@@ -32,7 +33,7 @@ systemFunc {
       home-manager.useGlobalPkgs = true; # reuse the system's pkgs
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "bak";
-      home-manager.extraSpecialArgs = { inherit inputs; vars = vars'; configName = name; };
+      home-manager.extraSpecialArgs = { inherit inputs tailnetName; vars = vars'; configName = name; };
       home-manager.users.${user}.imports = [ ../home ];
     }
   ];

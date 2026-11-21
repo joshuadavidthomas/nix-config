@@ -12,6 +12,7 @@
 | Something that only one Mac has, such as a service | `hosts/<name>/default.nix` |
 | A Mac's account, or the apps that Homebrew leaves alone on it | `hosts/<name>/mac.json` |
 | Rex for Mac: its servers, themes or settings | `modules/darwin/rex.nix` |
+| Tailscale's settings on the Macs | `modules/darwin/tailscale.nix` |
 | A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |
 | A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `modules/darwin/default.nix` |
 | A macOS setting | `system.defaults` in `modules/darwin/default.nix` |

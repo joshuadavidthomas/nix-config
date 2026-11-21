@@ -20,7 +20,8 @@
 #      say what to do in the app and wait for Enter.
 #   9. Wait for opnix to fetch the secrets (atuin, fonts, ...).
 #  10. Switch again, so that the steps that use the secrets (atuin's login) run.
-#  11. Wait for you to turn on 1Password's SSH agent. If steps 5 or 6 changed hosts/<name>,
+#  11. Log in to Tailscale, if the Mac is not logged in.
+#  12. Wait for you to turn on 1Password's SSH agent. If steps 5 or 6 changed hosts/<name>,
 #      commit it (signed, as every commit is) and push.
 # pipefail: a pipe fails when any of its commands fails, not only its last one. macOS's
 # /bin/sh is bash, which has it, and this script runs only on macOS.
@@ -254,7 +255,22 @@ main() {
   say "Switching again"
   sudo -H --preserve-env=NIX_CONFIG /run/current-system/sw/bin/darwin-rebuild switch --flake "$dir#$name" </dev/null
 
-  # 11. 1Password's SSH agent: SSH and commit signing use it. Then commit and push what steps 5
+  # 11. Tailscale, logged in as you (modules/darwin/tailscale.nix). macOS asks you to allow
+  # the app's network extension and VPN first, and the login is in the browser: `tailscale up`
+  # prints the link and waits. Each switch after this keeps the settings.
+  tailscale=/Applications/Tailscale.app/Contents/MacOS/Tailscale
+  if [ -x "$tailscale" ] && [ "$("$tailscale" status --json 2>/dev/null | jq -r .BackendState)" != Running ]; then
+    say "Logging in to Tailscale"
+    open -a Tailscale
+    echo "In Tailscale, and in System Settings if macOS asks: allow the system extension and"
+    echo "the VPN configuration."
+    printf 'Then press Enter here. Tailscale shows a link to log in with. '
+    read -r _ </dev/tty
+    tailnetName=$(jq -r '.name // empty' "$json")
+    "$tailscale" up --hostname="${tailnetName:-$name}" --accept-routes --accept-dns
+  fi
+
+  # 12. 1Password's SSH agent: SSH and commit signing use it. Then commit and push what steps 5
   # and 6 wrote. The commit is signed with the 1Password key (home/git.nix); the push goes over
   # HTTPS with gh's token.
   if ! SSH_AUTH_SOCK="$agent" ssh-add -l >/dev/null 2>&1; then

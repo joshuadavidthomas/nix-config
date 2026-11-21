@@ -1,6 +1,6 @@
 # Rex for Mac on every Mac: the app, the `rex` command, its settings, and the netrc that Rex's
 # flake input needs (docs/rex.md).
-{ config, osConfig, lib, pkgs, vars, configName, ... }:
+{ config, osConfig, lib, pkgs, vars, tailnetName, ... }:
 let
   # Rex for Mac, a beta without a cask or a Nix package. Testers download it after a Discord
   # login; the app then updates itself (Sparkle) from this feed. A copy that this module
@@ -90,7 +90,7 @@ in
 
   # The app's settings. targets.darwin.defaults writes only these keys (defaults import merges),
   # so the app's own state stays. The name of this Mac in Rex, and of its server on the
-  # tailnet, come from the configuration's name; a host can set its own.
+  # tailnet, come from the Mac's name on the tailnet (flake.nix).
   targets.darwin.defaults."com.superlogical.rex" = {
     "Workspace.activityGrouping" = "priority";
     "Workspace.activityGroupingResetToPriority" = true;
@@ -112,13 +112,13 @@ in
     "Workspace.terminalPaddingColor" = "extend";
     "Workspace.usesStandardInactiveWindowPaneStyles" = true;
     "rex.agents.names-sessions" = true;
-    "rex.client.label" = lib.mkDefault configName;
+    "rex.client.label" = tailnetName;
     "rex.client.remoteControl" = true;
     "rex.server.automatic-restart-enabled" = true;
     "rex.server.block-plugin-reload-enabled" = false;
     "rex.server.run-mode" = "bundled";
     "rex.server.tailnet-enabled" = true;
-    "rex.server.tailnet-hostname" = lib.mkDefault "${configName}-rex";
+    "rex.server.tailnet-hostname" = "${tailnetName}-rex";
     "rex.server.web-client-origin-patterns" = [ "https://rex.superlogical.com" ];
   };
 

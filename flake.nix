@@ -85,13 +85,16 @@
         });
 
       # the Macs: each hosts/<name> with a mac.json, which bootstrap.sh writes for a new Mac.
-      # It has the account name and the apps that were on the Mac before Homebrew
-      # (modules/darwin).
+      # It has the account name, the apps that were on the Mac before Homebrew
+      # (modules/darwin), and, if the Mac has one, its own name on the tailnet.
       darwinConfigurations = nixpkgs.lib.mapAttrs
-        (name: _: mkSystem name {
-          system = "aarch64-darwin";
-          user = (nixpkgs.lib.importJSON ./hosts/${name}/mac.json).user;
-        })
+        (name: _:
+          let mac = nixpkgs.lib.importJSON ./hosts/${name}/mac.json; in
+          mkSystem name {
+            system = "aarch64-darwin";
+            inherit (mac) user;
+            tailnetName = mac.name or name;
+          })
         (nixpkgs.lib.filterAttrs (name: type: type == "directory" && builtins.pathExists ./hosts/${name}/mac.json)
           (builtins.readDir ./hosts));
 

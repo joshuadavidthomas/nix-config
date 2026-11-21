@@ -24,9 +24,9 @@ If the install fails, the switch warns and continues. Apply again to retry.
   custom themes, `tokyonight_night` and `tokyonight_day` (`rex-themes.json`). The app keeps
   these as JSON data, so `rex-settings.py` writes them, and keeps the fields that the app
   learns when it connects.
-- The Mac's name in Rex and its server's name on the tailnet: the configuration's name, such
-  as `work-macbook` and `work-macbook-rex`. The Mac mini keeps `macmini` and `macmini-rex`
-  (`hosts/mac-mini/default.nix`).
+- The Mac's name in Rex and its server's name on the tailnet: the Mac's name on the tailnet,
+  such as `work-macbook` and `work-macbook-rex`. That is the configuration's name, or `name`
+  in the Mac's `mac.json`: the Mac mini's is `macmini`.
 
 The configuration owns these settings: a change in the app to one of them goes back at the
 next switch. Change them in `modules/darwin/rex.nix`. Quit Rex before you apply a change to

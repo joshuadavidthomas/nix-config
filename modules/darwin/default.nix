@@ -26,6 +26,7 @@ let
     "orbstack"
     "steipete/tap/codexbar"
     "t3-code@nightly"
+    "tailscale-app" # the standalone app; its own binary is the CLI (modules/darwin/tailscale.nix)
     "thaw" # replaces Ice
     "wezterm"
     "zed"

@@ -30,11 +30,4 @@
   homebrew.brews = [
     "cloudflared" # the micro-hunter tunnel above; Cloudflare supports a release for about a year
   ];
-
-  # Rex's names for this Mac from before modules/darwin/rex.nix, which the tailnet and the
-  # iPhone already know
-  home-manager.users.${vars.user}.targets.darwin.defaults."com.superlogical.rex" = {
-    "rex.client.label" = "macmini";
-    "rex.server.tailnet-hostname" = "macmini-rex";
-  };
 }

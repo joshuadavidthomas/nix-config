@@ -126,9 +126,13 @@ adopt, update or remove them on this Mac.
    Mac without Touch ID. The bootstrap copies the opnix token from 1Password and switches
    again. If 1Password still does not give the token, the bootstrap shows the error and
    asks again.
-10. When the bootstrap asks, turn on Settings > Developer > Use the SSH agent in 1Password.
-   Then, if the bootstrap changed `hosts/<name>`, it commits and pushes the change.
-11. Open a new terminal. From now on, `rebuild` applies changes.
+10. When the bootstrap shows `Logging in to Tailscale`, it opens Tailscale. Allow the system
+    extension and the VPN configuration, in Tailscale and in System Settings if macOS asks.
+    Press Enter, open the link that Tailscale shows, and log in. On a Mac that an employer
+    manages, a profile can block the extension; then only IT can allow it.
+11. When the bootstrap asks, turn on Settings > Developer > Use the SSH agent in 1Password.
+    Then, if the bootstrap changed `hosts/<name>`, it commits and pushes the change.
+12. Open a new terminal. From now on, `rebuild` applies changes.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.
@@ -138,7 +142,9 @@ already done.
 Each Mac is a directory `hosts/<name>/`:
 
 - `mac.json`: the account name, and `preinstalledCasks`, the apps that were on the Mac
-  before Homebrew. Homebrew leaves these apps alone on this Mac. The bootstrap writes this
+  before Homebrew. Homebrew leaves these apps alone on this Mac. `name`, if it is there, is
+  the Mac's name on the tailnet, in Tailscale and in Rex; without it, the name is
+  `<name>`. The bootstrap writes this
   file. `flake.nix` makes a configuration for each `hosts/<name>/` that has one.
 - `default.nix`, if the Mac has one: what only that Mac has, such as micro-hunter's services
   on the Mac mini.
