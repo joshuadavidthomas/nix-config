@@ -148,7 +148,8 @@ Each Mac is a directory `hosts/<name>/`:
 - `mac.json`: the account name, and `preinstalledCasks`, the apps that were on the Mac
   before Homebrew. Homebrew leaves these apps alone on this Mac. `name`, if it is there, is
   the Mac's name on the tailnet, in Tailscale and in Rex; without it, the name is
-  `<name>`. The bootstrap writes this
+  `<name>`. `icon`, if it is there, is the SF Symbol that the other Macs' Rex shows for this
+  Mac; without it, `laptopcomputer`. The bootstrap writes this
   file. `flake.nix` makes a configuration for each `hosts/<name>/` that has one.
 - `default.nix`, if the Mac has one: what only that Mac has, such as micro-hunter's services
   on the Mac mini.

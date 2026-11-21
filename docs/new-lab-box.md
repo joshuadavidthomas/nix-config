@@ -34,7 +34,7 @@ Skip this section if the lab box is in the repo already.
 3. Track the new files. Nix sees only the files that version control tracks.
 
 4. In `hosts/lab-2/default.nix`, set `networking.hostName = "lab-2";`.
-5. In `flake.nix`, add `"lab-2"` to `labs`.
+5. In `vars.nix`, add `"lab-2"` to `labs`.
 
 ## Prepare a new lab box
 

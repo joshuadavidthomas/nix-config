@@ -20,17 +20,24 @@ If the install fails, the switch warns and continues. Apply again to retry.
 
 - The appearance, the font and the local server's settings, with `targets.darwin.defaults`.
   A switch writes only these keys, so the app's own state stays.
-- The servers: lab-1, lab-2, lab-3 and the Steam Deck, at `<name>.<tailnet>:7297`, and the
-  custom themes, `tokyonight_night` and `tokyonight_day` (`rex-themes.json`). The app keeps
-  these as JSON data, so `rex-settings.py` writes them, and keeps the fields that the app
-  learns when it connects.
+- The servers: every Rex server on the tailnet but the Mac's own, from `lib/rex-servers.nix`.
+  That is each lab box in `vars.labs` and the Steam Deck, at `<name>.<tailnet>:7297`, and
+  each other Mac, at `https://<name>-rex.<tailnet>`. A new lab box or Mac shows up at the
+  next switch. Also the custom themes, `tokyonight_night` and `tokyonight_day`
+  (`rex-themes.json`). The app keeps these as JSON data in `RexSync.servers` and
+  `Workspace.customThemes`, so `rex-settings.py` writes them, and keeps the fields that the
+  app learns when it connects.
 - The Mac's name in Rex and its server's name on the tailnet: the Mac's name on the tailnet,
   such as `work-macbook` and `work-macbook-rex`. That is the configuration's name, or `name`
   in the Mac's `mac.json`: the Mac mini's is `macmini`.
 
 The configuration owns these settings: a change in the app to one of them goes back at the
-next switch. Change them in `modules/darwin/rex.nix`. Quit Rex before you apply a change to
-the servers or themes, because a running app can write its own copy back when it quits.
+next switch. Change them in `modules/darwin/rex.nix`, and the servers in `lib/rex-servers.nix`.
+Quit Rex before you apply a change to the servers or themes, because a running app can write
+its own copy back when it quits.
+
+Rex's own host list, which `rex hosts` and `rex.host` in `init.lua` change, is a different
+list. This version of Rex for Mac does not show it.
 
 ## What each box runs
 
@@ -63,10 +70,11 @@ https://lab-1.tail014d2.ts.net:7297
 Rex for iOS doesn't find the port by itself.
 
 The HTTPS certificate covers only the full name, so a bare `lab-1` gets `tls: internal error`.
-On the command line, `lab-1`, `lab-2` and `lab-3` are host labels for the full names, declared
-with `rex.host` in `home/files/rex/init.lua`, so `rex -S lab-1 ls` works on every machine. Those labels are for the CLI only: the apps keep
-their own host lists and don't read them. After a `rebuild`, run `rex config reload` so the
-running server reads the labels.
+On the command line, each server in `lib/rex-servers.nix` is a host label for its full
+name: `lab-1`, `steamdeck`, `macmini`. `home/cli.nix` writes them into
+`~/.config/rex/hosts.lua` with `rex.host`, and `init.lua` requires it, so `rex -S lab-1 ls`
+works on every machine. After a `rebuild`, run `rex config reload` so the running server
+reads the labels.
 
 You don't need `rex server tailscale pair`. It shows a QR code of the address of Rex's
 built-in Tailscale, which only a personal or shared server has, so on a box it says

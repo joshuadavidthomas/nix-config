@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, vars, ... }:
 let
   tokyonight = "${inputs.tokyonight}/extras";
   yaml = pkgs.formats.yaml { };
@@ -160,6 +160,11 @@ in
     source = ./files/rex;
     recursive = true;
   };
+  # The Rex servers on the tailnet, by their short names, for `rex -S lab-1` (lib/rex-servers.nix).
+  # init.lua requires it.
+  xdg.configFile."rex/hosts.lua".text = lib.concatMapStrings
+    (s: "rex.host{ label = ${builtins.toJSON s.name}, endpoint = ${builtins.toJSON s.url} }\n")
+    (import ../lib/rex-servers.nix lib vars);
 
   xdg.configFile."herdr/config.toml".source = toml.generate "herdr-config.toml" {
     onboarding = false;

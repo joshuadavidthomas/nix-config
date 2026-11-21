@@ -11,7 +11,8 @@
 | A tool or setting on every Mac | `modules/darwin/home.nix` |
 | Something that only one Mac has, such as a service | `hosts/<name>/default.nix` |
 | A Mac's account, or the apps that Homebrew leaves alone on it | `hosts/<name>/mac.json` |
-| Rex for Mac: its servers, themes or settings | `modules/darwin/rex.nix` |
+| Rex for Mac: its themes or settings | `modules/darwin/rex.nix` |
+| The Rex servers on the tailnet, for Rex for Mac and `rex -S` | `lib/rex-servers.nix` |
 | Tailscale's settings on the Macs | `modules/darwin/tailscale.nix` |
 | Tinycast's settings, hotkeys and extensions, and the Spotlight shortcut that they replace. The extensions' tokens are in the 1Password item "Tinycast extensions" | `modules/darwin/tinycast.nix` |
 | A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |

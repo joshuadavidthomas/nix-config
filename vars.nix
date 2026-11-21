@@ -20,6 +20,10 @@
   # the owner's Tailscale login, as the login servers name callers (hosts/deck, hosts/lab-*)
   tailscaleLogin = "tailscale:joshuadavidthomas@github";
 
+  # the homelab boxes, by hostname; each has a hosts/<name>, and flake.nix makes a NixOS
+  # configuration for each
+  labs = [ "lab-1" "lab-2" "lab-3" ];
+
   # the tailnet's DNS name: each machine on it is <name>.<tailnet> (docs/monitor.md)
   tailnet = "tail014d2.ts.net";
 }

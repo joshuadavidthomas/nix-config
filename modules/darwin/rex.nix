@@ -9,17 +9,11 @@ let
   rexTeam = "AG92C3PT77"; # Superlogical's Developer ID team
   rexApps = [ "/Applications/Rex.app" "/Applications/Rex Beta.app" ];
 
-  # The Rex servers that the app connects to, over the tailnet. Each id is the app's own,
-  # kept so that the app's records stay the same ones.
-  server = name: id: icon:
-    let url = "https://${name}.${vars.tailnet}:7297"; in
-    { inherit id name icon; acceptsAnonymousClients = false; locators = [ url ]; preferredURL = url; };
-  servers = [
-    (server "lab-1" "043146D3-9A9C-483D-B914-C49878E127D5" "server.rack")
-    (server "lab-2" "A5336183-E25A-4415-9539-3780DA0CBE19" "server.rack")
-    (server "lab-3" "6CA718F4-E90C-403B-9701-E9EDDD3D92B4" "server.rack")
-    (server "steamdeck" "FE35619C-F872-4330-82C2-42D24D022620" "desktopcomputer")
-  ];
+  # The Rex servers that the app connects to, over the tailnet: every one but this Mac's own
+  # (lib/rex-servers.nix).
+  servers = map
+    (s: { inherit (s) id name icon; acceptsAnonymousClients = false; locators = [ s.url ]; preferredURL = s.url; })
+    (lib.filter (s: s.name != tailnetName) (import ../../lib/rex-servers.nix lib vars));
 in
 {
   # Rex's own terminals get `rex` on PATH; this puts it everywhere else
