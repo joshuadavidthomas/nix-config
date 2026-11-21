@@ -133,6 +133,10 @@ adopt, update or remove them on this Mac.
 11. When the bootstrap asks, turn on Settings > Developer > Use the SSH agent in 1Password.
     Then, if the bootstrap changed `hosts/<name>`, it commits and pushes the change.
 12. Open a new terminal. From now on, `rebuild` applies changes.
+13. Tinycast starts after the second switch. Command-Space opens it; the switch turns off
+    Spotlight's shortcut. Complete its onboarding, and give it the access that it asks for.
+    Install its extensions, and sign in to them, in Tinycast: they are not in the
+    configuration.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.

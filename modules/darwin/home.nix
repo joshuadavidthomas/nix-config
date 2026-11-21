@@ -1,6 +1,6 @@
 { config, osConfig, lib, pkgs, inputs, vars, configName, ... }:
 {
-  imports = [ ./rex.nix ./tailscale.nix ];
+  imports = [ ./rex.nix ./tailscale.nix ./tinycast.nix ];
 
   # Apply this Mac's configuration from ~/.nix-config, whatever macOS calls the Mac; extra arguments pass through
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
