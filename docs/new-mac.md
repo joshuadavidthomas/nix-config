@@ -134,9 +134,9 @@ adopt, update or remove them on this Mac.
     Then, if the bootstrap changed `hosts/<name>`, it commits and pushes the change.
 12. Open a new terminal. From now on, `rebuild` applies changes.
 13. Tinycast starts after the second switch. Command-Space opens it; the switch turns off
-    Spotlight's shortcut. Complete its onboarding, and give it the access that it asks for.
-    Install its extensions, and sign in to them, in Tinycast: they are not in the
-    configuration.
+    Spotlight's shortcut. The switch also installs Tinycast's extensions from the Raycast
+    Store. Complete its onboarding, and give it the access that it asks for. Then sign in to
+    the extensions that ask for it, such as GitHub and Kagi.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is
 already done.

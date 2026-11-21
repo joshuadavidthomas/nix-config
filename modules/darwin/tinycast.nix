@@ -1,6 +1,16 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
   app = "/Applications/Tinycast.app";
+  extensions = [
+    "khasbilegt/1password"
+    "josephschmitt/gif-search"
+    "raycast/github"
+    "fearoffish/kagi-search"
+    "linear/linear"
+    "jlrochin/mole"
+    "marcjulian/obsidian"
+    "maggie/xkcd"
+  ];
 in
 {
   # Tinycast's settings, from the Mac mini. targets.darwin.defaults writes only these keys
@@ -29,6 +39,18 @@ in
     run /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys \
       -dict-add 64 '<dict><key>enabled</key><false/></dict>'
     run /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+  '';
+
+  # The extensions, from the Raycast Store, as handle/name: the store's lookup key, the
+  # manifest's owner or author. An install downloads the zip that the store built, the same as
+  # Tinycast's own store install (tinycast-extensions.py); Tinycast then updates them. Their
+  # preferences and sign-ins are set in Tinycast.
+  home.activation.tinycastExtensions = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -d ${app} ]; then
+      SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
+        run ${lib.getExe pkgs.python3} ${./tinycast-extensions.py} ${lib.escapeShellArgs extensions} \
+        || warnEcho "tinycast: could not install the extensions; run 'rebuild' again"
+    fi
   '';
 
   # Start Tinycast at login, and at the switch that installs it. The app's own login item is
