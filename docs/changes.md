@@ -11,6 +11,7 @@
 | A tool or setting on every Mac | `modules/darwin/home.nix` |
 | Something that only one Mac has, such as a service | `hosts/<name>/default.nix` |
 | A Mac's account, or the apps that Homebrew leaves alone on it | `hosts/<name>/mac.json` |
+| Helium: its extensions or settings | `modules/darwin/helium.nix` |
 | Rex for Mac: its themes or settings | `modules/darwin/rex.nix` |
 | The Rex servers on the tailnet, for Rex for Mac and `rex -S` | `lib/rex-servers.nix` |
 | Rex's skill and session hook in the coding agents | `home/agents.nix` (`rexSkill`) |

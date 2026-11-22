@@ -16,6 +16,7 @@ let
     "alt-tab"
     "anomalyco/tap/hex"
     "ghostty"
+    "helium-browser" # updates itself
     "jordanbaird-ice@beta" # until Thaw has replaced it
     "karabiner-elements"
     "linearmouse"
