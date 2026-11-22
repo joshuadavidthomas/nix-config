@@ -30,4 +30,15 @@ in
         || warnEcho "helium: could not set up its profile; run 'rebuild' again"
     fi
   '';
+
+  # Helium is the default web browser. macOS asks you to confirm the change, so the step runs
+  # only when Helium is not the default yet. defaultbrowser lists the browsers that macOS
+  # knows, and marks the default with *.
+  home.activation.heliumDefaultBrowser = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -d /Applications/Helium.app ] \
+      && ! ${lib.getExe pkgs.defaultbrowser} | grep -qx '\* helium'; then
+      run ${lib.getExe pkgs.defaultbrowser} helium \
+        || warnEcho "helium: could not make it the default browser; run 'rebuild' again"
+    fi
+  '';
 }
