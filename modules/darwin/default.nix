@@ -79,6 +79,7 @@ in
     "${config.homebrew.prefix}/bin"
     "${config.homebrew.prefix}/sbin"
     "${config.users.users.${vars.user}.home}/.lmstudio/bin" # lms, managed by LM Studio
+    "${config.users.users.${vars.user}.home}/.magnitude/bin" # magnitude, linked by the Magnitude app
   ];
 
   # GUI apps stay in Homebrew; Nix owns the CLI. Homebrew itself comes from its own installer

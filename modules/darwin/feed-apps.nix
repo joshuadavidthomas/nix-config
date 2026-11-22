@@ -32,6 +32,14 @@ let
       app = "Fastmail Beta.app";
       present = [ "/Applications/Fastmail Beta.app" ];
     };
+    # The newest stable release; GitHub's latest leaves out the prereleases.
+    Magnitude = {
+      kind = "zip";
+      feed = "https://github.com/magnitudedev/magnitude/releases/latest/download/magnitude-desktop-darwin-arm64.zip";
+      team = "8YCG6CT28C";
+      app = "Magnitude.app";
+      present = [ "/Applications/Magnitude.app" ];
+    };
   };
 in
 {
