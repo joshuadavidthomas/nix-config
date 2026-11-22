@@ -23,6 +23,7 @@ let
     "karabiner-elements"
     "linear"
     "linearmouse"
+    "lm-studio" # updates itself; its first launch installs lms to ~/.lmstudio/bin
     "monitorcontrol"
     "microsoft-teams"
     "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
