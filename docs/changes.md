@@ -24,6 +24,7 @@
 | A Mac app without a Homebrew cask that updates itself from a feed, such as Amp | `modules/darwin/feed-apps.nix` |
 | A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |
 | A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `modules/darwin/default.nix` |
+| A free font on the Macs, such as Allo. A licensed font, such as MonoLisa, is a secret | `fonts.packages` in `modules/darwin/default.nix` |
 | A macOS setting, or a key mapping | `system.defaults` or `system.keyboard` in `modules/darwin/default.nix` |
 | A work setting | `hosts/work-wsl/home.nix`. A system setting goes in `hosts/work-wsl/default.nix`. |
 | A system setting on all NixOS machines | `modules/nixos/default.nix` |

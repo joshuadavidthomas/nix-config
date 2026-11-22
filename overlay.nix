@@ -16,6 +16,7 @@ in
 {
   inherit (unstable)
     _1password-cli
+    allo
     atuin
     bun
     cargo-binstall

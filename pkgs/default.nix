@@ -1,6 +1,7 @@
 # Packages nixpkgs doesn't carry, or carries older than what's already in use.
 # Built on nixpkgs-unstable by ../overlay.nix.
 inputs: final: prev: {
+  allo = final.callPackage ./allo.nix { };
   atuin = final.callPackage ./atuin.nix { };
   lisette = final.callPackage ./lisette.nix { };
   llm = final.callPackage ./llm { inherit inputs; };

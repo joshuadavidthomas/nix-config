@@ -158,6 +158,9 @@ in
     remapCapsLockToEscape = true;
   };
 
+  # the fonts that are free; they go to /Library/Fonts/Nix Fonts
+  fonts.packages = [ pkgs.allo ];
+
   # MonoLisa is licensed, so it's kept in 1Password, not in the repo. macOS ignores symlinked
   # fonts, so opnix writes the files straight into ~/Library/Fonts.
   # you read /etc/opnix-token to give it to a lab box at install (docs/new-lab-box.md)
