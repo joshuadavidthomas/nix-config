@@ -35,14 +35,6 @@ in
     showInMenuBar = false;
   };
 
-  # Command-Space opens Tinycast, so Spotlight must not take it. 64 is "Show Spotlight search".
-  # -dict-add changes only this shortcut; activateSettings applies it without a logout.
-  home.activation.spotlightShortcut = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    run /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys \
-      -dict-add 64 '<dict><key>enabled</key><false/></dict>'
-    run /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-  '';
-
   # The extensions, from the Raycast Store, as handle/name: the store's lookup key, the
   # manifest's owner or author. An install downloads the zip that the store built, the same as
   # Tinycast's own store install; Tinycast then updates them. The preferences are the ones that
@@ -67,15 +59,4 @@ in
         || warnEcho "tinycast: could not set up the extensions; run 'rebuild' again"
     fi
   '';
-
-  # Start Tinycast at login, and at the switch that installs it. The app's own login item is
-  # set only from its onboarding, so it is not declarative. Opening a running Tinycast shows
-  # its window, so the agent opens it only when it is not running.
-  launchd.agents.tinycast = {
-    enable = true;
-    config = {
-      ProgramArguments = [ "/bin/sh" "-c" "[ -d ${app} ] && ! /usr/bin/pgrep -xq Tinycast && /usr/bin/open -g ${app}; exit 0" ];
-      RunAtLoad = true;
-    };
-  };
 }

@@ -14,21 +14,27 @@ let
     "1password" # updates itself; the first switch on a new Mac installs it
     "abue-ammar/tinycast/tinycast"
     "alt-tab"
-    "anomalyco/tap/hex"
+    "anomalyco/tap/hex" # its settings: modules/darwin/hex.nix
+    "chatgpt"
+    "claude"
+    "discord"
     "ghostty"
     "helium-browser" # updates itself
-    "jordanbaird-ice@beta" # until Thaw has replaced it
     "karabiner-elements"
+    "linear"
     "linearmouse"
     "monitorcontrol"
     "microsoft-teams"
     "moonlight" # the stream client for the Deck's Sunshine (docs/sunshine.md)
+    "obsidian"
     "omniwm"
+    "opencode-desktop"
     "orbstack"
+    "slack"
     "steipete/tap/codexbar"
     "t3-code@nightly"
     "tailscale-app" # the standalone app; its own binary is the CLI (modules/darwin/tailscale.nix)
-    "thaw" # replaces Ice
+    "thaw" # the menu bar manager; its settings: modules/darwin/thaw.nix
     "wezterm"
     "zed"
   ];
@@ -117,7 +123,38 @@ in
     fi
   '';
 
-  system.defaults.dock.autohide = true;
+  # macOS settings, from the Mac mini. The keyboard shortcuts are in home.nix.
+  system.defaults = {
+    dock.autohide = true;
+    NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
+      "com.apple.swipescrolldirection" = false; # natural scrolling off
+      "com.apple.sound.beep.volume" = 0.0; # alert sounds muted
+    };
+    finder = {
+      AppleShowAllFiles = true;
+      FXPreferredViewStyle = "clmv"; # column view
+      FXRemoveOldTrashItems = true; # empty the Trash after 30 days
+    };
+    WindowManager = {
+      EnableTiledWindowMargins = false;
+      HideDesktop = true; # no desktop items, except in Stage Manager
+    };
+    CustomUserPreferences = {
+      NSGlobalDomain."com.apple.sound.uiaudio.enabled" = 0; # no user interface sound effects
+      # no .DS_Store files on network shares and USB drives
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+    };
+  };
+
+  # Caps Lock is Escape, on every keyboard
+  system.keyboard = {
+    enableKeyMapping = true;
+    remapCapsLockToEscape = true;
+  };
 
   # MonoLisa is licensed, so it's kept in 1Password, not in the repo. macOS ignores symlinked
   # fonts, so opnix writes the files straight into ~/Library/Fonts.

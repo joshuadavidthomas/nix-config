@@ -16,10 +16,15 @@
 | The Rex servers on the tailnet, for Rex for Mac and `rex -S` | `lib/rex-servers.nix` |
 | Rex's skill and session hook in the coding agents | `home/agents.nix` (`rexSkill`) |
 | Tailscale's settings on the Macs | `modules/darwin/tailscale.nix` |
-| Tinycast's settings, hotkeys and extensions, and the Spotlight shortcut that they replace. The extensions' tokens are in the 1Password item "Tinycast extensions" | `modules/darwin/tinycast.nix` |
+| Tinycast's settings, hotkeys and extensions. The extensions' tokens are in the 1Password item "Tinycast extensions" | `modules/darwin/tinycast.nix` |
+| Hex's settings | `modules/darwin/hex-settings.json` |
+| Thaw's settings | `modules/darwin/thaw.nix` |
+| The apps that start at login | `modules/darwin/login-items.nix` |
+| A macOS keyboard shortcut that is off, such as Spotlight's Command-Space | `modules/darwin/shortcuts.nix` |
+| A Mac app without a Homebrew cask that updates itself from a feed, such as Amp | `modules/darwin/feed-apps.nix` |
 | A Mac app | `homebrew.casks` in `modules/darwin/default.nix` |
 | A Homebrew formula that nixpkgs lacks or trails, such as sentry-cli | `homebrew.brews` and `taps` in `modules/darwin/default.nix` |
-| A macOS setting | `system.defaults` in `modules/darwin/default.nix` |
+| A macOS setting, or a key mapping | `system.defaults` or `system.keyboard` in `modules/darwin/default.nix` |
 | A work setting | `hosts/work-wsl/home.nix`. A system setting goes in `hosts/work-wsl/default.nix`. |
 | A system setting on all NixOS machines | `modules/nixos/default.nix` |
 | A setting on all lab boxes | `modules/nixos/server.nix` |

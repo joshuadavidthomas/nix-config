@@ -141,7 +141,10 @@ adopt, update or remove them on this Mac.
     Helium and complete its onboarding; choose Kagi as the search engine. The switch already
     installed its extensions and set its layout and theme. Helium asks once to enable
     each extension: enable them, and sign in to each.
-15. Open Rex and complete its onboarding. The switch already installed Rex's agent skill.
+15. Hex, Thaw and Amp start after the switch, and at each login. Complete Hex's
+    onboarding and give each app the access that it asks for. Then run `rebuild` again: it
+    applies Hex's settings, which Hex creates at its first launch.
+16. Open Rex and complete its onboarding. The switch already installed Rex's agent skill.
     Give Rex the access that it asks for.
 
 You can run the bootstrap again at any time, with the same name. Each step skips what is

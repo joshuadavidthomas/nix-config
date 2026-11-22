@@ -10,7 +10,7 @@ Every Mac gets Rex for Mac. It is a beta, with no Homebrew cask and no Nix packa
 download it after a Discord login, and the app then updates itself from Superlogical's Sparkle
 feed. When the app is missing, the switch installs it from that feed: the newest DMG, only if
 the app's signature is valid and from Superlogical's Developer ID team (`AG92C3PT77`). The
-step is `rexApp` in `modules/darwin/rex.nix`. It installs `/Applications/Rex.app`; an older
+step is `feedApps` in `modules/darwin/feed-apps.nix`. It installs `/Applications/Rex.app`; an older
 copy named `Rex Beta.app` also counts, and the `rex` command uses whichever is there.
 
 If the install fails, the switch warns and continues. Apply again to retry.

@@ -1,6 +1,6 @@
 { config, osConfig, lib, pkgs, inputs, vars, configName, ... }:
 {
-  imports = [ ./helium.nix ./rex.nix ./tailscale.nix ./tinycast.nix ];
+  imports = [ ./feed-apps.nix ./helium.nix ./hex.nix ./login-items.nix ./rex.nix ./shortcuts.nix ./tailscale.nix ./thaw.nix ./tinycast.nix ];
 
   # Apply this Mac's configuration from ~/.nix-config, whatever macOS calls the Mac; extra arguments pass through
   # (e.g. `rebuild --rollback`). The first time, it copies the opnix token from 1Password
